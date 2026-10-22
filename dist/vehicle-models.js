@@ -14,7 +14,8 @@ export function prepareVehicleGeometry(root,id){
   }
   if(definition.profile==='nsx'){
     root.updateMatrixWorld(true);
-    for(const [name,front] of [['Circle.001_9',false],['Circle.002_19',true],['Circle.003_20',true],['Circle.004_21',false]]){
+    // The authored nose is +Z (rotated to gameplay -Z below): .001/.004 are the front axle.
+    for(const [name,front] of [['Circle.001_9',true],['Circle.002_19',false],['Circle.003_20',false],['Circle.004_21',true]]){
       const node=sourceNode(root,name);if(!node)throw new Error(`Missing NSX wheel ${name}`);
       const bounds=new THREE.Box3().setFromObject(node,true),size=bounds.getSize(new THREE.Vector3());
       const pivot=new THREE.Group();pivot.name=`WheelPivot_${name.replaceAll('.','')}`;pivot.position.copy(bounds.getCenter(new THREE.Vector3()));pivot.updateMatrixWorld();

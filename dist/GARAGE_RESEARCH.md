@@ -22,3 +22,6 @@ Loader research: Three.js GLTFLoader documentation https://threejs.org/docs/#exa
 One renderer/context, shared car geometry and textures across driving/home/garage. Only the selected garage clone is visible. The hidden garage is not updated. Four thumbnails render once at startup into one reused 256x144 target, then the target is disposed. No per-frame thumbnail rendering. Garage room uses authored baked lighting with no shadow casting. BMW retains 17 source meshes and NSX retains 38 source meshes to preserve correct transforms; correctness takes priority over unsafe merging. Added assets are eagerly loaded with the existing progress flow so every selection is ready and no driving-time network stall occurs.
 
 Tuning bars compare fictional arcade settings across this game's collection; they are not manufacturer performance specifications.
+
+## NSX axle correction
+The nose orientation correction had left the original front/rear wheel labels reversed. The steering pair is Circle.001_9 / Circle.004_21 (source +Z), not Circle.002_19 / Circle.003_20. A regression reads the shipped GLB node transforms and geometry accessor bounds, confirms the steering axle leads the rear axle along gameplay -Z, and checks that only front pivots receive steering. It fails against the prior mapping and passes with the correction. All four wheels retain rolling animation.

@@ -34,8 +34,8 @@ Both use `EXT_meshopt_compression` and `KHR_mesh_quantization`. Configure the of
 - Up: +Y. Browser QA corrected the initial raw-node inference: front bumper faces +Z. Rotate Y by PI to face gameplay -Z. Retain its original nested hierarchy rather than static batching.
 - Retain all meshes: Object_25's very large local translation is canceled by its parent transform and is part of the body. A local-space translation alone does not prove an object is scenery.
 - Raw complete bounds approximately x +/-.6618, y [.4398,1.305], z [-.6231,2.3651]. Normalize to 4.43 game metres length: approximately width 1.962, height 1.283.
-- Four authored wheel subtrees: `Circle.001_9` (+X rear), `Circle.002_19` (+X front), `Circle.003_20` (-X front), `Circle.004_21` (-X rear).
-- World-space wheel centers before normalization approximately x +/-.527, y .7199, z .0347 (front) or 1.7479 (rear). Authored node pivots sit near x +/-.69 and are offset from wheel centers. Recenter under a wrapper using the precise world geometry box center and attach the existing wheel subtree preserving its world transform. Then spin the wrapper around car X and steer front wrappers around car Y. Preserve wrapper subtrees during static batching.
+- Four authored wheel subtrees: `Circle.001_9` (+X front), `Circle.002_19` (+X rear), `Circle.003_20` (-X rear), `Circle.004_21` (-X front).
+- World-space wheel centers before normalization approximately x +/-.527, y .7199, z .0347 (rear) or 1.7479 (front). Authored node pivots sit near x +/-.69 and are offset from wheel centers. Recenter under a wrapper using the precise world geometry box center and attach the existing wheel subtree preserving its world transform. Then spin the wrapper around car X and steer front wrappers around car Y. Preserve wrapper subtrees during static batching.
 - Body paint material: `Material.003`.
 
 ## Performance / garage integration notes

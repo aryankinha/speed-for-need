@@ -159,3 +159,32 @@ test('NSX source front (+Z) is corrected to gameplay forward (-Z)',()=>{
   assert.ok(Math.abs(sourceFront.x)<1e-8);
   assert.ok(Math.abs(sourceFront.z+1)<1e-8);
 });
+
+test('shipped NSX steers the leading axle and leaves rear wheel steering fixed',()=>{
+  // Use the shipped GLB node transforms and POSITION accessor bounds, rather
+  // than synthetic wheel names that could repeat the same wrong axle labels.
+  const bytes=fs.readFileSync(new URL('../dist/assets/honda-nsx.glb',import.meta.url));
+  const json=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString());
+  const nodes=json.nodes.map(source=>{
+    const node=new THREE.Group();node.name=source.name||'';
+    if(source.matrix){node.matrix.fromArray(source.matrix);node.matrix.decompose(node.position,node.quaternion,node.scale);}
+    else{if(source.translation)node.position.fromArray(source.translation);if(source.rotation)node.quaternion.fromArray(source.rotation);if(source.scale)node.scale.fromArray(source.scale);}
+    if(source.mesh!==undefined)for(const primitive of json.meshes[source.mesh].primitives){
+      const accessor=json.accessors[primitive.attributes.POSITION];
+      const min=new THREE.Vector3().fromArray(accessor.min),max=new THREE.Vector3().fromArray(accessor.max);
+      const mesh=new THREE.Mesh(new THREE.BoxGeometry(...max.clone().sub(min).toArray()),new THREE.MeshBasicMaterial());mesh.position.copy(min.add(max).multiplyScalar(.5));node.add(mesh);
+    }
+    return node;
+  });
+  json.nodes.forEach((source,i)=>{for(const child of source.children||[])nodes[i].add(nodes[child]);});
+  const root=new THREE.Group();for(const index of json.scenes[json.scene||0].nodes)root.add(nodes[index]);
+  const prepared=prepareVehicleGeometry(root,'nsx');root.updateMatrixWorld(true);
+  const fronts=prepared.wheels.filter(w=>w.front),rears=prepared.wheels.filter(w=>!w.front);
+  assert.equal(fronts.length,2);assert.equal(rears.length,2);
+  const worldPosition=wheel=>wheel.node.getWorldPosition(new THREE.Vector3());
+  // Gameplay forward is -Z, so both steering wheels must lead both rear wheels.
+  assert.ok(Math.max(...fronts.map(w=>worldPosition(w).z))<Math.min(...rears.map(w=>worldPosition(w).z)),'rear axle was assigned front steering');
+  const before=prepared.wheels.map(w=>w.node.quaternion.clone());
+  for(const wheel of prepared.wheels)if(wheel.front)wheel.node.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(wheel.steerAxis,.3));
+  prepared.wheels.forEach((wheel,i)=>assert.equal(wheel.node.quaternion.angleTo(before[i])>.1,wheel.front));
+});
