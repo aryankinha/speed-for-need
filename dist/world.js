@@ -64,6 +64,8 @@ export async function buildWorld({scene,physics,models,random}){
     for(const side of [-1,1])addStatic(place(cone,r.x+Math.cos(r.heading)*side*3.3-r.fx*2,r.z-Math.sin(r.heading)*side*3.3-r.fz*2),'stunt-cone');
     const half=RAMP_SHAPE.width/2;
     if(obstacles.some(o=>o.actor.userData.kind!=='stunt-cone'&&o.box.max.x>r.x-half&&o.box.min.x<r.x+half&&o.box.max.z>Math.min(r.z,r.z+r.fz*RAMP_SHAPE.length)&&o.box.min.z<Math.max(r.z,r.z+r.fz*RAMP_SHAPE.length)))throw new Error(`Stunt ramp ${r.id} overlaps a world obstacle`);
+    // Ride replacement uses this same obstacle list to avoid spawning inside a ramp.
+    obstacles.push({box:new THREE.Box3().setFromObject(model,true),actor});
   }
   // Physical boundaries coincide with visible waterfront / outer retaining curbs.
   for(const x of [left,right]){slab(.4,.7,1340,x,.25,0,pavement);physics.addBox({x,z:0,width:.4,length:1340,userData:{kind:'boundary'}});}for(const z of [top,bottom]){slab(980,.7,.4,0,.25,z,pavement);physics.addBox({x:0,z,width:980,length:.4,userData:{kind:'boundary'}});}
