@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import {makeBeachGeometry} from './coast.js';
-import {RAMPS,STUNT_AREA} from './stunts.js';
-import {prepareRampModel,RAMP_SHAPE} from './ramp-model.js';
+import {RAMPS,STUNT_AREA,addRampColliders} from './stunts.js';
+import {prepareRampModel} from './ramp-model.js';
+import {BOOST_PADS} from './boost-pads.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
 const BATCH_CELL_M=220;
@@ -56,7 +57,7 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
       // Dedicated asphalt park: leave its southern entrance and runways open.
       // Flat paint marks the lot and runways without snagging a moving car.
       if(bz>450){
-        for(const r of RAMPS)for(const side of [-1,1])for(let z=r.z+7;z<STUNT_AREA.bottom-8;z+=7)slab(.15,.015,3,r.x+side*3.8,.034,z,white);
+        for(const r of RAMPS)for(const side of [-1,1])for(let z=r.z+7;z<r.z+22;z+=7)slab(.15,.015,3,r.x+side*(r.shape.width/2+.8),.034,z,white);
       }
       continue;
     }
@@ -74,24 +75,33 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   for(let i=0;i<5;i++){addStatic(place(cone,165+i*3,166.5),'cone');propCount++;}for(let i=0;i<3;i++){addStatic(place(barrier,172+i*3,163.8,Math.PI/2),'barrier');propCount++;}
   const stopT=normalize(models['road-sign-stop'],2.8,'y');for(const x of roadsX.slice(1))for(const z of roadsZ.filter((_,i)=>i%2===0))addStatic(place(stopT,x+12.5,z+19,Math.PI),'stop-sign',true,true);const highway=normalize(models['sign-highway-detailed'],5,'y');addStatic(place(highway,-429,-135,Math.PI/2),'highway-sign',true,true);
   // One small text atlas marks the three lanes; flush paint adds no collision bodies.
-  const labels=document.createElement('canvas');labels.width=512;labels.height=384;const labelContext=labels.getContext('2d');labelContext.fillStyle='#f8bd4a';labelContext.textAlign='center';labelContext.textBaseline='middle';labelContext.font='bold 58px sans-serif';
-  for(let i=0;i<RAMPS.length;i++)labelContext.fillText(['JUMP','360 SPIN','BARREL ROLL'][i],256,i*128+64,490);
+  const labels=document.createElement('canvas');labels.width=512;labels.height=128*RAMPS.length;const labelContext=labels.getContext('2d');labelContext.fillStyle='#f8bd4a';labelContext.textAlign='center';labelContext.textBaseline='middle';labelContext.font='bold 58px sans-serif';
+  for(let i=0;i<RAMPS.length;i++)labelContext.fillText(RAMPS[i].label,256,i*128+64,490);
   const labelMaterial=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(labels),alphaTest:.25,side:THREE.DoubleSide});labelMaterial.map.colorSpace=THREE.SRGBColorSpace;
-  for(let i=0;i<RAMPS.length;i++){const r=RAMPS[i],geometry=new THREE.PlaneGeometry(16,3),uv=geometry.attributes.uv;for(let v=0;v<uv.count;v++)uv.setY(v,(2-i+uv.getY(v))/3);const label=new THREE.Mesh(geometry,labelMaterial);label.rotation.x=-Math.PI/2;label.position.set(r.x,.055,r.z+13);label.userData.surface=true;label.updateMatrixWorld(true);batchMesh(label);}
+  for(let i=0;i<RAMPS.length;i++){const r=RAMPS[i],geometry=new THREE.PlaneGeometry(16,3),uv=geometry.attributes.uv;for(let v=0;v<uv.count;v++)uv.setY(v,(RAMPS.length-1-i+uv.getY(v))/RAMPS.length);const label=new THREE.Mesh(geometry,labelMaterial);label.rotation.x=-Math.PI/2;label.position.set(r.x,.055,r.z+13);label.userData.surface=true;label.updateMatrixWorld(true);batchMesh(label);}
   // The downloaded Kenney ramp is reused three times. Toe and deck profile
   // share dimensions with the fixed-step jump layer; no generated ramp model.
-  const rampTemplate=prepareRampModel(models['stunt-ramp']);
+  // One Kenney model per distinct profile, scaled to that profile; colliders come from the same profiles.
+  const rampTemplates=new Map(RAMPS.map(r=>[r.shape,prepareRampModel(models['stunt-ramp'],r.shape)]));const rampActors=addRampColliders(physics);
+  // Spin ramps wear a cyan-tinted copy of the Kenney material, so the 360 lanes read apart from the jump and mega.
+  const spinTints=new Map();
   for(const r of RAMPS){
-    const model=place(rampTemplate,r.x,r.z,r.heading);model.position.y=.025;model.updateMatrixWorld(true);
+    const model=place(rampTemplates.get(r.shape),r.x,r.z,r.heading);model.position.y=.025;model.updateMatrixWorld(true);
+    if(r.variant==='spin')model.traverse(o=>{if(o.isMesh){if(!spinTints.has(o.material)){const tinted=o.material.clone();tinted.color.multiply(new THREE.Color(0x6fe3ff));spinTints.set(o.material,tinted);}o.material=spinTints.get(o.material);}});
     model.traverse(o=>{if(o.isMesh)batchMesh(o);});
-    const actor=physics.addBox({x:r.x+r.fx*RAMP_SHAPE.length/2,z:r.z+r.fz*RAMP_SHAPE.length/2,width:RAMP_SHAPE.width,length:RAMP_SHAPE.length,heading:r.heading,userData:{kind:'stunt-ramp',rampId:r.id}});actor.maxY=RAMP_SHAPE.height+.025;
+    const actor=rampActors[RAMPS.indexOf(r)];
     // Flush entry guides preserve the full approach and turning clearance.
-    for(const side of [-1,1])slab(.25,.015,5,r.x+Math.cos(r.heading)*side*3.3-r.fx*2,.034,r.z-Math.sin(r.heading)*side*3.3-r.fz*2,yellow);
-    const half=RAMP_SHAPE.width/2;
-    if(obstacles.some(o=>o.box.max.x>r.x-half&&o.box.min.x<r.x+half&&o.box.max.z>Math.min(r.z,r.z+r.fz*RAMP_SHAPE.length)&&o.box.min.z<Math.max(r.z,r.z+r.fz*RAMP_SHAPE.length)))throw new Error(`Stunt ramp ${r.id} overlaps a world obstacle`);
+    for(const side of [-1,1])slab(.25,.015,5,r.x+Math.cos(r.heading)*side*(r.shape.width/2+1)-r.fx*2,.034,r.z-Math.sin(r.heading)*side*(r.shape.width/2+1)-r.fz*2,yellow);
+    const half=r.shape.width/2;
+    if(obstacles.some(o=>o.box.max.x>r.x-half&&o.box.min.x<r.x+half&&o.box.max.z>Math.min(r.z,r.z+r.fz*r.shape.length)&&o.box.min.z<Math.max(r.z,r.z+r.fz*r.shape.length)))throw new Error(`Stunt ramp ${r.id} overlaps a world obstacle`);
     // Ride replacement uses this same obstacle list to avoid spawning inside a ramp.
     obstacles.push({box:new THREE.Box3().setFromObject(model,true),actor});
   }
+  // Boost pads: one shared chevron texture and one material, so all pads batch into the static geometry.
+  const chevrons=document.createElement('canvas');chevrons.width=64;chevrons.height=256;const chevronContext=chevrons.getContext('2d');chevronContext.fillStyle='#f8bd4a';
+  for(let y=16;y<240;y+=56){chevronContext.beginPath();chevronContext.moveTo(6,y+30);chevronContext.lineTo(32,y);chevronContext.lineTo(58,y+30);chevronContext.lineTo(58,y+42);chevronContext.lineTo(32,y+12);chevronContext.lineTo(6,y+42);chevronContext.closePath();chevronContext.fill();}
+  const chevronMaterial=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(chevrons),transparent:true,alphaTest:.3});chevronMaterial.map.colorSpace=THREE.SRGBColorSpace;
+  for(const p of BOOST_PADS){const pad=new THREE.Mesh(new THREE.BoxGeometry(p.width,.02,p.length),chevronMaterial);pad.position.set(p.x,.04,p.z);pad.rotation.y=p.heading;pad.userData.surface=true;pad.updateMatrixWorld(true);batchMesh(pad);pad.geometry.dispose();}
   // Physical boundaries coincide with visible waterfront / outer retaining curbs.
   for(const x of [left,right]){slab(.4,.7,1340,x,.25,0,pavement);physics.addBox({x,z:0,width:.4,length:1340,userData:{kind:'boundary'}});}for(const z of [top,bottom]){slab(980,.7,.4,0,.25,z,pavement);physics.addBox({x:0,z,width:980,length:.4,userData:{kind:'boundary'}});}
   // Four continuous beach sides and one ocean surface beneath the island.

@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createDrivingWorld} from '../dist/physics.js';
-import {StuntSystem,RAMPS,STUNT_AREA,rampSurface,rampProgress,rampLateral} from '../dist/stunts.js';
+import {StuntSystem,RAMPS,STUNT_AREA,rampSurface,rampProgress,rampLateral,addRampColliders} from '../dist/stunts.js';
 import {RAMP_SHAPE} from '../dist/ramp-model.js';
+// The stunt park's own lanes. The perimeter spin ramp is tested separately.
+const PARK=RAMPS.filter(r=>r.x>STUNT_AREA.left&&r.x<STUNT_AREA.right&&r.z>STUNT_AREA.top&&r.z<STUNT_AREA.bottom);
 
 const near=(a,b,tolerance=1e-6)=>assert.ok(Math.abs(a-b)<tolerance,`${a} != ${b}`);
 const storage=()=>{const values=new Map();return {getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)};};
 function setup(ramp=RAMPS[0]){
   const world=createDrivingWorld();
-  for(const r of RAMPS){const obstacle=world.addBox({x:r.x+r.fx*RAMP_SHAPE.length/2,z:r.z+r.fz*RAMP_SHAPE.length/2,width:RAMP_SHAPE.width,length:RAMP_SHAPE.length,heading:r.heading,userData:{rampId:r.id}});obstacle.maxY=RAMP_SHAPE.height;}
+  addRampColliders(world);
   const car=world.addVehicle({x:ramp.x-ramp.fx*8,z:ramp.z-ramp.fz*8,heading:ramp.heading,height:1.3});
   const saved=storage(),stunts=new StuntSystem(RAMP_SHAPE,saved);stunts.reset(car);
   const advance=(seconds,hz=60,inspect=()=>{})=>{for(let i=0;i<seconds*hz;i++)world.step(1/hz,()=>stunts.beginStep(car),dt=>{stunts.step(car,dt);inspect();});};
@@ -20,7 +22,7 @@ test('every placed ramp accepts a forward toe entry and completes a recorded jum
   for(const r of RAMPS){
     const {car,stunts,saved,advance}=setup(r);car.setPose({x:car.x,z:car.z,heading:r.heading,vx:r.fx*28,vz:r.fz*28});car.setControls({throttle:1});
     let maximum=0,airborne=false,impact=0;advance(5,60,()=>{maximum=Math.max(maximum,car.elevation);airborne ||= car.isAirborne;impact=Math.max(impact,stunts.landingImpact);finite(car);});
-    assert.ok(airborne,r.id);assert.ok(maximum>RAMP_SHAPE.height,r.id);assert.equal(car.isAirborne,false);near(car.elevation,0);assert.equal(stunts.landings,1);assert.ok(stunts.lastDistance>10);assert.ok(impact>0);near(Number(saved.getItem('speed-for-need-jump-best')),stunts.best);
+    assert.ok(airborne,r.id);assert.ok(maximum>r.shape.height,r.id);assert.equal(car.isAirborne,false);near(car.elevation,0);assert.equal(stunts.landings,1);assert.ok(stunts.lastDistance>10);assert.ok(impact>0);near(Number(saved.getItem('speed-for-need-jump-best')),stunts.best);
   }
 });
 
@@ -29,7 +31,7 @@ test('ramp entry rejects sideways and high-lip approaches',()=>{
   for(const pose of [
     {x:r.x,z:r.z,heading:Math.PI/2,vx:-20,vz:0},
     {x:r.x+r.fx*(RAMP_SHAPE.length+2),z:r.z+r.fz*(RAMP_SHAPE.length+2),heading:Math.PI,vx:0,vz:20},
-    {x:r.x+RAMP_SHAPE.width/2,z:r.z,heading:0,vx:0,vz:-20},
+    {x:r.x+r.shape.width/2+.95,z:r.z,heading:0,vx:0,vz:-20},
   ]){const {car,stunts}=setup(r);car.setPose(pose);stunts.beginStep(car);assert.equal(car.rampId,null,JSON.stringify(pose));assert.equal(car.isAirborne,false);}
 });
 
@@ -76,16 +78,16 @@ test('airborne and ground vehicles collide when their height ranges overlap',()=
 test('rejected side and high-lip entries remain solid ramp collisions',()=>{
   const r=RAMPS[0];
   for(const approach of [
-    {pose:{x:r.x-10,z:r.z-5,heading:-Math.PI/2,vx:30,vz:0},stopped:car=>car.x<r.x-RAMP_SHAPE.width/2-2},
-    {pose:{x:r.x,z:r.z-18,heading:Math.PI,vx:0,vz:30},stopped:car=>car.z<r.z-RAMP_SHAPE.length-2},
+    {pose:{x:r.x-10,z:r.z-5,heading:-Math.PI/2,vx:30,vz:0},stopped:car=>car.x<r.x-r.shape.width/2-2},
+    {pose:{x:r.x,z:r.z-18,heading:Math.PI,vx:0,vz:30},stopped:car=>car.z<r.z-r.shape.length-2},
   ]){const {car,stunts,advance}=setup(r);car.setPose(approach.pose);advance(1,60,()=>{assert.equal(car.rampId,null);near(car.elevation,0);finite(car);});assert.ok(approach.stopped(car),JSON.stringify(car.state));assert.equal(stunts.landings,0);}
 });
 
 
 test('ramps and their runways sit within the dedicated park, clear of traffic roads',()=>{
-  for(const r of RAMPS){
-    assert.ok(r.x-RAMP_SHAPE.width/2>STUNT_AREA.left&&r.x+RAMP_SHAPE.width/2<STUNT_AREA.right);
-    assert.ok(r.z-RAMP_SHAPE.length>STUNT_AREA.top&&r.z+30<STUNT_AREA.bottom);
+  for(const r of PARK){
+    assert.ok(r.x-r.shape.width/2>STUNT_AREA.left&&r.x+r.shape.width/2<STUNT_AREA.right);
+    assert.ok(r.z-r.shape.length>STUNT_AREA.top&&r.z+30<STUNT_AREA.bottom);
     for(const road of [-450,-300,-150,0,150,300,450])assert.ok(Math.abs(r.x-road)>16);
     for(const road of [-600,-450,-300,-150,0,150,300,450,600])assert.ok(Math.abs(r.z-road)>16);
   }
@@ -119,7 +121,7 @@ test('slow traversals reach the authored lip, land, and can re-enter repeatedly'
 
 
 test('maximum boosted launches land fully inside the dedicated stunt strip',()=>{
-  for(const r of RAMPS){const {car,stunts,advance}=setup(r);car.setPose({x:r.x,z:r.z+8,heading:r.heading,vx:r.fx*65,vz:r.fz*65});car.setControls({throttle:1,boost:true});
+  for(const r of PARK){const {car,stunts,advance}=setup(r);car.setPose({x:r.x,z:r.z+8,heading:r.heading,vx:r.fx*65,vz:r.fz*65});car.setControls({throttle:1,boost:true});
     let sawFlight=false,landing=null;
     advance(4,60,()=>{if(car.isAirborne)sawFlight=true;else if(sawFlight&&!landing)landing={x:car.x,z:car.z};finite(car);});
     assert.ok(sawFlight);assert.ok(landing);assert.equal(stunts.landings,1);

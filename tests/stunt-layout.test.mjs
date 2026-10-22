@@ -20,7 +20,7 @@ test('real stunt park has no cone colliders or perimeter obstacles and keeps con
   const names=Array.from({length:14},(_,i)=>`building-${String.fromCharCode(97+i)}`).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','building-skyscraper-d','building-skyscraper-e','stunt-ramp','tree-palmdetailedtall','light-curved','traffic-light','bench','planter','dumpster','construction-cone','construction-barrier','road-sign-stop','sign-highway-detailed','rock-largea']);
   const models=Object.fromEntries(await Promise.all(names.map(async name=>[name,await loadVehicleGeometry(name)])));
   const originalDocument=globalThis.document,originalLoad=THREE.TextureLoader.prototype.loadAsync;
-  globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}),putImageData(){},fillText(){}})})};
+  globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}),putImageData(){},fillText(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){}})})};
   THREE.TextureLoader.prototype.loadAsync=async()=>new THREE.Texture();
   try{
     const physics=createDrivingWorld();
@@ -28,7 +28,27 @@ test('real stunt park has no cone colliders or perimeter obstacles and keeps con
     assert.equal(physics.objects.filter(o=>o.userData?.kind==='stunt-cone').length,0);
     assert.equal(physics.objects.filter(o=>o.userData?.kind==='cone').length,5);
     const parkObstacles=world.obstacles.filter(o=>o.actor.x>STUNT_AREA.left&&o.actor.x<STUNT_AREA.right&&o.actor.z>STUNT_AREA.top&&o.actor.z<STUNT_AREA.bottom);
-    assert.equal(parkObstacles.length,RAMPS.length);
+    assert.equal(parkObstacles.length,RAMPS.filter(r=>r.x>STUNT_AREA.left&&r.x<STUNT_AREA.right&&r.z>STUNT_AREA.top&&r.z<STUNT_AREA.bottom).length);
     assert.ok(parkObstacles.every(o=>o.actor.userData?.kind==='stunt-ramp'));
+  }finally{globalThis.document=originalDocument;THREE.TextureLoader.prototype.loadAsync=originalLoad;}
+});
+
+test('boost pads and their approaches sit clear of every collider in the real world',async()=>{
+  const {BOOST_PADS}=await import('../dist/boost-pads.js');
+  const names=Array.from({length:14},(_,i)=>`building-${String.fromCharCode(97+i)}`).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','building-skyscraper-d','building-skyscraper-e','stunt-ramp','tree-palmdetailedtall','light-curved','traffic-light','bench','planter','dumpster','construction-cone','construction-barrier','road-sign-stop','sign-highway-detailed','rock-largea']);
+  const models=Object.fromEntries(await Promise.all(names.map(async name=>[name,await loadVehicleGeometry(name)])));
+  const originalDocument=globalThis.document,originalLoad=THREE.TextureLoader.prototype.loadAsync;
+  globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}),putImageData(){},fillText(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){}})})};
+  THREE.TextureLoader.prototype.loadAsync=async()=>new THREE.Texture();
+  try{
+    const physics=createDrivingWorld();
+    await buildWorld({scene:new THREE.Scene(),physics,models,random:()=>.4});
+    for(const pad of BOOST_PADS){
+      // A probe with the car's footprint, centred on the pad, must overlap nothing solid.
+      const probe=physics.addVehicle({x:pad.x,z:pad.z,heading:pad.heading});
+      const blockers=physics.objects.filter(o=>o!==probe&&physics.overlaps(probe,o));
+      physics.remove(probe);
+      assert.deepEqual(blockers.map(o=>o.userData?.kind),[],`${pad.id} is blocked`);
+    }
   }finally{globalThis.document=originalDocument;THREE.TextureLoader.prototype.loadAsync=originalLoad;}
 });

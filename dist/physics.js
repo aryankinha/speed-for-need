@@ -18,7 +18,7 @@
  * impulse/position solving. No center-point tests, padded obstacle boxes, scalar
  * speed reversals, or traffic teleports are involved in normal simulation.
  */
-import {World, Vec2, Box, Circle, testOverlap} from './vendor/planck.mjs';
+import {World, Vec2, Box, Circle, PolygonShape, testOverlap} from './vendor/planck.mjs';
 
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const finite=(value,fallback)=>Number.isFinite(value)?value:fallback;
@@ -42,6 +42,12 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     if(!(width>0&&length>0))throw new RangeError('Collider dimensions must be positive.');
     const b=rawWorld.createBody({position:Vec2(x,z),angle:-heading});
     return register(b,b.createFixture(Box(width/2,length/2),{friction,restitution}),userData,'box');
+  };
+  // Convex outline in body-local metres (heading applied like addBox). Used for chamfered ramp toes.
+  api.addPolygon=({x=0,z=0,heading=0,vertices,friction=.25,restitution=.06,userData}={})=>{
+    if(!(Array.isArray(vertices)&&vertices.length>=3))throw new RangeError('Collider needs at least three vertices.');
+    const b=rawWorld.createBody({position:Vec2(x,z),angle:-heading});
+    return register(b,b.createFixture(PolygonShape(vertices.map(([a,c])=>Vec2(a,c))),{friction,restitution}),userData,'box');
   };
   api.addCircle=({x=0,z=0,radius,friction=.3,userData}={})=>{
     if(!(radius>0))throw new RangeError('Collider radius must be positive.');
@@ -95,7 +101,8 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
 
   function controlVehicle(actor,dt){
     const {body,config:c,controls:k,target}=actor;
-    if(actor.isAirborne){body.applyTorque(body.getInertia()*clamp(-body.getAngularVelocity()*2,-1.5,1.5),true);return;}
+    // A flank exit held on the ground (groundHold) keeps the driver's throttle, brake and steer.
+    if(actor.isAirborne&&!actor.groundHold){body.applyTorque(body.getInertia()*clamp(-body.getAngularVelocity()*2,-1.5,1.5),true);return;}
     const h=-body.getAngle(),sin=Math.sin(h),cos=Math.cos(h),forward=Vec2(-sin,-cos),right=Vec2(cos,-sin);
     const velocity=body.getLinearVelocity(),mass=body.getMass();
     if(target){
