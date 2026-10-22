@@ -3,7 +3,7 @@
 // Applied at fixed physics frequency; self-centering is quicker than turn-in.
 export function smoothSteering(value,target,speed,dt){
   const center=target===0||value*target<0;
-  const response=center?10:7/(1+Math.max(0,speed)/36);
+  const response=center?15:12/(1+Math.max(0,speed)/60);
   return value+(target-value)*(1-Math.exp(-response*Math.max(0,dt)));
 }
 export class RenderQuality {

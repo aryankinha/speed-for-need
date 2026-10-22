@@ -23,7 +23,7 @@ import {World, Vec2, Box, Circle, testOverlap} from './vendor/planck.mjs';
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const finite=(value,fallback)=>Number.isFinite(value)?value:fallback;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
-const BASE={width:1.9,length:4.5,mass:1450,wheelbase:2.7,maxSpeed:55,boostSpeed:69,reverseSpeed:10,acceleration:8.2,boostAcceleration:12.5,brakeAcceleration:23,grip:13,steerAngle:.55};
+const BASE={width:1.9,length:4.5,mass:1450,wheelbase:2.7,maxSpeed:55,boostSpeed:69,reverseSpeed:10,acceleration:8.2,boostAcceleration:12.5,brakeAcceleration:23,grip:22,steerAngle:.62};
 
 export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
   const rawWorld=new World({gravity:Vec2(0,0),allowSleep:true});
@@ -34,6 +34,8 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
 
   function register(body,fixture,data,type){
     const actor={id:nextId++,body,fixture,userData:data,type};
+    Object.defineProperty(actor,'x',{get(){return body.getPosition().x;}});
+    Object.defineProperty(actor,'z',{get(){return body.getPosition().y;}});
     body.setUserData(actor);byRaw.set(body,actor);objects.push(actor);return actor;
   }
   api.addBox=({x=0,z=0,width,length,heading=0,friction=.25,restitution=.06,userData}={})=>{
@@ -59,6 +61,19 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     actor.setPose=({x=0,z=0,heading=0,vx=0,vz=0}={})=>{
       body.setTransform(Vec2(x,z),-heading);body.setLinearVelocity(Vec2(vx,vz));body.setAngularVelocity(0);body.setAwake(true);actor.target=null;
       Object.assign(actor.controls,{throttle:0,reverse:0,brake:0,steer:0,handbrake:false,boost:false});
+    };
+    Object.defineProperty(actor,'heading',{get(){return -body.getAngle();}});
+    Object.defineProperty(actor,'vx',{get(){return body.getLinearVelocity().x;}});
+    Object.defineProperty(actor,'vz',{get(){return body.getLinearVelocity().y;}});
+    Object.defineProperty(actor,'speed',{get(){const v=body.getLinearVelocity();return Math.hypot(v.x,v.y);}});
+    Object.defineProperty(actor,'forwardSpeed',{get(){const v=body.getLinearVelocity(),h=-body.getAngle();return -v.x*Math.sin(h)-v.y*Math.cos(h);}});
+    Object.defineProperty(actor,'lateralSpeed',{get(){const v=body.getLinearVelocity(),h=-body.getAngle();return v.x*Math.cos(h)-v.y*Math.sin(h);}});
+    Object.defineProperty(actor,'yawRate',{get(){return -body.getAngularVelocity();}});
+    actor.copyState=(target={})=>{
+      const p=body.getPosition(),v=body.getLinearVelocity(),h=-body.getAngle(),s=Math.sin(h),c=Math.cos(h);
+      target.x=p.x;target.z=p.y;target.heading=h;target.vx=v.x;target.vz=v.y;
+      target.speed=Math.hypot(v.x,v.y);target.forwardSpeed=-v.x*s-v.y*c;target.lateralSpeed=v.x*c-v.y*s;target.yawRate=-body.getAngularVelocity();
+      return target;
     };
     Object.defineProperty(actor,'state',{get(){const p=body.getPosition(),v=body.getLinearVelocity(),h=-body.getAngle(),s=Math.sin(h),c=Math.cos(h);return {x:p.x,z:p.y,heading:h,vx:v.x,vz:v.y,speed:Math.hypot(v.x,v.y),forwardSpeed:-v.x*s-v.y*c,lateralSpeed:v.x*c-v.y*s,yawRate:-body.getAngularVelocity()};}});
     vehicles.push(actor);return actor;
@@ -97,15 +112,17 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     // clamps speed to a different cap in one frame.
     acceleration-=Math.sign(vf)*Math.min(.22+vf*vf*.0012,Math.abs(vf)/dt);
     if(k.handbrake&&Math.abs(vf)>.01)acceleration-=Math.sign(vf)*Math.min(6,Math.abs(vf)/dt);
-    const lateralAccel=clamp(-vr*(k.handbrake?1.25:9),-(k.handbrake?2.6:c.grip),k.handbrake?2.6:c.grip);
+    const lateralAccel=clamp(-vr*(k.handbrake?1.5:14),-(k.handbrake?3.0:c.grip),k.handbrake?3.0:c.grip);
     body.applyForceToCenter(Vec2(mass*(forward.x*acceleration+right.x*lateralAccel),mass*(forward.y*acceleration+right.y*lateralAccel)),true);
-    // Kinematic bicycle yaw target, reduced at speed by a bounded lateral grip.
+    // Kinematic bicycle yaw target with bidirectional low-speed assist and arcade grip authority.
     const steer=clamp(finite(k.steer,0),-1,1);
-    const steerAngle=c.steerAngle/(1+Math.abs(vf)/24);
-    const desiredYaw=vf/c.wheelbase*Math.tan(steer*steerAngle);
-    const yawLimit=(k.handbrake?15:c.grip)/Math.max(Math.abs(vf),4);
+    const steerAngle=c.steerAngle/(1+Math.abs(vf)/44);
+    const dir=vf!==0?Math.sign(vf):(k.throttle?1:(k.reverse?-1:0));
+    const effSpeed=dir*Math.max(Math.abs(vf),(k.throttle||k.reverse)?4.5:0);
+    const desiredYaw=effSpeed/c.wheelbase*Math.tan(steer*steerAngle);
+    const yawLimit=(k.handbrake?28:c.grip)/Math.max(Math.abs(vf),4.5)+(k.handbrake?1.2:0.85);
     const targetYaw=clamp(desiredYaw,-yawLimit,yawLimit);
-    body.applyTorque(body.getInertia()*clamp((-targetYaw-body.getAngularVelocity())*(k.handbrake?4.5:7),-7,7),true);
+    body.applyTorque(body.getInertia()*clamp((-targetYaw-body.getAngularVelocity())*(k.handbrake?5.5:8.5),-9.5,9.5),true);
   }
 
   api.step=(frameDt,beforeStep)=>{
