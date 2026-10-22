@@ -9,7 +9,7 @@ export const WORLD={left:-490,right:490,top:-670,bottom:670,shore:-486,roadsX:[-
 export function normalize(root,length,axis='z'){
   root.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(root,true);const dimensions=b.getSize(new THREE.Vector3());const group=new THREE.Group();group.add(root);root.scale.multiplyScalar(length/dimensions[axis]);root.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(root,true);const center=b.getCenter(new THREE.Vector3());root.position.x-=center.x;root.position.z-=center.z;root.position.y-=b.min.y;group.updateMatrixWorld(true);return group;
 }
-export async function buildWorld({scene,physics,models,random}){
+export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const {left,right,top,bottom,roadsX,roadsZ}=WORLD;
   const obstacles=[],buildingLots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
   const material=(color,roughness=.9)=>new THREE.MeshStandardMaterial({color,roughness});
@@ -19,6 +19,7 @@ export async function buildWorld({scene,physics,models,random}){
     mesh.updateWorldMatrix(true,false);if(!mesh.geometry)return;
     const cell=`${Math.floor(mesh.matrixWorld.elements[12]/BATCH_CELL_M)},${Math.floor(mesh.matrixWorld.elements[14]/BATCH_CELL_M)}`;
     const geo=mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);let material=mesh.material;
+    if(material.userData.worldTiled){const position=geo.attributes.position,uv=new Float32Array(position.count*2);for(let i=0;i<position.count;i++){uv[i*2]=position.getX(i)/3;uv[i*2+1]=-position.getZ(i)/3;}geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));}
     if(material.userData.cityAtlas){const colors=new Float32Array(geo.attributes.position.count*3);for(let i=0;i<colors.length;i+=3){colors[i]=material.color.r;colors[i+1]=material.color.g;colors[i+2]=material.color.b;}geo.setAttribute('color',new THREE.BufferAttribute(colors,3));material=cityMaterial;}
     const casts=mesh.userData.surface!==true;const key=cell+'|'+material.uuid+'|'+casts+'|'+(geo.index?'i':'n')+'|'+Object.keys(geo.attributes).join(',');let bin=batches.get(key);if(!bin)batches.set(key,bin={material,casts,geometries:[]});bin.geometries.push(geo);
   }
@@ -27,7 +28,12 @@ export async function buildWorld({scene,physics,models,random}){
   function staticBox(root,name,{baseOnly=false}={}){root.updateMatrixWorld(true);let bounds=new THREE.Box3().setFromObject(root,true);const fullBounds=bounds.clone();if(baseOnly){const low=new THREE.Box3();root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){temp.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(temp.y<.8)low.expandByPoint(temp);}}});if(!low.isEmpty())bounds=low;}const size=bounds.getSize(new THREE.Vector3()),c=bounds.getCenter(new THREE.Vector3());if(size.x>.02&&size.z>.02){const actor=physics.addBox({x:c.x,z:c.z,width:size.x,length:size.z,userData:{kind:name}});actor.minY=fullBounds.min.y;actor.maxY=fullBounds.max.y;obstacles.push({box:bounds.clone(),actor});}return bounds;}
   function addStatic(root,name,collision=true,baseOnly=false){root.updateMatrixWorld(true);if(collision)staticBox(root,name,{baseOnly});root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;batchMesh(o);}});}
   // Surface details are layout geometry; all cars, buildings, vegetation and props are sourced GLBs.
-  const roadCanvas=document.createElement('canvas');roadCanvas.width=roadCanvas.height=128;const rc=roadCanvas.getContext('2d'),pixels=rc.createImageData(128,128);for(let i=0;i<pixels.data.length;i+=4){const shade=58+random()*18;pixels.data[i]=shade;pixels.data[i+1]=shade+2;pixels.data[i+2]=shade+3;pixels.data[i+3]=255;}rc.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(roadCanvas);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(220,280);texture.colorSpace=THREE.SRGBColorSpace;const asphalt=new THREE.MeshStandardMaterial({map:texture,color:0xb2b3af,roughness:.88});
+  // Preserve the established seeded city layout when replacing its old noise texture.
+  for(let i=0;i<128*128;i++)random();
+  const [texture,roadNormal]=await Promise.all(['asphalt-diffuse.jpg','asphalt-normal.jpg'].map(name=>new THREE.TextureLoader().loadAsync(`assets/${name}`)));
+  texture.colorSpace=THREE.SRGBColorSpace;
+  for(const map of [texture,roadNormal]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.anisotropy=anisotropy;}
+  const asphalt=new THREE.MeshStandardMaterial({map:texture,normalMap:roadNormal,normalScale:new THREE.Vector2(.3,.3),color:0x9da3aa,roughness:.93});asphalt.userData.worldTiled=true;
   slab(980,.4,1340,0,-.2,0,asphalt);slab(24,.16,1340,-478,-.05,0,pavement);slab(24,.16,1340,478,-.05,0,pavement);slab(932,.16,24,0,-.05,-658,pavement);slab(932,.16,24,0,-.05,658,pavement);
   const markings=[];const line=(x,z,w,l,material)=>{if(!inStuntArea(x,z))markings.push({x,z,w,l,material});};
   for(const x of roadsX)for(let z=top+29;z<bottom-29;z+=10){if(roadsZ.every(r=>Math.abs(z-r)>16)){line(x-.2,z,.13,5,yellow);line(x+.2,z,.13,5,yellow);line(x-9.5,z,.1,10,white);line(x+9.5,z,.1,10,white);}}
@@ -48,10 +54,9 @@ export async function buildWorld({scene,physics,models,random}){
     const bx=(roadsX[i]+roadsX[i+1])/2,bz=(roadsZ[j]+roadsZ[j+1])/2;
     if(bx>STUNT_AREA.left&&bx<STUNT_AREA.right&&bz>STUNT_AREA.top&&bz<STUNT_AREA.bottom){
       // Dedicated asphalt park: leave its southern entrance and runways open.
-      // Paint and sourced cones distinguish it from the surrounding streets.
+      // Flat paint marks the lot and runways without snagging a moving car.
       if(bz>450){
         for(const r of RAMPS)for(const side of [-1,1])for(let z=r.z+7;z<STUNT_AREA.bottom-8;z+=7)slab(.15,.015,3,r.x+side*3.8,.034,z,white);
-        for(let z=STUNT_AREA.top+5;z<STUNT_AREA.bottom-4;z+=20)for(const x of [STUNT_AREA.left+3,STUNT_AREA.right-3])addStatic(place(cone,x,z),'stunt-cone');
       }
       continue;
     }
@@ -68,6 +73,11 @@ export async function buildWorld({scene,physics,models,random}){
   for(let z=top;z<bottom;z+=24)addStatic(place(rock,-502-random()*4,z,random()*6,.7+random()*1.2),'coastal-rock',false);
   for(let i=0;i<5;i++){addStatic(place(cone,165+i*3,166.5),'cone');propCount++;}for(let i=0;i<3;i++){addStatic(place(barrier,172+i*3,163.8,Math.PI/2),'barrier');propCount++;}
   const stopT=normalize(models['road-sign-stop'],2.8,'y');for(const x of roadsX.slice(1))for(const z of roadsZ.filter((_,i)=>i%2===0))addStatic(place(stopT,x+12.5,z+19,Math.PI),'stop-sign',true,true);const highway=normalize(models['sign-highway-detailed'],5,'y');addStatic(place(highway,-429,-135,Math.PI/2),'highway-sign',true,true);
+  // One small text atlas marks the three lanes; flush paint adds no collision bodies.
+  const labels=document.createElement('canvas');labels.width=512;labels.height=384;const labelContext=labels.getContext('2d');labelContext.fillStyle='#f8bd4a';labelContext.textAlign='center';labelContext.textBaseline='middle';labelContext.font='bold 58px sans-serif';
+  for(let i=0;i<RAMPS.length;i++)labelContext.fillText(['JUMP','360 SPIN','BARREL ROLL'][i],256,i*128+64,490);
+  const labelMaterial=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(labels),alphaTest:.25,side:THREE.DoubleSide});labelMaterial.map.colorSpace=THREE.SRGBColorSpace;
+  for(let i=0;i<RAMPS.length;i++){const r=RAMPS[i],geometry=new THREE.PlaneGeometry(16,3),uv=geometry.attributes.uv;for(let v=0;v<uv.count;v++)uv.setY(v,(2-i+uv.getY(v))/3);const label=new THREE.Mesh(geometry,labelMaterial);label.rotation.x=-Math.PI/2;label.position.set(r.x,.055,r.z+13);label.userData.surface=true;label.updateMatrixWorld(true);batchMesh(label);}
   // The downloaded Kenney ramp is reused three times. Toe and deck profile
   // share dimensions with the fixed-step jump layer; no generated ramp model.
   const rampTemplate=prepareRampModel(models['stunt-ramp']);
@@ -75,10 +85,10 @@ export async function buildWorld({scene,physics,models,random}){
     const model=place(rampTemplate,r.x,r.z,r.heading);model.position.y=.025;model.updateMatrixWorld(true);
     model.traverse(o=>{if(o.isMesh)batchMesh(o);});
     const actor=physics.addBox({x:r.x+r.fx*RAMP_SHAPE.length/2,z:r.z+r.fz*RAMP_SHAPE.length/2,width:RAMP_SHAPE.width,length:RAMP_SHAPE.length,heading:r.heading,userData:{kind:'stunt-ramp',rampId:r.id}});actor.maxY=RAMP_SHAPE.height+.025;
-    // Cones mark the entry from either side, outside the drivable ramp width.
-    for(const side of [-1,1])addStatic(place(cone,r.x+Math.cos(r.heading)*side*3.3-r.fx*2,r.z-Math.sin(r.heading)*side*3.3-r.fz*2),'stunt-cone');
+    // Flush entry guides preserve the full approach and turning clearance.
+    for(const side of [-1,1])slab(.25,.015,5,r.x+Math.cos(r.heading)*side*3.3-r.fx*2,.034,r.z-Math.sin(r.heading)*side*3.3-r.fz*2,yellow);
     const half=RAMP_SHAPE.width/2;
-    if(obstacles.some(o=>o.actor.userData.kind!=='stunt-cone'&&o.box.max.x>r.x-half&&o.box.min.x<r.x+half&&o.box.max.z>Math.min(r.z,r.z+r.fz*RAMP_SHAPE.length)&&o.box.min.z<Math.max(r.z,r.z+r.fz*RAMP_SHAPE.length)))throw new Error(`Stunt ramp ${r.id} overlaps a world obstacle`);
+    if(obstacles.some(o=>o.box.max.x>r.x-half&&o.box.min.x<r.x+half&&o.box.max.z>Math.min(r.z,r.z+r.fz*RAMP_SHAPE.length)&&o.box.min.z<Math.max(r.z,r.z+r.fz*RAMP_SHAPE.length)))throw new Error(`Stunt ramp ${r.id} overlaps a world obstacle`);
     // Ride replacement uses this same obstacle list to avoid spawning inside a ramp.
     obstacles.push({box:new THREE.Box3().setFromObject(model,true),actor});
   }

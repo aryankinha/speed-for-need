@@ -1,0 +1,37 @@
+{
+  "asset": "Asphalt 02",
+  "author": "Rob Tuytel",
+  "source": "https://polyhaven.com/a/asphalt_02",
+  "api": "https://api.polyhaven.com/files/asphalt_02",
+  "license": "CC0-1.0",
+  "licenseSource": "https://polyhaven.com/license",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "verifiedDate": "2026-10-23",
+  "physicalTileWidthMetres": 3,
+  "files": {
+    "asphalt-diffuse.jpg": {
+      "size": 731707,
+      "md5": "fa19772d4817754c3efab708c651f5a8",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_diff_1k.jpg",
+      "kind": "Diffuse",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "modified": false,
+      "sha256": "1aa5ce99f58a625c71d48cfc3e68b65ca85ccb00f39e045c0a928608a0ea25ed"
+    },
+    "asphalt-normal.jpg": {
+      "size": 1240122,
+      "md5": "338da8de636ea36133170578cac82e8e",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_nor_gl_1k.jpg",
+      "kind": "nor_gl",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "modified": false,
+      "sha256": "42a1c381b53204e83a982db2864479a30bc127bbdeebb1006f8ee51bff099df3"
+    }
+  }
+}

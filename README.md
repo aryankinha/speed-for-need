@@ -17,7 +17,7 @@ Run `npm run dev` and open http://127.0.0.1:4173. No installation or build neede
 The pause button, radar and nitro meter appear while driving. Sprint time/results appear in the pause menu; green physical gates show the route.
 
 ## Validation
-`npm test` runs 175 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
+`npm test` runs 191 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
 
 [Research and root causes](dist/RESEARCH.md) · [Asset credits](dist/CREDITS.md)
 
@@ -26,3 +26,5 @@ The pause button, radar and nitro meter appear while driving. Sprint time/result
 Three sourced stunt ramps sit in a dedicated paved park with clear runways and saved best jump distance. Yellow radar triangles mark their entries; Pause → Settings & Controls → Visit Stunt Park takes you to its entrance. [Verified stunt research](dist/STUNT_IMPLEMENTATION.md).
 
 Garage paint and three authored wheel types are saved per car. All five cars have animated front steering and rolling wheels. [Customization and critic review](dist/CUSTOMIZATION_REVIEW.md).
+
+The three park lanes offer Long Jump, airborne 360 Spin and Barrel Roll. Choose a lane in Pause → Settings & Controls before visiting. Take the ramp above 14 m/s (about 50 km/h) to trigger its aerial move. Cones and cone colliders have been removed from the park. Moves are arcade visual rotations over the existing planar collision model. [Graphics and aerial stunt review](dist/AERIAL_GRAPHICS_REVIEW.md).

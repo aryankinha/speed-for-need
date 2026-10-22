@@ -127,3 +127,27 @@ test('maximum boosted launches land fully inside the dedicated stunt strip',()=>
     assert.ok(landing.z-car.length/2>STUNT_AREA.top&&landing.z+car.length/2<STUNT_AREA.bottom,JSON.stringify(landing));
   }
 });
+
+test('spin and roll ramps finish before touchdown without landing unwind at all render rates',()=>{
+  for(const r of RAMPS.filter(r=>r.trick))for(const hz of [30,60,144]){
+    const {car,stunts,advance}=setup(r);car.setPose({x:car.x,z:car.z,heading:r.heading,vz:-28});
+    let wasAirborne=false,sawTurn=false,landingChecked=false;
+    advance(5,hz,()=>{
+      if(car.isAirborne){wasAirborne=true;sawTurn ||= (r.trick==='spin'?car.trickYaw:car.trickRoll)>3;}
+      else if(wasAirborne&&!landingChecked){landingChecked=true;const key=r.trick==='spin'?'trickYaw':'trickRoll',prev=r.trick==='spin'?'prevTrickYaw':'prevTrickRoll';near(car[key],Math.PI*2);near(car[prev],Math.PI*2);assert.equal(car.lastTrick,r.trick);assert.equal(car.completedTricks,1);}
+      finite(car);
+    });
+    assert.ok(sawTurn&&landingChecked);near(car.heading,r.heading);assert.equal(car.activeTrick,null);
+    stunts.reset(car);assert.equal(car.completedTricks,0);assert.equal(car.lastTrick,null);near(car.prevTrickYaw,0);near(car.trickRoll,0);
+  }
+});
+
+test('repeated stunt runs count once per landing and restart without an interpolated full-turn rewind',()=>{
+  const r=RAMPS[1],{car,stunts,advance}=setup(r);
+  for(let run=1;run<=2;run++){
+    car.setPose({x:r.x,z:r.z+8,heading:0,vz:-28});
+    let launchSeen=false;
+    advance(5,60,()=>{if(car.isAirborne&&!launchSeen){launchSeen=true;assert.equal(car.prevTrickYaw,0);assert.ok(car.trickYaw<.1);}});
+    assert.ok(launchSeen);assert.equal(car.completedTricks,run);assert.equal(car.lastTrick,'spin');near(car.trickYaw,Math.PI*2);
+  }
+});

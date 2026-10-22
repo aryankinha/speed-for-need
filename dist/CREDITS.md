@@ -194,3 +194,6 @@ Tesla Roadster 2020 by metarex.4d: https://sketchfab.com/3d-models/tesla-roadste
 Both Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/ . Optimized licensed redistributions from https://github.com/pedrosoandre/carros (weld, simplification, prune, Meshopt compression). Adaptations: game scale/orientation, rebased authored wheel geometry, body paint choices, and wheel substitutions. The original supplied Roadster remains in the source archive; the active Roadster now uses the authored model above for independent wheels and body paint. No car or wheel model was generated.
 
 GT alloy and Classic mesh options reuse wheel geometry from the credited Khronos Concept GT and Lexyc16 Honda NSX, respectively. Per-source attribution and primary verification records accompany the GLBs. All branding identifies subjects and does not imply endorsement.
+
+## Asphalt surface upgrade
+Asphalt 02 by **Rob Tuytel / Poly Haven**, CC0. Official source: https://polyhaven.com/a/asphalt_02 ; license: https://polyhaven.com/license . Original 1K diffuse and OpenGL normal maps, mapped at the source's 3 m surface scale. Files, checksums and provenance accompany the textures in assets/asphalt-source.json and assets/asphalt-LICENSE.md.
