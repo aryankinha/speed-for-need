@@ -1,18 +1,22 @@
-# AFTERLIGHT — Roadster Drive
+# AFTERLIGHT — Open Road
 
-A browser driving game featuring the supplied Tesla Roadster GLB in Solana Bay, an original coastal city assembled from downloaded Kenney CC0 models with Poly Haven image-based lighting.
+A browser free-roam driving game in an expanded 1.31km² coastal city. Downloaded CarConcept GT is the default, with the original supplied Roadster selectable in the pause-menu garage.
 
-Run `npm run dev`, then open http://127.0.0.1:4173. No dependency installation or build is required. WebGL and hardware acceleration are required.
+Run `npm run dev` and open http://127.0.0.1:4173. No installation or build needed. WebGL/hardware acceleration required. All models, rendering libraries and physics are bundled locally; Google Fonts has system fallbacks.
 
-- WASD / arrows: accelerate, brake/reverse, steer
-- Space: handbrake / drift
-- Shift: rechargeable electric boost
-- C: chase, wide chase, hood cameras
-- Enter: start/cancel the six-checkpoint coastal sprint
-- R: reset to Ocean Drive
-- Escape / ?: pause and controls; optional sound is in the pause menu
-- Touch controls appear on touch devices
+## Controls
+- WASD or arrows: accelerate, steer, brake then reverse
+- Space: drift / handbrake
+- Shift: rechargeable boost
+- C: chase, wide chase, hood camera
+- R: return to Ocean Drive
+- Enter: start/cancel coastal sprint
+- Esc or pause button: menu, garage, stats, map, sound, controls
+- Touch controls are optional and off by default; enable in pause menu
 
-Includes moving traffic, building/traffic collisions, shoreline boundaries, a live minimap, distance tracking, persistent sprint best time, vehicle lighting and tire marks. A focused arcade prototype, rather than a full commercial open-world game. All model assets and Three.js are bundled locally; Google Fonts has system fallbacks.
+Only the pause button is visible while driving. Sprint time/results appear in the pause menu; green physical gates show the route.
 
-See dist/CREDITS.md for the downloaded model sources and licenses.
+## Validation
+`npm test` runs 20 physics/traffic regression tests. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
+
+[Research and root causes](dist/RESEARCH.md) · [Asset credits](dist/CREDITS.md)

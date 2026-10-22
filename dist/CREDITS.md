@@ -28,3 +28,22 @@ DM Sans and Barlow Condensed, Google Fonts, SIL Open Font License.
 AFTERLIGHT / Solana Bay is an original browser game prototype. No GTA or Need for Speed assets are included.
 
 Draco geometry decoder, Apache License 2.0 — https://github.com/google/draco
+
+## Default player vehicle — Concept GT
+Car Concept, © 2024 Darmstadt Graphics Group GmbH.
+Model and textures by Eric Chadwick. CC BY 4.0.
+Source: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept
+License: https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/CarConcept/LICENSE.md
+Based on a CC0 model by Unity Fan. See assets/concept-gt-LICENSE.md for full attribution and trademark exclusions.
+Adaptations: corrected authored steering angle, normalized precise ground bounds, reoriented, and animated existing wheel pivots. Concept GT is a fictional in-game name; tuning is for arcade gameplay, not manufacturer specifications.
+
+## Additional street and coast props
+Bench: Kenney Furniture Kit — https://kenney.nl/assets/furniture-kit
+Planter: Kenney City Kit (Suburban) — https://kenney.nl/assets/city-kit-suburban
+Dumpster, cone, barrier, stop sign, highway sign: Kenney City Kit (Roads).
+Coastal rock: Kenney Nature Kit. All CC0; distributed via the GLB mirror credited above.
+
+## Physics
+Planck.js 1.4.2, MIT license, Ali Shakiba and contributors. Based on Box2D by Erin Catto.
+https://github.com/piqnt/planck.js
+https://github.com/piqnt/planck.js/blob/master/LICENSE.txt
