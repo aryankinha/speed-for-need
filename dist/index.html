@@ -1,0 +1,146 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#142626"><title>Speed for Need — Open Road</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='18' fill='%23162324'/%3E%3Cpath d='M20 61L40 18l20 43H48l-8-20-8 20' fill='%23dcfc8b'/%3E%3C/svg%3E"><link rel="preload" href="assets/fonts/dm-sans-variable.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="assets/fonts/barlow-condensed-600.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="style.css"><script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/"}}</script></head><body>
+<main id="game" aria-label="Speed for Need driving game"></main><div class="vignette" aria-hidden="true"></div>
+<button id="pause" aria-label="Pause game" title="Pause · Esc" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 5h3v14H7zm7 0h3v14h-3z"/></svg></button>
+<div id="nitro-hud" hidden role="progressbar" aria-label="Nitro" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><span class="nitro-label">NITRO</span><div class="nitro-track"><div class="nitro-bar"><i class="nitro-fill"></i></div><span class="nitro-tag">FULL</span></div><span class="nitro-pct">0%</span></div>
+<aside id="radar-hud" class="radar-hud" hidden aria-label="Navigation radar"><div class="radar-bezel"><canvas id="radar" width="320" height="320" aria-label="GPS Radar"></canvas><div id="radar-north" class="radar-north" aria-hidden="true">N</div></div><div class="radar-info"><span id="radar-district">OCEAN DRIVE</span><span id="radar-speed">0 <small>KM/H</small></span></div></aside>
+<div id="loader"><div class="load-brand">S<span>SPEED FOR NEED</span></div><p>THE ROAD IS CALLING.</p><div class="load-track"><i id="loadbar"></i></div><small id="loadtext">Preparing Solana Bay…</small><button id="retry" hidden>Reload game</button></div>
+<section id="home" hidden aria-label="Home screen">
+  <div class="home-top"><span class="home-mark">S / SPEED FOR NEED</span><span>SOLANA BAY · FREE ROAM</span></div>
+  <div class="home-bottom"><div class="home-title"><span>THE COAST IS YOURS.</span><h1>SPEED FOR NEED</h1></div><nav class="home-nav" aria-label="Main menu"><button id="home-drive" class="home-play">DRIVE <span>↗</span></button><button id="home-garage">GARAGE</button><button id="home-options">OPTIONS</button></nav><p class="home-hint">WASD TO DRIVE <b>·</b> SHIFT FOR NITRO <b>·</b> ESC TO PAUSE</p></div>
+  <div class="showcase-label"><small>YOUR RIDE / 01</small><strong id="showcase-car">CONCEPT GT</strong></div>
+  <section id="garage-panel" class="home-drawer" hidden aria-label="Garage"><div class="drawer-header"><span>SELECT YOUR RIDE</span><button class="close-drawer" aria-label="Close garage">×</button></div><button data-ride="concept" class="ride-choice selected"><span>01</span> CONCEPT GT <small>TOURING</small></button><button data-ride="roadster" class="ride-choice"><span>02</span> TESLA ROADSTER <small>ORIGINAL</small></button></section>
+  <section id="options-panel" class="home-drawer" hidden aria-label="Game options"><div class="drawer-header"><span>OPTIONS</span><button class="close-drawer" aria-label="Close options">×</button></div><div class="setting-row"><span>Drive sound</span><button id="home-sound" class="toggle" aria-pressed="false">Off</button></div><div class="setting-row touch-setting"><span>Touch controls</span><button id="home-touch" class="toggle" aria-pressed="false">Off</button></div><p class="home-controls">W / S <span>Accelerate · Brake & reverse</span><br>A / D <span>Steer</span><br>SPACE <span>Drift</span><br>SHIFT <span>Nitro</span><br>C <span>Camera</span><br>ESC <span>Pause</span></p><a href="CREDITS.md" target="_blank">Credits ↗</a></section>
+</section>
+<div id="menu" class="overlay" hidden>
+  <div class="pause-hud" aria-label="Pause menu">
+    <header class="pause-topbar">
+      <div class="pause-brand">
+        <svg width="22" height="25" viewBox="0 0 30 33" aria-hidden="true"><path d="M1 31L15 2l14 29H20l-5-12-6 12" fill="currentColor"/></svg>
+        <span>SPEED FOR NEED</span>
+        <span class="pause-badge">SOLANA BAY</span>
+      </div>
+      <button id="quick-resume" class="pause-quick-resume" aria-label="Resume game" title="Resume · Esc">
+        <span>RESUME</span>
+        <kbd>ESC</kbd>
+      </button>
+    </header>
+
+    <div class="pause-center">
+      <section class="pause-card">
+        <div class="pause-header">
+          <div class="pause-status-row">
+            <span class="pause-tag"><i class="pause-pulse"></i> PAUSED</span>
+            <span id="menu-status" class="pause-subtitle">A LITTLE FURTHER. A LITTLE FREER.</span>
+          </div>
+          <div class="pause-location">
+            <span id="district">OCEAN DRIVE</span>
+          </div>
+        </div>
+
+        <div class="pause-primary-wrap">
+          <button id="resume" class="pause-primary-btn">Take the wheel <span>↗</span></button>
+        </div>
+
+        <div class="pause-grid">
+          <div class="pause-pill-field">
+            <label for="vehicle" class="pause-pill-label">
+              <span>RIDE</span>
+              <span id="car-description">Concept GT</span>
+            </label>
+            <select id="vehicle" class="pause-select">
+              <option value="concept">Concept GT · Touring</option>
+              <option value="roadster">Tesla Roadster · Original</option>
+            </select>
+          </div>
+
+          <div class="pause-pill-field">
+            <label for="camera" class="pause-pill-label">
+              <span>CAMERA</span>
+              <kbd>C</kbd>
+            </label>
+            <select id="camera" class="pause-select">
+              <option value="0">Chase</option>
+              <option value="1">Wide chase</option>
+              <option value="2">Hood</option>
+            </select>
+          </div>
+
+          <button id="reset" class="pause-action-btn">
+            <span class="btn-icon">↺</span>
+            <span class="btn-text">Reset to Road</span>
+            <kbd>R</kbd>
+          </button>
+
+          <button id="race" class="pause-action-btn">
+            <span class="btn-icon">🏁</span>
+            <span class="btn-text">Start coastal sprint ↗</span>
+            <kbd>↵</kbd>
+          </button>
+
+          <div class="pause-toggle-row">
+            <div class="pause-toggle-item">
+              <span>Drive sound</span>
+              <button id="sound" class="toggle" aria-pressed="false">Off</button>
+            </div>
+            <div class="pause-toggle-item touch-setting">
+              <span>Touch controls</span>
+              <button id="touch-toggle" class="toggle" aria-pressed="false">Off</button>
+            </div>
+          </div>
+        </div>
+
+        <p id="race-status" class="pause-race-info">Six checkpoints. No timer covering your view.</p>
+
+        <div class="pause-accordions">
+          <details id="controls" class="pause-accordion">
+            <summary>Driving controls <span class="accordion-arrow">＋</span></summary>
+            <dl class="controls-list">
+              <dt>Drive / brake & reverse</dt><dd><kbd>W</kbd> <kbd>S</kbd> / <kbd>↑</kbd> <kbd>↓</kbd></dd>
+              <dt>Steer</dt><dd><kbd>A</kbd> <kbd>D</kbd> / <kbd>←</kbd> <kbd>→</kbd></dd>
+              <dt>Drift / boost</dt><dd><kbd>Space</kbd> / <kbd>Shift</kbd></dd>
+              <dt>Camera / reset</dt><dd><kbd>C</kbd> / <kbd>R</kbd></dd>
+              <dt>Pause / resume</dt><dd><kbd>Esc</kbd></dd>
+              <dt>Sprint / cancel</dt><dd><kbd>Enter</kbd></dd>
+            </dl>
+          </details>
+
+          <details class="pause-accordion">
+            <summary>Assets & research <span class="accordion-arrow">＋</span></summary>
+            <p class="subtle">Downloaded models, verified credits, and collision research are included. <a href="CREDITS.md" target="_blank">Asset credits ↗</a> · <a href="RESEARCH.md" target="_blank">Research & fixes ↗</a></p>
+          </details>
+        </div>
+
+        <div class="pause-card-footer">
+          <button id="showroom" class="showroom-return">Back to showroom ↗</button>
+          <span class="clean-note"><i></i> 85% clear view</span>
+        </div>
+      </section>
+    </div>
+
+    <aside class="pause-map-dock" aria-label="District map">
+      <div class="pause-map-card">
+        <canvas id="minimap" width="450" height="260" aria-label="Map of expanded Solana Bay"></canvas>
+        <div class="map-caption">
+          <span>MINIMAP</span>
+          <span>1.31 KM² SOLANA BAY</span>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="pause-telemetry-dock" aria-label="Session telemetry">
+      <div class="telemetry-pill">
+        <div class="telemetry-item">
+          <span class="telemetry-label">SPEED</span>
+          <strong id="session-speed">0 <small>KM/H</small></strong>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">DISTANCE</span>
+          <strong id="session-distance">0.00 <small>KM</small></strong>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+<div id="touch" hidden><div><button data-key="a" aria-label="Steer left">←</button><button data-key="d" aria-label="Steer right">→</button></div><div><button data-key=" " aria-label="Handbrake">DRIFT</button><button data-key="s" aria-label="Brake">↓</button><button data-key="w" aria-label="Accelerate">↑</button><button data-key="shift" aria-label="Boost">ϟ</button></div></div>
+<script type="module" src="game.js"></script></body></html>
