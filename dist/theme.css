@@ -1,0 +1,249 @@
+/* SPEED FOR NEED theme: "Los Santos Daylight" (see dist/THEME_RESEARCH.md).
+   Loaded after style.css and loading.css. It overrides colours and some shapes only; element IDs and behaviour are unchanged.
+   Nitro cyan (#nitro-hud) is intentionally kept: it is the only cyan in the UI. */
+
+:root{
+  /* Palette tokens */
+  --night:#0b0d10;      /* dark base, overlays, loader */
+  --paper:#f5f5f2;      /* light panel surface */
+  --white:#f5f5f2;      /* light text on dark (legacy name kept for style.css) */
+  --ink:#0e1013;        /* text on light, header bar, selected row fill */
+  --ink-2:#4a4f57;      /* secondary text on light (8.2:1 on white) */
+  --dim:#b8bec7;        /* secondary text on dark (10.4:1 on night) */
+  --amber:#fcaf17;      /* primary accent: DRIVE, Keep driving, tabs, selection bar */
+  --amber-hi:#ffc247;   /* hover for amber */
+  --red:#e4002b;        /* large fills only: race icon, progress end, error */
+  --red-ink:#c4001f;    /* small red text on light (5.7:1 on paper) */
+  --rule:rgba(14,16,19,.18);
+  --stroke:rgba(255,255,255,.16);
+  --stroke-ink:rgba(14,16,19,.16);
+  --focus:#0e1013;
+  --blur:8px;
+  /* Legacy names that style.css still reads: point them at the new palette */
+  --lime:var(--amber);
+}
+
+body{background:var(--night)}
+
+/* Focus: ink 2px outline pushed out by an amber band (never amber-on-white alone) */
+button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px;box-shadow:0 0 0 3px var(--amber)}
+#menu :focus-visible,#home :focus-visible,#touch :focus-visible,#pause:focus-visible{outline-color:var(--white)}
+#menu .pause-card :focus-visible,#home .home-drawer :focus-visible{outline-color:var(--ink)}
+#menu .pause-card .pause-pill-field .pause-select:focus-visible{outline-color:var(--white)}
+::selection{background:var(--amber);color:var(--ink)}
+kbd{background:rgba(14,16,19,.08);border:1px solid rgba(14,16,19,.28);border-radius:2px;color:var(--ink)}
+
+/* Overlay, scrollbars, vignette */
+.overlay{background:radial-gradient(circle at center,rgba(8,9,11,.32) 0%,rgba(8,9,11,.8) 100%);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));scrollbar-color:rgba(255,255,255,.35) transparent}
+.overlay::-webkit-scrollbar-thumb{background:rgba(255,255,255,.35)}
+.vignette{background:linear-gradient(180deg,rgba(8,9,11,.14),transparent 25%,transparent 80%,rgba(8,9,11,.22))}
+
+/* Pause button (top right, over the game) */
+#pause{border:1px solid rgba(255,255,255,.6);background:rgba(14,16,19,.55);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur))}
+#pause:hover{background:var(--amber);border-color:var(--amber);color:var(--ink)}
+
+/* Pause menu: top bar on the dark overlay */
+.pause-badge{color:var(--ink);background:var(--amber);border:0;font-weight:700}
+.pause-quick-resume{background:var(--paper);border:1px solid rgba(255,255,255,.7);color:var(--ink);border-radius:0;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.pause-quick-resume:hover{background:var(--amber);border-color:var(--amber);color:var(--ink)}
+.pause-quick-resume:focus-visible{box-shadow:inset 0 0 0 3px var(--ink);outline:none}
+
+/* Pause menu card: white, sharp corners, 45-degree chamfers, black title bar */
+.pause-card{--pad:20px;background:#f7f7f4;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:0;border-radius:0;padding:0 var(--pad) 18px;box-shadow:0 24px 60px rgba(0,0,0,.5);clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);color:var(--ink)}
+.pause-header{margin:0 calc(-1 * var(--pad));padding:14px var(--pad) 14px;background:var(--ink);color:var(--white);border:0}
+.pause-status-row{margin-bottom:8px}
+.pause-tag{background:var(--amber);color:var(--ink);padding:4px 12px 4px 10px;clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);font-style:italic;font-weight:700;letter-spacing:2px}
+.pause-pulse{background:var(--ink);box-shadow:none;width:6px;height:6px}
+.pause-subtitle{color:#c9cdd4}
+.pause-location{color:var(--white);font-style:italic}
+.pause-primary-btn{background:var(--amber);color:var(--ink);border-radius:0;box-shadow:none;font-style:italic;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.pause-primary-btn:hover{background:var(--ink);color:var(--white)}
+.pause-primary-btn:focus-visible{box-shadow:inset 0 0 0 3px var(--ink);outline:none}
+
+/* 3-Button Pause Menu actions */
+.pause-menu-actions{display:flex;flex-direction:column;gap:8px;margin-top:14px;width:100%}
+.pause-menu-btn{background:transparent;border:0;border-bottom:1px solid var(--rule);border-radius:0;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;font-style:italic;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s,color .15s}
+.pause-menu-btn:hover{background:var(--ink);color:var(--white);box-shadow:inset 4px 0 0 var(--amber)}
+.pause-menu-btn:hover .btn-icon{color:var(--amber)}
+.pause-menu-btn.showroom-return{border:0;border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);font-size:16px;padding:12px 14px;letter-spacing:1.5px}
+.pause-menu-btn.showroom-return:hover{background:var(--ink);color:var(--white);box-shadow:inset 4px 0 0 var(--amber);text-decoration:none}
+.pause-menu-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px;box-shadow:0 0 0 3px var(--amber)}
+
+/* Pause Settings Drawer */
+.pause-drawer{--pad:20px;position:fixed;right:35px;top:80px;bottom:35px;width:340px;max-width:calc(100vw - 40px);background:#f7f7f4;border:0;border-radius:0;clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);box-shadow:0 24px 60px rgba(0,0,0,.5);padding:0 var(--pad) 18px;color:var(--ink);overflow-y:auto;z-index:25;pointer-events:auto;scrollbar-width:thin}
+.pause-drawer .drawer-header{margin:0 calc(-1 * var(--pad)) 14px;padding:14px var(--pad);background:var(--ink);color:var(--white);display:flex;justify-content:space-between;align-items:center;font-size:13px;letter-spacing:2px;font-style:italic}
+.pause-drawer .drawer-header button{color:var(--white);border:0;background:none;font-size:24px;line-height:1}
+.pause-drawer-footer{margin-top:auto;padding-top:14px;border-top:1px solid var(--rule);display:flex;justify-content:flex-end}
+.pause-back-btn{background:none;border:0;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;cursor:pointer;font-style:italic}
+.pause-back-btn:hover{color:var(--amber);text-decoration:underline}
+
+/* Rows: full-width list, value on the right, amber bar + ink inversion on hover/focus */
+#car-description{display:none}
+.pause-grid{grid-template-columns:1fr;gap:0}
+.pause-pill-field,.pause-action-btn,.pause-accordion{position:relative;display:flex;align-items:center;gap:10px;background:transparent;border:0;border-bottom:1px solid var(--rule);border-radius:0;color:var(--ink);transition:background .15s,color .15s}
+.pause-pill-field::before,.pause-action-btn::before,.pause-accordion::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--amber);transform:scaleY(0);transition:transform .15s}
+.pause-pill-field{flex-direction:row;justify-content:space-between;padding:11px 4px 11px 14px}
+.pause-pill-label{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;font-style:italic;color:var(--ink)}
+.pause-pill-label span:last-child{color:var(--ink)}
+.pause-select{appearance:none;-webkit-appearance:none;flex:0 0 auto;width:auto;max-width:62%;padding:2px 20px 2px 0;border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230e1013' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 2px center/10px 6px;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:1px;text-transform:uppercase;text-align:right;font-style:italic;cursor:pointer}
+.pause-select option{background:#ffffff;color:var(--ink);font-style:normal}
+.pause-pill-field:hover,.pause-pill-field:focus-within,.pause-action-btn:hover,.pause-action-btn:focus-visible,.pause-accordion summary:hover{background:var(--ink);color:var(--white)}
+.pause-pill-field:hover::before,.pause-pill-field:focus-within::before,.pause-action-btn:hover::before,.pause-action-btn:focus-visible::before{transform:scaleY(1)}
+.pause-pill-field:hover .pause-pill-label,.pause-pill-field:focus-within .pause-pill-label,.pause-pill-field:hover .pause-select,.pause-pill-field:focus-within .pause-select{color:var(--white)}
+.pause-pill-field:hover .pause-select,.pause-pill-field:focus-within .pause-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E")}
+.pause-action-btn{padding:12px 4px 12px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;font-style:italic;text-align:left}
+.pause-action-btn .btn-icon{font-size:14px;color:var(--ink);font-style:normal}
+.pause-action-btn .btn-text{flex:1;min-width:0;font:inherit;letter-spacing:inherit;color:inherit}
+.pause-action-btn:hover .btn-icon,.pause-action-btn:focus-visible .btn-icon{color:var(--amber)}
+.pause-action-btn:hover kbd,.pause-action-btn:focus-visible kbd,.pause-pill-field:hover kbd,.pause-pill-field:focus-within kbd{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4);color:var(--white)}
+#race{box-shadow:inset 4px 0 0 var(--red)}
+#race .btn-icon{color:var(--red)}
+#race:hover .btn-icon,#race:focus-visible .btn-icon{color:var(--amber)}
+
+/* Toggles: rule-style row, square chips */
+.pause-toggle-row{grid-column:1 / -1;border-top:1px solid var(--ink);border-bottom:1px solid var(--rule);padding:12px 4px 12px 14px;gap:12px}
+.pause-toggle-item{color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;font-style:italic}
+.toggle{background:transparent;border:1px solid rgba(14,16,19,.45);border-radius:0;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;min-width:56px}
+.toggle[aria-pressed=true]{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.pause-race-info{color:var(--ink-2);padding:0 4px}
+
+/* Accordions: rows */
+.pause-accordions{gap:0}
+.pause-accordion{display:block;padding:0;background:transparent}
+.pause-accordion summary{position:relative;display:flex;justify-content:space-between;align-items:center;padding:12px 4px 12px 14px;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;font-style:italic}
+.pause-accordion summary:hover{color:var(--white)}
+.pause-accordion[open]{background:rgba(14,16,19,.03)}
+.accordion-arrow{color:var(--red-ink);font-size:18px;font-style:normal}
+.pause-accordion .controls-list,.pause-accordion .subtle{padding:0 4px 10px 14px}
+.controls-list dt{color:var(--ink-2)}
+.controls-list dd{color:var(--ink)}
+.subtle{color:var(--ink-2)}
+.subtle a,.showroom-return{color:var(--ink);text-decoration:underline;text-decoration-color:var(--amber);text-decoration-thickness:2px;text-underline-offset:3px}
+.clean-note{color:var(--ink-2)}
+.clean-note i{background:var(--red)}
+.showroom-return:hover{text-decoration-color:var(--red)}
+
+/* Minimap card and stat tiles: chamfered white cards */
+.pause-map-card{background:#f7f7f4;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:0;border-radius:0;clip-path:polygon(12px 0,100% 0,100% 100%,0 100%,0 12px);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 3px 0 var(--amber)}
+.telemetry-pill{background:#f7f7f4;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:0;border-radius:0;padding:12px 22px;clip-path:polygon(12px 0,100% 0,100% 100%,0 100%,0 12px);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 3px 0 var(--amber)}
+#minimap{border:1px solid rgba(14,16,19,.3);background:#0a0e14;border-radius:0}
+.map-caption{color:var(--ink-2)}
+.telemetry-label{color:var(--red-ink)}
+.telemetry-item strong{color:var(--ink);font-style:italic;font-size:30px}
+.telemetry-item small{color:var(--ink-2)}
+.telemetry-divider{background:var(--stroke-ink)}
+
+/* Touch controls (bottom corners) */
+#touch button{border:1px solid rgba(255,255,255,.55);background:rgba(14,16,19,.6);color:var(--white);border-radius:0}
+#touch button:active{background:var(--amber);color:var(--ink)}
+
+/* Home screen: neutral dusk over the live showroom */
+#home{background:linear-gradient(180deg,rgba(8,9,11,.6),transparent 22%,transparent 45%,rgba(8,9,11,.9) 100%)}
+.home-top{color:var(--white);text-shadow:0 1px 6px rgba(0,0,0,.85)}
+.home-top>span:last-child{font-size:9px;letter-spacing:1px}
+.home-mark{color:var(--white)}
+/* Kicker: white on an ink chip with an amber rule (replaces the 8px amber text) */
+.home-title>span{display:inline-block;background:rgba(14,16,19,.82);color:var(--white);font-size:12px;letter-spacing:3px;padding:6px 10px 5px;box-shadow:inset 3px 0 0 var(--amber);margin-bottom:8px;text-shadow:none}
+.home-title h1{position:relative;display:block;width:fit-content;font-weight:700;font-style:normal;text-shadow:0 6px 30px rgba(0,0,0,.45)}
+.home-title h1::after{content:'';position:absolute;left:0;right:0;bottom:-.16em;height:.08em;background:var(--amber);box-shadow:0 0 14px rgba(252,175,23,.5)}
+.home-nav button{border:1px solid rgba(255,255,255,.75);background:rgba(14,16,19,.45);color:var(--white);border-radius:0}
+.home-nav button:hover{background:var(--white);color:var(--ink)}
+.home-nav .home-play{background:var(--amber);color:var(--ink);border-color:var(--amber);clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.home-nav .home-play:hover{background:var(--white);border-color:var(--white);color:var(--ink)}
+.home-nav .home-play:focus-visible{box-shadow:inset 0 0 0 3px var(--ink);outline:none}
+.home-hint{color:#d6dbe2;font-size:9px;letter-spacing:1.2px}
+.home-hint b{color:var(--amber)}
+.showcase-label{text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.showcase-label small{color:#d6dbe2}
+.showcase-label strong{color:var(--white)}
+
+/* Home drawers (garage, options): white panels, same row language as the pause menu */
+.home-drawer{background:rgba(245,245,242,.95);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:0;border-radius:0;clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);box-shadow:0 15px 60px rgba(0,0,0,.45),inset 0 4px 0 var(--amber);color:var(--ink)}
+.drawer-header{color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:2px;font-style:italic}
+.drawer-header button{color:var(--ink)}
+.ride-choice{background:transparent;border:0;border-bottom:1px solid var(--rule);border-radius:0;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;font-style:italic;padding:12px 4px 12px 14px;margin-top:0}
+.ride-choice:hover{background:var(--ink);color:var(--white)}
+.ride-choice>span,.ride-choice small{color:var(--ink-2)}
+.ride-choice:hover>span,.ride-choice:hover small{color:#c9cdd4}
+.ride-choice.selected{background:var(--ink);color:var(--white);border-bottom-color:var(--ink);box-shadow:inset 4px 0 0 var(--amber)}
+.ride-choice.selected>span{color:var(--amber)}
+.ride-choice.selected small{color:#c9cdd4}
+.home-controls{color:var(--ink)}
+.home-controls span{color:var(--ink-2)}
+.home-drawer a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--amber);text-decoration-thickness:2px;text-underline-offset:3px}
+.home-drawer .setting-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-style:italic;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);padding:12px 4px 12px 14px;border-bottom:1px solid var(--rule)}
+.home-drawer .setting-row:hover{background:var(--ink);color:var(--white)}
+.home-drawer .toggle{min-width:56px}
+
+/* Loader: keep the cinematic art, swap lime for amber, white wordmark, amber-to-red bar */
+#loader{background:var(--night);color:var(--white)}
+#loader .ld-art{background-color:var(--night)}
+/* Neutral grade over the key art: desaturate (cheap blend, no filter) then a warm amber-to-charcoal multiply */
+#loader .ld-art::before{content:'';position:absolute;inset:0;background:#7d7d7d;mix-blend-mode:saturation;opacity:.72;pointer-events:none}
+#loader .ld-art::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#fcaf17 0%,#3a2e20 60%,#16120d 100%);mix-blend-mode:multiply;opacity:.1;pointer-events:none}
+#loader .ld-shade{background:
+  linear-gradient(180deg,rgba(8,9,11,.86) 0%,rgba(8,9,11,.34) 30%,rgba(8,9,11,.08) 46%,rgba(8,9,11,.4) 70%,rgba(6,7,9,.94) 100%),
+  linear-gradient(90deg,rgba(6,7,9,.5) 0%,rgba(6,7,9,.12) 40%,rgba(6,7,9,0) 60%),
+  radial-gradient(ellipse at 88% 18%,rgba(252,175,23,.16),rgba(252,175,23,0) 55%)}
+#loader .ld-sweep{background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,226,166,.2) 50%,rgba(255,255,255,0) 100%)}
+#loader .ld-streaks i{background:linear-gradient(180deg,rgba(255,226,166,0),rgba(255,226,166,.55) 45%,rgba(255,226,166,0))}
+#loader .load-brand{color:var(--white)}
+#loader .load-brand i{background:var(--amber);color:var(--ink)}
+#loader .ld-tag{color:#c9cdd4}
+#loader .ld-title span{color:var(--white)}
+#loader .ld-title span+span{color:var(--amber)}
+#loader .ld-hero p{color:#e6e8ec}
+#loader .ld-hero p::before{background:var(--red);box-shadow:0 0 10px rgba(228,0,43,.7)}
+#loader .ld-kicker{background:var(--amber);color:var(--ink)}
+#loader #ld-tip{color:#f6f6f2}
+#loader .ld-status{color:var(--dim)}
+#loader .ld-pct{color:var(--white)}
+#loader .ld-strip{background:linear-gradient(180deg,rgba(8,9,11,0),rgba(8,9,11,.82) 35%,rgba(6,7,9,.96))}
+#loader .load-track{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+#loader #loadbar{background:linear-gradient(90deg,var(--amber) 0%,#ff7a1a 55%,var(--red) 100%);box-shadow:0 0 14px rgba(228,0,43,.4)}
+#loader .ld-wheel{color:var(--white)}
+#loader #retry{background:var(--amber);color:var(--ink);clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+#loader #retry:hover,#loader #retry:focus-visible{background:#ffffff}
+#loader.is-error #loadbar{background:var(--red)}
+#loader.is-error .ld-status,#loader.is-error .ld-pct{color:#ff8a9a}
+
+/* Nitro HUD on phones in portrait: sit above the touch pad, clear of the top-left radar (style.css put it at top:80px) */
+@media (pointer:coarse) and (max-width:640px) and (orientation:portrait){
+  #nitro-hud{top:auto;bottom:96px}
+}
+
+/* Narrow screens: readable small text */
+@media (max-width:760px){
+  .home-top>span:last-child{font-size:9px;letter-spacing:1px}
+  .home-title>span{font-size:11px;letter-spacing:2.5px}
+  .home-hint{font-size:9px;letter-spacing:.4px}
+}
+@media (max-width:540px){
+  .pause-card{--pad:14px}
+  .pause-pill-label{font-size:15px}
+  .pause-action-btn{font-size:15px}
+  .pause-badge{display:none}
+  .pause-toggle-item{font-size:12px;letter-spacing:.6px;gap:6px}
+}
+@media (max-height:720px) and (min-width:961px){
+  .pause-card{--pad:20px}
+}
+@media (max-height:520px){
+  .pause-card{--pad:18px}
+  .showcase-label{display:none}
+}
+
+/* Backdrop blur: 8px; off on touch/coarse pointers and when transparency is reduced (opaque panels instead) */
+@media (pointer:coarse),(prefers-reduced-transparency:reduce){
+  *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
+@media (prefers-reduced-transparency:reduce){
+  .pause-card,.pause-map-card,.telemetry-pill,.home-drawer{background:#f7f7f4}
+  .overlay{background:rgba(8,9,11,.86)}
+}
+
+/* Legibility floor for micro-type on light panels, and radar pill sizing */
+.ride-choice small{font-size:9px;letter-spacing:1.2px}
+.showcase-label small{font-size:9px;letter-spacing:2px}
+kbd{font-size:10px}
+.radar-info{width:auto;min-width:144px;gap:8px}

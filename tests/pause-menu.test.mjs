@@ -365,3 +365,35 @@ test('Polish verification: compact landscape media query @media(max-height:520px
     'Telemetry dock repositioned in compact landscape'
   );
 });
+
+test('Three-button layout: Pause card contains exactly 3 primary action buttons', () => {
+  const cardMatch = html.match(/<section class="pause-card">([\s\S]*?)<\/section>/);
+  assert.ok(cardMatch, 'Expected .pause-card section in HTML');
+  const cardHtml = cardMatch[1];
+
+  assert.ok(cardHtml.includes('id="resume"'), 'Expected #resume in pause-card');
+  assert.ok(cardHtml.includes('id="pause-settings-btn"'), 'Expected #pause-settings-btn in pause-card');
+  assert.ok(cardHtml.includes('id="showroom"'), 'Expected #showroom in pause-card');
+
+  assert.ok(!cardHtml.includes('id="vehicle"'), '#vehicle should be in settings drawer, not main card');
+  assert.ok(!cardHtml.includes('id="camera"'), '#camera should be in settings drawer, not main card');
+  assert.ok(!cardHtml.includes('id="sound"'), '#sound should be in settings drawer, not main card');
+  assert.ok(!cardHtml.includes('id="controls"'), '#controls should be in settings drawer, not main card');
+});
+
+test('Setting drawer: #pause-drawer houses all configuration widgets cleanly', () => {
+  const drawerMatch = html.match(/<section id="pause-drawer"[\s\S]*?>([\s\S]*?)<\/section>/);
+  assert.ok(drawerMatch, 'Expected #pause-drawer in HTML');
+  const drawerHtml = drawerMatch[1];
+
+  assert.ok(html.includes('id="pause-drawer" class="pause-drawer home-drawer" hidden'), '#pause-drawer starts hidden');
+  assert.ok(drawerHtml.includes('id="close-pause-drawer"'), 'Expected close button in drawer');
+  assert.ok(drawerHtml.includes('id="back-pause-drawer"'), 'Expected back button in drawer');
+  assert.ok(drawerHtml.includes('id="vehicle"'), 'Expected #vehicle in drawer');
+  assert.ok(drawerHtml.includes('id="camera"'), 'Expected #camera in drawer');
+  assert.ok(drawerHtml.includes('id="sound"'), 'Expected #sound in drawer');
+  assert.ok(drawerHtml.includes('id="touch-toggle"'), 'Expected #touch-toggle in drawer');
+  assert.ok(drawerHtml.includes('id="reset"'), 'Expected #reset in drawer');
+  assert.ok(drawerHtml.includes('id="race"'), 'Expected #race in drawer');
+  assert.ok(drawerHtml.includes('id="controls"'), 'Expected #controls in drawer');
+});
