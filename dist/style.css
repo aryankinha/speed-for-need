@@ -67,7 +67,7 @@ kbd{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.2);border-ra
 #radar-speed{font-size:12px;font-weight:700;letter-spacing:.5px;color:#ffffff}
 #radar-speed small{font-size:8px;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif}
 .pause-map-dock{position:fixed;bottom:24px;left:28px;z-index:2;pointer-events:auto}
-.pause-map-card{background:rgba(14,18,24,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:8px;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
+.pause-map-card{background:rgba(18,38,36,0.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:8px;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
 #minimap{display:block;width:220px;height:125px;border-radius:6px;background:#0a0e14;border:1px solid rgba(255,255,255,0.14)}
 .map-caption{display:flex;justify-content:space-between;font-size:8px;letter-spacing:1.2px;color:var(--dim);margin-top:6px;padding:0 2px}
 .pause-telemetry-dock{position:fixed;bottom:24px;right:28px;z-index:2;pointer-events:auto}
@@ -123,8 +123,17 @@ kbd{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.2);border-ra
   .pause-location{font-size:22px}
   .pause-map-dock{display:none}
   .pause-telemetry-dock{bottom:12px;right:18px}
+  .radar-bezel{width:105px;height:105px}
+  .radar-info{width:102px;padding:2px 6px;margin-top:4px}
+  #radar-district{font-size:9px}
+  #radar-speed{font-size:11px}
 }
-@media(pointer:coarse){.touch-setting{display:flex}}
+@media(pointer:coarse){
+  .touch-setting{display:flex}
+  .radar-hud{bottom:auto;top:20px;left:20px}
+  .radar-bezel{width:115px;height:115px}
+  .radar-info{width:110px}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 /* Nitro tank HUD: one continuous bar, bottom-centre, visible only while driving */
 #nitro-hud{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:2;pointer-events:none;display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:2px;color:var(--white);text-shadow:0 1px 2px #02131a,0 0 8px #02131acc}
