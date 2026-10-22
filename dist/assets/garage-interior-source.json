@@ -1,0 +1,22 @@
+{
+  "uid": "0eb40f2cb2bf4dfdbaae36095825788a",
+  "name": "Brutalist Interior",
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "isDownloadable": true,
+  "faceCount": 3414,
+  "vertexCount": 1889,
+  "description": "Brutalist Interior Garage",
+  "author": {
+    "username": "vslite",
+    "displayName": "vslite",
+    "profileUrl": "https://sketchfab.com/vslite"
+  },
+  "verifiedAt": "2026-10-22"
+}

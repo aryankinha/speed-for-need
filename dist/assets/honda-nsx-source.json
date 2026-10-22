@@ -1,0 +1,22 @@
+{
+  "uid": "1cc15628a00a4739a6b6c01128927c8d",
+  "name": "Honda NSX 1990",
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "isDownloadable": true,
+  "faceCount": 101006,
+  "vertexCount": 53205,
+  "description": "The Honda NSX, marketed in North America as the Acura NSX, is a two-seat, mid-engine coupe sports car manufactured by Honda.\nModel made in Blender 2.90\n\n**I don't always have the opportunity to read your comments, so if you have any questions or suggestions - feel free to dm me on twitter @Lexyc20\n**",
+  "author": {
+    "username": "Lexyc16",
+    "displayName": "Lexyc16",
+    "profileUrl": "https://sketchfab.com/Lexyc16"
+  },
+  "verifiedAt": "2026-10-22"
+}

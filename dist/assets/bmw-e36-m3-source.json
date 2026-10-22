@@ -1,0 +1,22 @@
+{
+  "uid": "762b90efd3dc413cb61c3e3c8097b8ac",
+  "name": "BMW E36 M3",
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "isDownloadable": true,
+  "faceCount": 67390,
+  "vertexCount": 39065,
+  "description": "",
+  "author": {
+    "username": "TinoD2",
+    "displayName": "Martin Trafas",
+    "profileUrl": "https://sketchfab.com/TinoD2"
+  },
+  "verifiedAt": "2026-10-22"
+}

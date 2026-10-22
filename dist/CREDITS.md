@@ -168,3 +168,16 @@ Tyre squeal, nitro whoosh, wind and sea are synthesised in dist/audio.js (no thi
 Loading screen art (dist/assets/loading-art.jpg, loading-art-960.jpg): rendered from the game's own car model (assets/roadster.glb) and city scene in the game's headless Chrome, then colour-graded. Original work for this project; no third-party artwork.
 
 Engine loop provenance note: OpenGameArt page for the loop (domasx2, CC0) says it was cut from a pdsounds.org sample and later remade from a public-domain sample; the shipped file was additionally crossfaded at the loop point for seamless playback. pickup-clink.mp3 was normalised to -3 dB peak.
+
+## Garage collection additions (October 2026)
+
+BMW E36 M3 by **Martin Trafas (TinoD2)**: https://sketchfab.com/3d-models/bmw-e36-m3-762b90efd3dc413cb61c3e3c8097b8ac
+
+Honda NSX 1990 by **Lexyc16**: https://sketchfab.com/3d-models/honda-nsx-1990-1cc15628a00a4739a6b6c01128927c8d
+
+Brutalist Interior garage by **vslite**: https://sketchfab.com/3d-models/0eb40f2cb2bf4dfdbaae36095825788a
+
+All three: **Creative Commons Attribution 4.0** — https://creativecommons.org/licenses/by/4.0/
+Optimized GLB redistributions: https://github.com/pedrosoandre/carros (geometry simplification/welding/pruning, Meshopt compression). Our runtime adaptations: BMW display plinth removed; vehicle rotation, centering and game scale; NSX wheel pivots recentered without changing geometry; garage staged with fill lights. Original materials retained. Names describe model subjects and do not imply manufacturer endorsement. Detailed primary-source verification and attribution accompany each GLB in assets/.
+
+Meshopt decoder: official Three.js r170 distribution, MIT, bundled at vendor/libs/meshopt_decoder.module.js. https://github.com/mrdoob/three.js/tree/r170
