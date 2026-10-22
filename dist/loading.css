@@ -1,0 +1,102 @@
+/* GTA-style loading screen. Loaded after style.css so it overrides the old flat #loader rules.
+   Element IDs used by game.js (#loader, #loadbar, #loadtext, #retry) are unchanged. */
+
+#loader{--p:0%;position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;overflow:hidden;background:#06131a;color:var(--white);font-family:'DM Sans',Arial,sans-serif;text-align:left;transition:opacity .5s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+#loader[hidden]{display:none!important}
+#loader.is-done{transform:scale(1.035)}
+#loader [hidden]{display:none!important}
+
+/* Key art: sharp car over a motion-blurred coast road (dist/assets/loading-art*.jpg) */
+#loader .ld-art{position:absolute;inset:-2%;background:#06131a url(assets/loading-art.jpg) 50% 50%/cover no-repeat;transform-origin:62% 55%;animation:ldPan 26s ease-in-out infinite alternate;will-change:transform}
+@keyframes ldPan{from{transform:scale(1.02) translate3d(0,0,0)}to{transform:scale(1.1) translate3d(-1.5%,-.8%,0)}}
+
+#loader .ld-shade{position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(180deg,rgba(4,14,18,.86) 0%,rgba(4,14,18,.34) 30%,rgba(4,14,18,.08) 46%,rgba(4,14,18,.4) 70%,rgba(3,10,13,.94) 100%),
+  linear-gradient(90deg,rgba(3,10,13,.5) 0%,rgba(3,10,13,.12) 40%,rgba(3,10,13,0) 60%),
+  radial-gradient(ellipse at 88% 18%,rgba(255,138,61,.16),rgba(255,138,61,0) 55%)}
+
+/* Cinematic letterbox bars on wide screens (pseudo-elements, under the UI) */
+@media (min-width:641px){
+  #loader::before,#loader::after{content:'';position:absolute;left:0;right:0;height:5vh;max-height:52px;background:#000;z-index:2;pointer-events:none}
+  #loader::before{top:0}
+  #loader::after{bottom:0}
+}
+
+/* Light sweep and diagonal speed streaks (transform/opacity only) */
+#loader .ld-sweep{position:absolute;top:-10%;bottom:-10%;left:0;width:46%;pointer-events:none;background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(222,247,158,.17) 50%,rgba(255,255,255,0) 100%);transform:translate3d(-120%,0,0) skewX(-14deg);animation:ldSweep 5.2s cubic-bezier(.45,0,.3,1) infinite}
+@keyframes ldSweep{0%{transform:translate3d(-120%,0,0) skewX(-14deg)}60%,100%{transform:translate3d(260%,0,0) skewX(-14deg)}}
+#loader .ld-streaks i{position:absolute;top:-15%;height:130%;width:var(--w,2px);left:var(--x,50%);pointer-events:none;opacity:0;background:linear-gradient(180deg,rgba(222,247,158,0),rgba(222,247,158,.55) 45%,rgba(222,247,158,0));transform:skewX(-20deg);animation:ldStreak 3.4s linear infinite;animation-delay:var(--d,0s)}
+#loader .ld-streaks i:nth-child(1){--x:22%;--w:1px;--d:0s}
+#loader .ld-streaks i:nth-child(2){--x:58%;--w:2px;--d:1.1s}
+#loader .ld-streaks i:nth-child(3){--x:81%;--w:1px;--d:2.2s}
+@keyframes ldStreak{0%{opacity:0;transform:translate3d(-20vw,0,0) skewX(-20deg)}15%{opacity:.8}100%{opacity:0;transform:translate3d(120vw,0,0) skewX(-20deg)}}
+
+/* Film grain: a small SVG noise tile, jittered in 4 steps */
+#loader .ld-grain{position:absolute;inset:-30px;pointer-events:none;opacity:.1;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:ldGrain .6s steps(4) infinite}
+@keyframes ldGrain{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(-12px,6px,0)}50%{transform:translate3d(8px,-10px,0)}75%{transform:translate3d(-6px,-4px,0)}100%{transform:translate3d(0,0,0)}}
+
+/* Header */
+#loader .ld-top{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
+#loader .load-brand{display:flex;align-items:center;gap:10px;font:700 clamp(14px,1.5vw,18px)/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--white);text-align:left;white-space:nowrap}
+#loader .load-brand i{display:grid;place-items:center;width:26px;height:26px;background:var(--lime);color:#0d2024;font-style:normal;font-size:18px;transform:skewX(-10deg)}
+#loader .ld-tag{font:600 clamp(11px,1vw,13px)/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+
+/* Hero: wordmark and tagline (left third kept clear for the title) */
+#loader .ld-hero{position:relative;z-index:3;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 max(16px,env(safe-area-inset-right)) clamp(14px,3.5vh,40px) max(16px,env(safe-area-inset-left))}
+#loader .ld-title{margin:0;font:700 clamp(40px,min(17vw,19vh),220px)/.84 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:-.005em;transform:skewX(-10deg);transform-origin:0 100%;text-shadow:0 10px 40px rgba(0,0,0,.45)}
+#loader .ld-title span{display:block;color:var(--white);animation:ldIn .9s cubic-bezier(.2,.7,.2,1) both}
+#loader .ld-title span+span{color:var(--lime);animation-delay:.12s}
+@keyframes ldIn{from{opacity:0;transform:translate3d(-36px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+#loader .ld-hero p{display:flex;align-items:center;gap:10px;margin:clamp(10px,1.6vh,18px) 0 0;font:600 clamp(12px,1.3vw,16px)/1 'Barlow Condensed',sans-serif;letter-spacing:4px;text-transform:uppercase;color:var(--lime)}
+#loader .ld-hero p::before{content:'';width:34px;height:2px;background:#ff8a3d;box-shadow:0 0 10px rgba(255,138,61,.7)}
+
+/* Bottom info strip: rotating tip on the left, percent and progress on the right */
+#loader .ld-strip{position:relative;z-index:3;display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(14px,3vw,48px);padding:clamp(16px,2.6vh,30px) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:linear-gradient(180deg,rgba(4,14,18,0),rgba(4,14,18,.82) 35%,rgba(3,10,13,.96))}
+#loader .ld-tip{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#loader .ld-kicker{display:inline-block;padding:4px 8px 3px;background:var(--lime);color:#0d2024;font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;transform:skewX(-10deg)}
+/* The tip is visible by default. Each rotation adds .is-swap, which replays a short keyframe fade-in. */
+#loader #ld-tip{display:block;max-width:100%;min-height:1.1em;font:600 clamp(17px,2.2vw,26px)/1.1 'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;color:#f6f6ee;text-shadow:0 2px 14px rgba(0,0,0,.7)}
+#loader #ld-tip.is-swap{animation:tipIn .5s cubic-bezier(.2,.7,.2,1) both}
+@keyframes tipIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+
+#loader .ld-prog{width:min(440px,44%);min-width:0;display:flex;flex-direction:column;gap:10px}
+#loader .ld-meta{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;min-width:0}
+/* game.js writes #loadtext with its own percent; it stays in the DOM for screen readers, and the visible copy is #ld-status (percent removed) */
+#loader #loadtext{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+#loader .ld-status{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,1.1vw,13px);letter-spacing:.5px;color:var(--dim)}
+#loader .ld-pct{font:700 clamp(28px,3.2vw,44px)/.9 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.5px;color:var(--white)}
+
+/* Progress bar: the #loadbar fill has a glowing head; the steering wheel rides on --p (no filter, so it stays cheap) */
+#loader .load-track{position:relative;width:100%;height:6px;margin:0;border-radius:999px;background:rgba(222,247,158,.14);box-shadow:inset 0 0 0 1px rgba(222,247,158,.08)}
+#loader #loadbar{position:relative;display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#ff8a3d 0%,#f7c66b 45%,#def79e 100%);box-shadow:0 0 14px rgba(222,247,158,.55);transition:width .2s linear}
+#loader .ld-wheel{position:absolute;top:50%;left:var(--p);width:26px;height:26px;margin:-13px 0 0 -13px;color:var(--lime);pointer-events:none}
+#loader .ld-wheel svg{display:block;width:100%;height:100%;animation:ldSpin 1.1s linear infinite}
+@keyframes ldSpin{to{transform:rotate(360deg)}}
+
+/* Retry: a chamfered game-style button */
+#loader #retry{position:relative;align-self:flex-start;margin:6px 0 0;display:inline-flex;align-items:center;min-height:44px;padding:12px 26px;border:0;border-radius:0;background:var(--lime);color:#0d2024;font:700 15px/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);cursor:pointer;transition:background .15s ease,transform .15s ease}
+#loader #retry:hover,#loader #retry:focus-visible{background:#fff}
+#loader #retry:active{transform:scale(.97)}
+
+/* Error state (game.js shows #retry when an asset fails) */
+#loader.is-error #loadbar{background:#ff8a3d}
+#loader.is-error .ld-status,#loader.is-error .ld-pct{color:#ffb089}
+#loader.is-error .ld-wheel svg{animation-play-state:paused}
+
+/* Phones in portrait: the car sits in the middle of the screen, title moves to the top */
+@media (max-width:640px) and (orientation:portrait){
+  #loader .ld-art{inset:0;background:#06131a url(assets/loading-art-mobile.jpg) 70% 24%/auto 74% no-repeat}
+  #loader .ld-hero{justify-content:flex-start;padding-top:clamp(36px,9vh,96px)}
+  #loader .ld-prog{width:100%}
+  #loader .ld-strip{flex-direction:column;align-items:stretch;gap:16px}
+  #loader .ld-streaks i:nth-child(3){display:none}
+}
+@media (max-width:560px){#loader .ld-tag{display:none}}
+@media (max-width:640px){#loader .ld-art{background-image:url(assets/loading-art-mobile.jpg)}}
+@media (min-width:641px){#loader .ld-art{background-image:url(assets/loading-art.jpg)}}
+
+/* Reduced motion: no pan, streaks, sweep, grain, spin or tip animation; everything stays readable */
+@media (prefers-reduced-motion:reduce){
+  #loader,#loader *,#loader *::before,#loader *::after{animation:none!important;transition:none!important}
+  #loader .ld-sweep,#loader .ld-grain,#loader .ld-streaks{display:none}
+}

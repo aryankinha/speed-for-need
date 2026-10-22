@@ -149,3 +149,22 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+## Audio
+Engine loop (dist/assets/audio/engine-loop.wav): "racing car engine sound loops", loop_0.wav, by domasx2, trimmed and crossfaded (100 ms equal-power tail-to-head crossfade, loop end chosen at a continuous sample) for a seamless wrap. Author states the loops were rebuilt from a public-domain sample and pitch-shifted.
+Source: https://opengameart.org/content/racing-car-engine-sound-loops
+License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
+
+Impacts (dist/assets/audio/impact-heavy.mp3, impact-light.mp3): Kenney Impact Sounds, impactMetal_heavy_000 and impactGeneric_light_000 (re-encoded MP3, gain-trimmed to -3 dBFS peak).
+Pickup clink (dist/assets/audio/pickup-clink.mp3): Kenney Impact Sounds, impactGlass_light_000 (re-encoded MP3).
+Pickup chime (dist/assets/audio/pickup-chime.mp3): Kenney Digital Audio, powerUp2 (re-encoded MP3).
+UI click (dist/assets/audio/ui-click.mp3): Kenney Interface Sounds, click_001 (re-encoded MP3).
+Source: https://kenney.nl/assets/impact-sounds, https://kenney.nl/assets/digital-audio, https://kenney.nl/assets/interface-sounds
+License: CC0 1.0, Kenney (Creative Commons Zero) — https://creativecommons.org/publicdomain/zero/1.0/
+
+Tyre squeal, nitro whoosh, wind and sea are synthesised in dist/audio.js (no third-party audio).
+
+
+Loading screen art (dist/assets/loading-art.jpg, loading-art-960.jpg): rendered from the game's own car model (assets/roadster.glb) and city scene in the game's headless Chrome, then colour-graded. Original work for this project; no third-party artwork.
+
+Engine loop provenance note: OpenGameArt page for the loop (domasx2, CC0) says it was cut from a pdsounds.org sample and later remade from a public-domain sample; the shipped file was additionally crossfaded at the loop point for seamless playback. pickup-clink.mp3 was normalised to -3 dB peak.
