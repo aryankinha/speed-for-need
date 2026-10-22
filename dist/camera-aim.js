@@ -75,15 +75,16 @@ export function clampDistance(ox, oy, oz, dx, dy, dz, maxDist, minDist, boxes) {
 // blends into an overhead point above the car so it never sits inside a wall or the car body.
 // Traffic never triggers the overhead blend.
 export function chaseCameraGoal(p, out, bumper = CHASE_BUMPER) {
-  const ox = p.x - p.fx * bumper, oy = 1.2, oz = p.z - p.fz * bumper;
-  const gx = p.x - p.fx * p.back, gy = p.height, gz = p.z - p.fz * p.back;
+  const py = p.y || 0;
+  const ox = p.x - p.fx * bumper, oy = py + 1.2, oz = p.z - p.fz * bumper;
+  const gx = p.x - p.fx * p.back, gy = py + p.height, gz = p.z - p.fz * p.back;
   let dx = gx - ox, dy = gy - oy, dz = gz - oz;
   const maxDist = Math.hypot(dx, dy, dz);
   dx /= maxDist; dy /= maxDist; dz /= maxDist;
   const minDist = Math.max(0.5, CHASE_MIN_CENTRE - bumper);
   const d = clampDistance(ox, oy, oz, dx, dy, dz, maxDist, minDist, p.boxes);
   const cx = ox + dx * d, cy = oy + dy * d, cz = oz + dz * d;
-  const hx = p.x - p.fx * CHASE_OVERHEAD_BACK, hy = CHASE_OVERHEAD_Y, hz = p.z - p.fz * CHASE_OVERHEAD_BACK;
+  const hx = p.x - p.fx * CHASE_OVERHEAD_BACK, hy = py + CHASE_OVERHEAD_Y, hz = p.z - p.fz * CHASE_OVERHEAD_BACK;
   const w = Math.min(1, Math.max(0, 1 - (d - minDist) / 1.5));
   let lift = 0;
   const sp = p.spheres;
@@ -94,10 +95,10 @@ export function chaseCameraGoal(p, out, bumper = CHASE_BUMPER) {
   out.y = cy + (hy - cy) * w + lift * (1 - w);
   out.z = cz + (hz - cz) * w;
   // Blending a close point with the overhead point can dip inside the minimum radius; push out radially.
-  const rx = out.x - p.x, ry = out.y - 0.6, rz = out.z - p.z, r = Math.hypot(rx, ry, rz);
+  const rx = out.x - p.x, ry = out.y - (py + 0.6), rz = out.z - p.z, r = Math.hypot(rx, ry, rz);
   if (r < CHASE_MIN_CENTRE && r > 1e-6) {
     const s = CHASE_MIN_CENTRE / r;
-    out.x = p.x + rx * s; out.y = 0.6 + ry * s; out.z = p.z + rz * s;
+    out.x = p.x + rx * s; out.y = py + 0.6 + ry * s; out.z = p.z + rz * s;
   }
   out.clamped = d < maxDist - 1e-4;
   out.w = w;
@@ -107,10 +108,11 @@ export function chaseCameraGoal(p, out, bumper = CHASE_BUMPER) {
 // Keeps the camera at least minR from the car centre (car = {x,z} on the ground, centre height 0.6 m).
 // Applied after damping and shake, because a straight lerp between two valid goals can cut through the minimum radius.
 export function pushOutOfCar(cam, car, minR = CHASE_MIN_CENTRE) {
-  const rx = cam.x - car.x, ry = cam.y - 0.6, rz = cam.z - car.z, r = Math.hypot(rx, ry, rz);
+  const py = car.y || 0;
+  const rx = cam.x - car.x, ry = cam.y - (py + 0.6), rz = cam.z - car.z, r = Math.hypot(rx, ry, rz);
   if (r < minR && r > 1e-6) {
     const s = minR / r;
-    cam.x = car.x + rx * s; cam.y = 0.6 + ry * s; cam.z = car.z + rz * s;
+    cam.x = car.x + rx * s; cam.y = py + 0.6 + ry * s; cam.z = car.z + rz * s;
   }
   return cam;
 }

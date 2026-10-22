@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import {makeBeachGeometry} from './coast.js';
+import {RAMPS} from './stunts.js';
+import {prepareRampModel,RAMP_SHAPE} from './ramp-model.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
 const BATCH_CELL_M=220;
@@ -21,7 +23,7 @@ export async function buildWorld({scene,physics,models,random}){
   }
   function slab(width,height,length,x,y,z,mat){const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,length),mat);mesh.position.set(x,y,z);mesh.userData.surface=true;mesh.updateMatrixWorld();batchMesh(mesh);mesh.geometry.dispose();}
   function place(template,x,z,rotation=0,scale=1){const clone=template.clone(true);clone.position.set(x,0,z);clone.rotation.y=rotation;clone.scale.multiplyScalar(scale);clone.updateMatrixWorld(true);return clone;}
-  function staticBox(root,name,{baseOnly=false}={}){root.updateMatrixWorld(true);let bounds=new THREE.Box3().setFromObject(root,true);if(baseOnly){const low=new THREE.Box3();root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){temp.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(temp.y<.8)low.expandByPoint(temp);}}});if(!low.isEmpty())bounds=low;}const size=bounds.getSize(new THREE.Vector3()),c=bounds.getCenter(new THREE.Vector3());if(size.x>.02&&size.z>.02){const actor=physics.addBox({x:c.x,z:c.z,width:size.x,length:size.z,userData:{kind:name}});obstacles.push({box:bounds.clone(),actor});}return bounds;}
+  function staticBox(root,name,{baseOnly=false}={}){root.updateMatrixWorld(true);let bounds=new THREE.Box3().setFromObject(root,true);const fullBounds=bounds.clone();if(baseOnly){const low=new THREE.Box3();root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){temp.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(temp.y<.8)low.expandByPoint(temp);}}});if(!low.isEmpty())bounds=low;}const size=bounds.getSize(new THREE.Vector3()),c=bounds.getCenter(new THREE.Vector3());if(size.x>.02&&size.z>.02){const actor=physics.addBox({x:c.x,z:c.z,width:size.x,length:size.z,userData:{kind:name}});actor.minY=fullBounds.min.y;actor.maxY=fullBounds.max.y;obstacles.push({box:bounds.clone(),actor});}return bounds;}
   function addStatic(root,name,collision=true,baseOnly=false){root.updateMatrixWorld(true);if(collision)staticBox(root,name,{baseOnly});root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;batchMesh(o);}});}
   // Surface details are layout geometry; all cars, buildings, vegetation and props are sourced GLBs.
   const roadCanvas=document.createElement('canvas');roadCanvas.width=roadCanvas.height=128;const rc=roadCanvas.getContext('2d'),pixels=rc.createImageData(128,128);for(let i=0;i<pixels.data.length;i+=4){const shade=58+random()*18;pixels.data[i]=shade;pixels.data[i+1]=shade+2;pixels.data[i+2]=shade+3;pixels.data[i+3]=255;}rc.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(roadCanvas);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(220,280);texture.colorSpace=THREE.SRGBColorSpace;const asphalt=new THREE.MeshStandardMaterial({map:texture,color:0xb2b3af,roughness:.88});
@@ -51,6 +53,18 @@ export async function buildWorld({scene,physics,models,random}){
   for(let z=top;z<bottom;z+=24)addStatic(place(rock,-502-random()*4,z,random()*6,.7+random()*1.2),'coastal-rock',false);
   for(let i=0;i<5;i++){addStatic(place(cone,165+i*3,166.5),'cone');propCount++;}for(let i=0;i<3;i++){addStatic(place(barrier,172+i*3,163.8,Math.PI/2),'barrier');propCount++;}
   const stopT=normalize(models['road-sign-stop'],2.8,'y');for(const x of roadsX.slice(1))for(const z of roadsZ.filter((_,i)=>i%2===0))addStatic(place(stopT,x+12.5,z+19,Math.PI),'stop-sign',true,true);const highway=normalize(models['sign-highway-detailed'],5,'y');addStatic(place(highway,-429,-135,Math.PI/2),'highway-sign',true,true);
+  // The downloaded Kenney ramp is reused three times. Toe and deck profile
+  // share dimensions with the fixed-step jump layer; no generated ramp model.
+  const rampTemplate=prepareRampModel(models['stunt-ramp']);
+  for(const r of RAMPS){
+    const model=place(rampTemplate,r.x,r.z,r.heading);model.position.y=.025;model.updateMatrixWorld(true);
+    model.traverse(o=>{if(o.isMesh)batchMesh(o);});
+    const actor=physics.addBox({x:r.x+r.fx*RAMP_SHAPE.length/2,z:r.z+r.fz*RAMP_SHAPE.length/2,width:RAMP_SHAPE.width,length:RAMP_SHAPE.length,heading:r.heading,userData:{kind:'stunt-ramp',rampId:r.id}});actor.maxY=RAMP_SHAPE.height+.025;
+    // Cones mark the entry from either side, outside the drivable ramp width.
+    for(const side of [-1,1])addStatic(place(cone,r.x+Math.cos(r.heading)*side*3.3-r.fx*2,r.z-Math.sin(r.heading)*side*3.3-r.fz*2),'stunt-cone');
+    const half=RAMP_SHAPE.width/2;
+    if(obstacles.some(o=>o.actor.userData.kind!=='stunt-cone'&&o.box.max.x>r.x-half&&o.box.min.x<r.x+half&&o.box.max.z>Math.min(r.z,r.z+r.fz*RAMP_SHAPE.length)&&o.box.min.z<Math.max(r.z,r.z+r.fz*RAMP_SHAPE.length)))throw new Error(`Stunt ramp ${r.id} overlaps a world obstacle`);
+  }
   // Physical boundaries coincide with visible waterfront / outer retaining curbs.
   for(const x of [left,right]){slab(.4,.7,1340,x,.25,0,pavement);physics.addBox({x,z:0,width:.4,length:1340,userData:{kind:'boundary'}});}for(const z of [top,bottom]){slab(980,.7,.4,0,.25,z,pavement);physics.addBox({x:0,z,width:980,length:.4,userData:{kind:'boundary'}});}
   // Four continuous beach sides and one ocean surface beneath the island.
@@ -68,5 +82,5 @@ export async function buildWorld({scene,physics,models,random}){
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(5000,5400),new THREE.ShaderMaterial({uniforms:{time:{value:0},normalMap:{value:normal}},vertexShader:`varying vec3 worldP;void main(){worldP=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(worldP,1.);}`,fragmentShader:`varying vec3 worldP;uniform float time;uniform sampler2D normalMap;void main(){vec2 p=worldP.xz;vec3 n1=texture2D(normalMap,p*.018+vec2(time*.012,time*.007)).rgb;vec3 n2=texture2D(normalMap,p*.032-vec2(time*.008,time*.011)).rgb;float ripple=(n1.x+n2.y-1.);float edge=max(abs(p.x)-490.,abs(p.y)-670.);float shallow=1.-smoothstep(25.,100.,edge);vec3 c=mix(vec3(.10,.25,.30),vec3(.30,.52,.49),shallow*.7+ripple*.12);float wave=sin(edge*.65-time*1.5+n1.x*1.2);float foam=(1.-smoothstep(31.,42.,abs(edge-36.)))*pow(max(0.,wave),12.)*.38;c=mix(c,vec3(.83,.84,.73),foam);float gleam=pow(max(0.,ripple*.7+.2),8.)*2.;c+=vec3(.7,.44,.22)*gleam;float haze=1.-exp(-length(p-cameraPosition.xz)*.0006);gl_FragColor=vec4(mix(c,vec3(.64,.61,.59),haze),1.);}`}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-.30,0);scene.add(sea);
   const placementErrors=buildingLots.filter(l=>l.bounds.min.x<l.minX||l.bounds.max.x>l.maxX||l.bounds.min.z<l.minZ||l.bounds.max.z>l.maxZ).length;
   if(placementErrors)throw new Error(`${placementErrors} buildings escaped their allocated lots`);
-  return {obstacles,sea,buildingLots,stats:{buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
+  return {obstacles,sea,buildingLots,ramps:RAMPS,stats:{buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
 }

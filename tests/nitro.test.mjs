@@ -63,3 +63,10 @@ test('HUD toggles the locked tag only on change, and the FULL flash is debounced
   hud.flash();hud.hide();assert.equal(classes.has('flash'),false);assert.equal(classes.has('locked'),false);
 });
 test('HUD writes the bar and percent only when the displayed value changes',()=>{const writes={fill:0,text:0};const classes=new Set();const fill={style:{set width(v){writes.fill++;this._t=v;}}};const percent={set textContent(v){writes.text++;this._t=v;}};const root={hidden:true,setAttribute(){},classList:{add:c=>classes.add(c),remove:(...cs)=>cs.forEach(c=>classes.delete(c)),toggle:(c,on)=>on?classes.add(c):classes.delete(c)},querySelector:s=>s==='.nitro-fill'?fill:percent};const hud=new NitroHud(root);hud.update(50,1/60);const after=writes.fill+writes.text;hud.update(50,1/60);hud.update(50,1/60,false);assert.equal(writes.fill+writes.text,after);hud.update(50,1/60,true);assert.ok(classes.has('burning'));hud.update(100,0);assert.equal(percent._t,'100%');assert.equal(root.hidden,false);hud.hide();assert.equal(root.hidden,true);assert.equal(classes.has('burning'),false);});
+
+test('jumping above a ground bottle does not collect or disable it',()=>{
+  const field=make(),bottle=field.items[0];
+  assert.equal(field.collectAt({x:bottle.x,z:bottle.z,elevation:10},0),0);
+  assert.equal(bottle.active,true);assert.equal(field.collected,0);
+  assert.equal(field.collectAt({x:bottle.x,z:bottle.z,elevation:0},0),NITRO_BOTTLE);
+});

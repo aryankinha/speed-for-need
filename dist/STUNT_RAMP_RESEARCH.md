@@ -1,3 +1,5 @@
+> Implementation audit: this proposal contains corrected assumptions. See [STUNT_IMPLEMENTATION.md](STUNT_IMPLEMENTATION.md) for verified sources, actual delivered scope and test evidence.
+
 # STUNT RAMP & SPEED TRAP ARCHITECTURE RESEARCH (REVISION 2)
 ## Hardened Technical Specification for AFTERLIGHT / Solana Bay
 

@@ -17,8 +17,10 @@ Run `npm run dev` and open http://127.0.0.1:4173. No installation or build neede
 The pause button, radar and nitro meter appear while driving. Sprint time/results appear in the pause menu; green physical gates show the route.
 
 ## Validation
-`npm test` runs 143 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
+`npm test` runs 159 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
 
 [Research and root causes](dist/RESEARCH.md) · [Asset credits](dist/CREDITS.md)
 
 [Garage sources and debugging](dist/GARAGE_RESEARCH.md)
+
+Three sourced stunt ramps add airborne jumps and saved best distance. Yellow radar triangles mark their entries; Pause → Settings & Controls → Explore stunt jumps takes you to the first approach. [Verified stunt research](dist/STUNT_IMPLEMENTATION.md).

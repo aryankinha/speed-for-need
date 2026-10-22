@@ -181,3 +181,6 @@ All three: **Creative Commons Attribution 4.0** — https://creativecommons.org/
 Optimized GLB redistributions: https://github.com/pedrosoandre/carros (geometry simplification/welding/pruning, Meshopt compression). Our runtime adaptations: BMW display plinth removed; vehicle rotation, centering and game scale; NSX wheel pivots recentered without changing geometry; garage staged with fill lights. Original materials retained. Names describe model subjects and do not imply manufacturer endorsement. Detailed primary-source verification and attribution accompany each GLB in assets/.
 
 Meshopt decoder: official Three.js r170 distribution, MIT, bundled at vendor/libs/meshopt_decoder.module.js. https://github.com/mrdoob/three.js/tree/r170
+
+## Stunt ramps
+Kenney Racing Kit — ramp.glb by Kenney, Creative Commons CC0 1.0. Official source: https://kenney.nl/assets/racing-kit . License: https://creativecommons.org/publicdomain/zero/1.0/ . Original GLB copied unchanged from the official archive; runtime centering, scale and placement only. Original license and provenance accompany assets/stunt-ramp.glb.

@@ -69,6 +69,7 @@ export class PickupField {
    * is above NITRO_PICKUP_MAX. A blocked bottle stays in place, so every bottle taken gives exactly one bottle of charge.
    */
   collectAt(position,tankAmount=0){
+    if((position.elevation||0)>3.5)return 0;
     let amount=0,inReach=false;
     for(const item of this.items){
       if(!item.active||Math.hypot(item.x-position.x,item.z-position.z)>=3.5)continue;
@@ -123,7 +124,7 @@ export class NitroEffects {
   collectAt(position,tankAmount=0){return this.field.collectAt(position,tankAmount);}
   emit(position,heading,speed){
     const id=this.cursor++%this.capacity,index=id*3,side=id%2?1:-1,s=Math.sin(heading),c=Math.cos(heading),spread=(this.random()-.5)*.14;
-    this.positions[index]=position.x+s*2.15+c*side*.69;this.positions[index+1]=.42+(this.random()-.5)*.04;this.positions[index+2]=position.z+c*2.15-s*side*.69;
+    this.positions[index]=position.x+s*2.15+c*side*.69;this.positions[index+1]=(position.y||0)+.42+(this.random()-.5)*.04;this.positions[index+2]=position.z+c*2.15-s*side*.69;
     // Car exhaust remains a stylized electric overdrive trail, without claiming
     // combustion hardware on the original electric Roadster.
     const rearSpeed=4+this.random()*6;this.vx[id]=s*rearSpeed+c*spread;this.vz[id]=c*rearSpeed-s*spread;this.vy[id]=(this.random()-.4)*.25;

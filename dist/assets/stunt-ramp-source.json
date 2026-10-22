@@ -1,0 +1,40 @@
+{
+  "title": "Racing Kit \u2014 ramp",
+  "creator": "Kenney",
+  "primaryPage": "https://kenney.nl/assets/racing-kit",
+  "download": "https://kenney.nl/media/pages/assets/racing-kit/933b8fd9fd-1677580949/kenney_racing-kit.zip",
+  "archiveMember": "Models/GLTF format/ramp.glb",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "verifiedOn": "2026-10-22",
+  "sha256": "a6f2c0e4f01fded7f9020cba4a0eb304d3724a9086071b52d5ae7e2b63d47253",
+  "bytes": 6996,
+  "triangles": 94,
+  "sourceSize": {
+    "width": 0.550000011920929,
+    "height": 0.32999998331069946,
+    "length": 0.7300000190734863
+  },
+  "upAxis": "+Y",
+  "uphillDirection": "-Z",
+  "sourceNodeTranslation": [
+    -0.35,
+    -0.01,
+    -0.65
+  ],
+  "sourceDeckProfile": [
+    {
+      "run": 0,
+      "height": 0
+    },
+    {
+      "run": 0.6604167819023132,
+      "height": 0.32999998331069946
+    },
+    {
+      "run": 0.7300000190734863,
+      "height": 0.32999998331069946
+    }
+  ],
+  "adaptations": "None: original official GLB copied byte-for-byte. Runtime positioning and scaling only."
+}

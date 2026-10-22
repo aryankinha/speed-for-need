@@ -145,3 +145,18 @@ test('a damped step between two valid goals that cuts through the minimum radius
   pushOutOfCar(mid, car);
   assert.ok(Math.abs(centreDist(mid, {x: 0, y: 0.6, z: 0}) - CHASE_MIN_CENTRE) < 1e-9);
 });
+
+test('jump camera translates its goal, aim and minimum car distance with altitude',()=>{
+  const ground={x:12,y:0,z:40,fx:0,fz:-1,back:9.5,lead:0,height:3.1,boxes:[],spheres:[]};
+  const a={},b={};chaseCameraGoal(ground,a);chaseCameraGoal({...ground,y:17},b);
+  assert.ok(Math.abs(b.x-a.x)<1e-9&&Math.abs(b.z-a.z)<1e-9);
+  assert.ok(Math.abs(b.y-a.y-17)<1e-9);
+  const cam={x:ground.x,y:17.7,z:ground.z+.2};pushOutOfCar(cam,{x:ground.x,y:17,z:ground.z});
+  assert.ok(Math.abs(Math.hypot(cam.x-ground.x,cam.y-17.6,cam.z-ground.z)-CHASE_MIN_CENTRE)<1e-9);
+  for(const hz of [30,60,144]){
+    const camera={x:12,y:20.1,z:49.5};const car={x:12,y:17,z:40};const aim={};
+    stepChaseCamera(camera,car,1/hz,{...ground,y:17},true,null);chaseAim(camera,{...car,y:17.6},57,-.5,aim);
+    const screen=project(camera,aim,{...car,y:17.6},57,16/9);
+    assert.ok(Math.abs(screen.ndcY+.5)<1e-9);
+  }
+});
