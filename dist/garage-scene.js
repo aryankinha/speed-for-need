@@ -78,8 +78,8 @@ export class GarageScene {
 
   frame(){
     const portrait=this.camera.aspect<1;
-    this.camera.position.set(this.position.x-6,1.65,this.position.z+6);
-    this.target.set(this.position.x,.7,this.position.z);
+    this.camera.position.set(this.position.x-7,2.5,this.position.z+7);
+    this.target.set(this.position.x,-.35,this.position.z);
     this.camera.fov=portrait?58:45;
     this.camera.lookAt(this.target);
     this.camera.updateProjectionMatrix();

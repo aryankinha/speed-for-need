@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {makeBeachGeometry} from './coast.js';
-import {RAMPS} from './stunts.js';
+import {RAMPS,STUNT_AREA} from './stunts.js';
 import {prepareRampModel,RAMP_SHAPE} from './ramp-model.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
@@ -13,6 +13,7 @@ export async function buildWorld({scene,physics,models,random}){
   const {left,right,top,bottom,roadsX,roadsZ}=WORLD;
   const obstacles=[],buildingLots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
   const material=(color,roughness=.9)=>new THREE.MeshStandardMaterial({color,roughness});
+  const inStuntArea=(x,z)=>x>STUNT_AREA.left&&x<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom;
   const pavement=material(0xb3b3a6),grass=material(0x69765a),sand=material(0xb5a38a),white=new THREE.MeshStandardMaterial({color:0xc9cabb}),yellow=new THREE.MeshStandardMaterial({color:0xc3b474});
   function batchMesh(mesh){
     mesh.updateWorldMatrix(true,false);if(!mesh.geometry)return;
@@ -28,7 +29,7 @@ export async function buildWorld({scene,physics,models,random}){
   // Surface details are layout geometry; all cars, buildings, vegetation and props are sourced GLBs.
   const roadCanvas=document.createElement('canvas');roadCanvas.width=roadCanvas.height=128;const rc=roadCanvas.getContext('2d'),pixels=rc.createImageData(128,128);for(let i=0;i<pixels.data.length;i+=4){const shade=58+random()*18;pixels.data[i]=shade;pixels.data[i+1]=shade+2;pixels.data[i+2]=shade+3;pixels.data[i+3]=255;}rc.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(roadCanvas);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(220,280);texture.colorSpace=THREE.SRGBColorSpace;const asphalt=new THREE.MeshStandardMaterial({map:texture,color:0xb2b3af,roughness:.88});
   slab(980,.4,1340,0,-.2,0,asphalt);slab(24,.16,1340,-478,-.05,0,pavement);slab(24,.16,1340,478,-.05,0,pavement);slab(932,.16,24,0,-.05,-658,pavement);slab(932,.16,24,0,-.05,658,pavement);
-  const markings=[];const line=(x,z,w,l,material)=>markings.push({x,z,w,l,material});
+  const markings=[];const line=(x,z,w,l,material)=>{if(!inStuntArea(x,z))markings.push({x,z,w,l,material});};
   for(const x of roadsX)for(let z=top+29;z<bottom-29;z+=10){if(roadsZ.every(r=>Math.abs(z-r)>16)){line(x-.2,z,.13,5,yellow);line(x+.2,z,.13,5,yellow);line(x-9.5,z,.1,10,white);line(x+9.5,z,.1,10,white);}}
   for(const z of roadsZ)for(let x=left+29;x<right-29;x+=10){if(roadsX.every(r=>Math.abs(x-r)>16)){line(x,z-.2,5,.13,yellow);line(x,z+.2,5,.13,yellow);line(x,z-9.5,10,.1,white);line(x,z+9.5,10,.1,white);}}
   for(const x of roadsX)for(const z of roadsZ)for(const side of [-1,1])for(let i=-4;i<=4;i++){line(x+i*1.8,z+side*14,1,3,white);line(x+side*14,z+i*1.8,3,1,white);}
@@ -37,10 +38,24 @@ export async function buildWorld({scene,physics,models,random}){
   models[buildingNames[0]].traverse(o=>{if(o.isMesh&&!cityMaterial){cityMaterial=o.material.clone();cityMaterial.color.set(0xffffff);cityMaterial.vertexColors=true;}});
   const templates=buildingNames.map((name,i)=>{const root=models[name];const t=normalize(root,name.includes('skyscraper')?48+random()*30:14+random()*17,'y');const b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());const fit=Math.min(1,46/b.x,46/b.z);t.scale.multiplyScalar(fit);root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.cityAtlas=true;o.material.color.multiply(new THREE.Color([0xcbd0c6,0xcabfac,0xc3c9ce,0xd8cec0,0xb5c2b7][i%5]));}});return {template:t,tall:name.includes('skyscraper')};});
   let buildingCount=0,propCount=0;
+  // Two adjacent blocks and the unused internal street form one continuous lot.
+  slab(STUNT_AREA.right-STUNT_AREA.left,.02,STUNT_AREA.bottom-STUNT_AREA.top,(STUNT_AREA.left+STUNT_AREA.right)/2,.015,(STUNT_AREA.top+STUNT_AREA.bottom)/2,asphalt);
+  for(const x of [STUNT_AREA.left+2,STUNT_AREA.right-2])slab(.3,.015,STUNT_AREA.bottom-STUNT_AREA.top-4,x,.034,(STUNT_AREA.top+STUNT_AREA.bottom)/2,yellow);
+  for(const z of [STUNT_AREA.top+2,STUNT_AREA.bottom-2])slab(STUNT_AREA.right-STUNT_AREA.left-4,.015,.3,(STUNT_AREA.left+STUNT_AREA.right)/2,.034,z,yellow);
   const bench=normalize(models.bench,2,'x'),planter=normalize(models.planter,2,'x'),dumpster=normalize(models.dumpster,1.8,'z'),cone=normalize(models['construction-cone'],.75,'y'),barrier=normalize(models['construction-barrier'],2.4,'z'),rock=normalize(models['rock-largea'],3,'z');
   const palm=models['tree-palmdetailedtall'];palm.traverse(o=>{if(o.isMesh){o.material.metalness=0;if(o.material.name.startsWith('leaf'))o.material.color.set(0x4d6b50);}});const palmT=normalize(palm,10.5,'y'),lampT=normalize(models['light-curved'],7,'y'),signalT=normalize(models['traffic-light'],4.8,'y');
   for(let i=0;i<roadsX.length-1;i++)for(let j=0;j<roadsZ.length-1;j++){
-    const bx=(roadsX[i]+roadsX[i+1])/2,bz=(roadsZ[j]+roadsZ[j+1])/2;slab(126,.16,126,bx,-.02,bz,pavement);slab(114,.04,114,bx,.08,bz,grass);
+    const bx=(roadsX[i]+roadsX[i+1])/2,bz=(roadsZ[j]+roadsZ[j+1])/2;
+    if(bx>STUNT_AREA.left&&bx<STUNT_AREA.right&&bz>STUNT_AREA.top&&bz<STUNT_AREA.bottom){
+      // Dedicated asphalt park: leave its southern entrance and runways open.
+      // Paint and sourced cones distinguish it from the surrounding streets.
+      if(bz>450){
+        for(const r of RAMPS)for(const side of [-1,1])for(let z=r.z+7;z<STUNT_AREA.bottom-8;z+=7)slab(.15,.015,3,r.x+side*3.8,.034,z,white);
+        for(let z=STUNT_AREA.top+5;z<STUNT_AREA.bottom-4;z+=20)for(const x of [STUNT_AREA.left+3,STUNT_AREA.right-3])addStatic(place(cone,x,z),'stunt-cone');
+      }
+      continue;
+    }
+    slab(126,.16,126,bx,-.02,bz,pavement);slab(114,.04,114,bx,.08,bz,grass);
     const park=(i===1&&j===4)||(i===4&&j===2)||(i===2&&j===6);
     if(park){slab(7,.02,116,bx,.115,bz,pavement);slab(116,.02,7,bx,.116,bz,pavement);for(const dx of [-28,28])for(const dz of [-30,30]){addStatic(place(palmT,bx+dx,bz+dz,random()*6), 'tree',true,true);addStatic(place(bench,bx+dx+4,bz+dz,Math.PI/2),'bench');propCount+=2;}continue;}
     for(const dx of [-33,33])for(const dz of [-33,33]){const tall=i>2&&j>1&&j<7&&random()>.35;const options=templates.filter(t=>t.tall===tall),template=options[Math.floor(random()*options.length)].template;const m=place(template,bx+dx,bz+dz,Math.floor(random()*4)*Math.PI/2,.8+random()*.2);const bounds=staticBox(m,'building');buildingLots.push({minX:bx+dx-25,maxX:bx+dx+25,minZ:bz+dz-25,maxZ:bz+dz+25,bounds});m.traverse(o=>{if(o.isMesh)batchMesh(o);});buildingCount++;}
@@ -48,8 +63,8 @@ export async function buildWorld({scene,physics,models,random}){
     if((i+j)%3===0){addStatic(place(dumpster,bx+55,bz+52,Math.PI/2),'dumpster');propCount++;}
   }
   for(let z=top+10;z<bottom;z+=30){if(roadsZ.every(r=>Math.abs(z-r)>19)){for(const side of [-1,1]){addStatic(place(palmT,side*478,z,random()*6,.9+random()*.2),'tree',true,true);addStatic(place(lampT,side*462.5,z,side<0?-Math.PI/2:Math.PI/2),'lamp',true,true);if(Math.round(z)%3===0)addStatic(place(bench,side*479,z+5,Math.PI/2),'bench');}}}
-  for(const x of roadsX.slice(1))for(let z=top+20;z<bottom;z+=65){if(roadsZ.every(r=>Math.abs(z-r)>20)){for(const side of [-1,1]){addStatic(place(palmT,x+side*15.2,z,random()*6,.7),'tree',true,true);addStatic(place(lampT,x+side*12.5,z+9,side<0?-Math.PI/2:Math.PI/2),'lamp',true,true);}}}
-  for(const x of roadsX)for(const z of roadsZ)for(const sx of [-1,1])for(const sz of [-1,1]){addStatic(place(signalT,x+sx*13,z+sz*13,sx>0?Math.PI:0),'signal',true,true);addStatic(place(signalT,x+sx*13,z+sz*13.9,sz>0?Math.PI/2:-Math.PI/2),'signal',false);}
+  for(const x of roadsX.slice(1))for(let z=top+20;z<bottom;z+=65){if(roadsZ.every(r=>Math.abs(z-r)>20)){for(const side of [-1,1]){if(x+side*15.2>STUNT_AREA.left&&x+side*15.2<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom)continue;addStatic(place(palmT,x+side*15.2,z,random()*6,.7),'tree',true,true);addStatic(place(lampT,x+side*12.5,z+9,side<0?-Math.PI/2:Math.PI/2),'lamp',true,true);}}}
+  for(const x of roadsX)for(const z of roadsZ)for(const sx of [-1,1])for(const sz of [-1,1]){if(inStuntArea(x+sx*13,z+sz*13))continue;addStatic(place(signalT,x+sx*13,z+sz*13,sx>0?Math.PI:0),'signal',true,true);addStatic(place(signalT,x+sx*13,z+sz*13.9,sz>0?Math.PI/2:-Math.PI/2),'signal',false);}
   for(let z=top;z<bottom;z+=24)addStatic(place(rock,-502-random()*4,z,random()*6,.7+random()*1.2),'coastal-rock',false);
   for(let i=0;i<5;i++){addStatic(place(cone,165+i*3,166.5),'cone');propCount++;}for(let i=0;i<3;i++){addStatic(place(barrier,172+i*3,163.8,Math.PI/2),'barrier');propCount++;}
   const stopT=normalize(models['road-sign-stop'],2.8,'y');for(const x of roadsX.slice(1))for(const z of roadsZ.filter((_,i)=>i%2===0))addStatic(place(stopT,x+12.5,z+19,Math.PI),'stop-sign',true,true);const highway=normalize(models['sign-highway-detailed'],5,'y');addStatic(place(highway,-429,-135,Math.PI/2),'highway-sign',true,true);
@@ -84,5 +99,5 @@ export async function buildWorld({scene,physics,models,random}){
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(5000,5400),new THREE.ShaderMaterial({uniforms:{time:{value:0},normalMap:{value:normal}},vertexShader:`varying vec3 worldP;void main(){worldP=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(worldP,1.);}`,fragmentShader:`varying vec3 worldP;uniform float time;uniform sampler2D normalMap;void main(){vec2 p=worldP.xz;vec3 n1=texture2D(normalMap,p*.018+vec2(time*.012,time*.007)).rgb;vec3 n2=texture2D(normalMap,p*.032-vec2(time*.008,time*.011)).rgb;float ripple=(n1.x+n2.y-1.);float edge=max(abs(p.x)-490.,abs(p.y)-670.);float shallow=1.-smoothstep(25.,100.,edge);vec3 c=mix(vec3(.10,.25,.30),vec3(.30,.52,.49),shallow*.7+ripple*.12);float wave=sin(edge*.65-time*1.5+n1.x*1.2);float foam=(1.-smoothstep(31.,42.,abs(edge-36.)))*pow(max(0.,wave),12.)*.38;c=mix(c,vec3(.83,.84,.73),foam);float gleam=pow(max(0.,ripple*.7+.2),8.)*2.;c+=vec3(.7,.44,.22)*gleam;float haze=1.-exp(-length(p-cameraPosition.xz)*.0006);gl_FragColor=vec4(mix(c,vec3(.64,.61,.59),haze),1.);}`}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-.30,0);scene.add(sea);
   const placementErrors=buildingLots.filter(l=>l.bounds.min.x<l.minX||l.bounds.max.x>l.maxX||l.bounds.min.z<l.minZ||l.bounds.max.z>l.maxZ).length;
   if(placementErrors)throw new Error(`${placementErrors} buildings escaped their allocated lots`);
-  return {obstacles,sea,buildingLots,ramps:RAMPS,stats:{buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
+  return {obstacles,sea,buildingLots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
 }

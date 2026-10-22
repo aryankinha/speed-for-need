@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-// Four static snapshots of the actual imported geometry, using the existing renderer.
+// Static snapshots of the actual imported geometry, using the existing renderer.
 // No extra WebGL context, no repeated per-frame thumbnail renders, no duplicate textures.
 export function vehicleThumbnails(renderer,rides,environment){
   const thumbnails={},scene=new THREE.Scene();scene.background=new THREE.Color(0x191d23);scene.environment=environment;scene.environmentIntensity=.9;

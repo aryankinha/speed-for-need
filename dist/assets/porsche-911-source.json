@@ -1,0 +1,22 @@
+{
+  "uid": "de1ffd344c41481892511f7fd332c136",
+  "name": "Porsche 911 (930) Turbo 1975",
+  "viewerUrl": "https://sketchfab.com/3d-models/porsche-911-930-turbo-1975-de1ffd344c41481892511f7fd332c136",
+  "isDownloadable": true,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "author": {
+    "displayName": "Lexyc16",
+    "profileUrl": "https://sketchfab.com/Lexyc16",
+    "username": "Lexyc16"
+  },
+  "verifiedDate": "2026-10-22",
+  "apiSource": "https://api.sketchfab.com/v3/models/de1ffd344c41481892511f7fd332c136",
+  "redistribution": "https://raw.githubusercontent.com/pedrosoandre/carros/main/assets/porsche-911.glb"
+}

@@ -1,0 +1,19 @@
+# Vehicle rig and fifth car inspection — 22 October 2026
+
+The fifth addition is **Porsche 911 (930) Turbo 1975 by Lexyc16**, not a generated replica. The optimized GLB is 2,383,144 bytes. Its author-selected CC BY 4.0 and public download status were independently verified at Sketchfab's primary API, with minimal source records beside the model. The carros licensed redistribution supplies the actual binary. The author also made the existing NSX, giving this addition a matching detail level. The Carrera alternative carries CC BY-SA; this independently CC BY model makes attribution simpler without sacrificing the requested 911 silhouette.
+
+## Why the old wheels did not animate
+
+The original Tesla model is a fused, textured scan with five atlas materials and geometry spread across arbitrary chunks. It has no authored four-wheel hierarchy or isolated paint surface. Treating one of those chunks as a wheel would move bodywork; tinting its full atlas would recolor glass and tires. A licensed **Tesla Roadster 2020 by metarex.4d** provides explicit four wheel groups and `car_main_paint`, while retaining the same car, ID and game tuning. The original `roadster.glb` is retained unchanged as source history, but the catalog preloads `tesla-roadster.glb`. The replacement is 7,081,016 bytes and substantially fewer vertices than the original scan. See its independent author/license verification and attribution alongside the GLB.
+
+BMW wheel triangles were previously combined by material across four corners. The verified wheel-only meshes are `Object_6` (tire), `Object_7`, `Object_8`, `Object_13` and `Object_14` (wheel/hub components). Splitting their existing indexed triangles by side and axle preserves every triangle. Compact vertex buffers are essential: merely changing indices leaves unused vertices in Three.js precise bounds, incorrectly centering all four pivots at the car center. Body and display plinth handling remain separate.
+
+## Source axes and rig
+
+All four imported realistic cars have their nose along source +Z, verified from source front/rear lamp positions and authored wheel group labels. A Y rotation of PI aligns their front to gameplay -Z. Porsche front wheels are `Circle002_12` and `Circle001_16`; rear wheels are `Circle003_13` and `Circle004_14`. Tesla front wheel groups are `TRDEF-WheelFtR/FtL`, rear groups `TRDEF-WheelBkR/BkL`. NSX's previously corrected leading axle remains `.001_9` and `.004_21`.
+
+Wrappers contain only authored wheel geometry. Existing positions/normals are converted from quantized attributes before world-space rebasing so rotations do not clamp normalized integer vertex buffers or introduce nested-transform shear. All wrappers have source-world X axles and world-up steering; neutral wrapper base quaternions preserve original body transforms. Roll distance uses each measured radius. These are geometry adapters, not newly modeled wheels.
+
+Body paint: Concept GT `Paint 1 Carmine`, BMW `CarPaint`, NSX `Material.003`, Tesla `car_main_paint`. Porsche's main body is `Object_8` / `Material.001`. Geometry-only raycasts against the actual decoded triangles verify the bonnet at source x=-1.1,z=+0.8 and +1.2, roof at x=-1.1,z=-0.4, and both doors at y=-1.1,z=-0.5 and 0 all hit Object_8. Object_9 / Material.002 is the trim/frame and remains stock black. The thin Object_5 / Material.007 is a badge, not a body panel. Use the explicit Object_8 mesh filter rather than recoloring other materials. User wheel options reuse the existing GT and NSX authored geometry, with separate stock, touring and mesh choices.
+
+`tests/wheel-rigs.test.mjs` decodes actual shipped GLB indexed geometry with the shipped Meshopt decoder, checks four distinct centered wheels, two leading steering wheels, valid measured radii and local rotation, and verifies BMW triangle count and car dimensions are unchanged by segmentation. No guessed bounding-box proxy is used for those regressions.

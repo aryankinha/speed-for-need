@@ -1,0 +1,22 @@
+{
+  "uid": "1fbf29e297bd4a17ac39a00a378441d8",
+  "name": "Tesla Roadster 2020",
+  "viewerUrl": "https://sketchfab.com/3d-models/tesla-roadster-2020-1fbf29e297bd4a17ac39a00a378441d8",
+  "isDownloadable": true,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "author": {
+    "displayName": "metarex.4d",
+    "profileUrl": "https://sketchfab.com/metarex.4d",
+    "username": "metarex.4d"
+  },
+  "verifiedDate": "2026-10-22",
+  "apiSource": "https://api.sketchfab.com/v3/models/1fbf29e297bd4a17ac39a00a378441d8",
+  "redistribution": "https://raw.githubusercontent.com/pedrosoandre/carros/main/assets/tesla-roadster.glb"
+}

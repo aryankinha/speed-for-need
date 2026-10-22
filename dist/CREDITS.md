@@ -184,3 +184,13 @@ Meshopt decoder: official Three.js r170 distribution, MIT, bundled at vendor/lib
 
 ## Stunt ramps
 Kenney Racing Kit — ramp.glb by Kenney, Creative Commons CC0 1.0. Official source: https://kenney.nl/assets/racing-kit . License: https://creativecommons.org/publicdomain/zero/1.0/ . Original GLB copied unchanged from the official archive; runtime centering, scale and placement only. Original license and provenance accompany assets/stunt-ramp.glb.
+
+## Five-car collection and wheel rig update
+
+Porsche 911 (930) Turbo 1975 by Lexyc16: https://sketchfab.com/3d-models/porsche-911-930-turbo-1975-de1ffd344c41481892511f7fd332c136
+
+Tesla Roadster 2020 by metarex.4d: https://sketchfab.com/3d-models/tesla-roadster-2020-1fbf29e297bd4a17ac39a00a378441d8
+
+Both Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/ . Optimized licensed redistributions from https://github.com/pedrosoandre/carros (weld, simplification, prune, Meshopt compression). Adaptations: game scale/orientation, rebased authored wheel geometry, body paint choices, and wheel substitutions. The original supplied Roadster remains in the source archive; the active Roadster now uses the authored model above for independent wheels and body paint. No car or wheel model was generated.
+
+GT alloy and Classic mesh options reuse wheel geometry from the credited Khronos Concept GT and Lexyc16 Honda NSX, respectively. Per-source attribution and primary verification records accompany the GLBs. All branding identifies subjects and does not imply endorsement.

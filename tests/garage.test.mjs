@@ -10,9 +10,9 @@ function memoryStorage(value=null){
   return {value,writes:0,getItem(key){assert.equal(key,VEHICLE_STORAGE_KEY);return this.value;},setItem(key,next){assert.equal(key,VEHICLE_STORAGE_KEY);this.value=next;this.writes++;}};
 }
 
-test('garage catalog preserves both original cars and adds exactly two usable, locally bundled cars',()=>{
-  assert.deepEqual(VEHICLES.map(v=>v.id),['concept','roadster','bmw','nsx']);
-  assert.equal(new Set(VEHICLES.map(v=>v.asset)).size,4);
+test('garage catalog preserves both original cars and adds three usable, locally bundled cars',()=>{
+  assert.deepEqual(VEHICLES.map(v=>v.id),['concept','roadster','bmw','nsx','porsche']);
+  assert.equal(new Set(VEHICLES.map(v=>v.asset)).size,5);
   for(const definition of VEHICLES){
     assert.equal(getVehicle(definition.id),definition);
     assert.ok(definition.length>3&&definition.length<6);
@@ -74,7 +74,7 @@ function makeGarage(){
 
 test('garage stages exactly one preview without mutating or duplicating driving-car resources',()=>{
   const {garage,rides,interior,roomMaterial}=makeGarage();
-  assert.equal(garage.count,4);
+  assert.equal(garage.count,5);
   assert.equal(garage.root.visible,false);
   for(const {id} of VEHICLES){
     assert.equal(garage.show(id),true);
@@ -87,8 +87,8 @@ test('garage stages exactly one preview without mutating or duplicating driving-
     assert.deepEqual(rides[id].group.position.toArray(),[0,0,0]);
   }
   assert.equal(garage.select('missing'),false);
-  assert.equal(garage.selected,'nsx');
-  assert.equal(garage.cars.nsx.visible,true);
+  assert.equal(garage.selected,'porsche');
+  assert.equal(garage.cars.porsche.visible,true);
   assert.equal(interior.material,roomMaterial);
   assert.ok(interior.material.emissiveMap,'Baked garage emission must survive staging');
   assert.equal(interior.castShadow,false);
@@ -102,10 +102,10 @@ test('garage camera frames the selected car on desktop and portrait and animatio
   const {garage,camera}=makeGarage();
   garage.show('concept');
   camera.updateMatrixWorld(true);
-  const target=new THREE.Vector3(garage.position.x,.7,garage.position.z).project(camera);
+  const target=new THREE.Vector3(garage.position.x,-.35,garage.position.z).project(camera);
   assert.ok(Math.abs(target.x)<1e-8&&Math.abs(target.y)<1e-8);
   assert.equal(camera.fov,45);
-  assert.ok(camera.position.distanceTo(garage.position)<10);
+  assert.ok(camera.position.distanceTo(garage.position)<12);
   camera.aspect=.5;garage.frame();assert.equal(camera.fov,58);
   const original=garage.angle;garage.reduced=false;garage.update(1/60);assert.ok(garage.angle>original);
   const advanced=garage.angle;garage.update(NaN);garage.update(-1);assert.equal(garage.angle,advanced);
@@ -119,7 +119,7 @@ test('BMW display plinth is removed before driving bounds are measured and missi
   const plinth=new THREE.Mesh(new THREE.CylinderGeometry(10,10,1,16),new THREE.MeshBasicMaterial());
   plinth.name='Object_18';plinth.position.y=-.5;root.add(plinth);
   assert.ok(new THREE.Box3().setFromObject(root,true).getSize(new THREE.Vector3()).x>19);
-  prepareVehicleGeometry(root,'bmw');
+  assert.throws(()=>prepareVehicleGeometry(root,'bmw'),/Missing BMW wheel geometry/);
   assert.equal(plinth.parent,null);
   const bounds=new THREE.Box3().setFromObject(root,true).getSize(new THREE.Vector3());
   assert.ok(Math.abs(bounds.x-2)<1e-6&&Math.abs(bounds.z-4.4)<1e-6);
