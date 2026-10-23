@@ -1,0 +1,73 @@
+{
+  "asset": "Universal Base Characters [Standard] + Universal Animation Library [Standard]",
+  "author": "Quaternius",
+  "source": "https://quaternius.com",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "licenseFiles": [
+    "Universal Base Characters[Standard]/License_Standard.txt",
+    "Universal Animation Library[Standard]/License.txt"
+  ],
+  "verifiedDate": "2026-10-23",
+  "sources": {
+    "ped-male.glb": [
+      "Base Characters/Godot - UE/Superhero_Male_FullBody.gltf",
+      "Hairstyles/Rigged to Head Bone/glTF (Godot -Unreal)/Hair_SimpleParted.gltf",
+      "Hair_Buzzed.gltf",
+      "Hair_Beard.gltf"
+    ],
+    "ped-female.glb": [
+      "Base Characters/Godot - UE/Superhero_Female_FullBody.gltf",
+      "Hair_Long.gltf",
+      "Hair_Buns.gltf"
+    ],
+    "ped-anims.glb": [
+      "Unreal-Godot/UAL1_Standard.glb"
+    ]
+  },
+  "clips": [
+    "Idle_Loop",
+    "Idle_Talking_Loop",
+    "Walk_Loop",
+    "Walk_Formal_Loop",
+    "Jog_Fwd_Loop",
+    "Sprint_Loop",
+    "Roll",
+    "Hit_Chest",
+    "Death01",
+    "Sitting_Idle_Loop",
+    "Jump_Loop"
+  ],
+  "parts": {
+    "male": {
+      "0": "body",
+      "1": "eyes",
+      "2": "brows",
+      "3": "hair-parted",
+      "4": "hair-buzzed",
+      "5": "beard"
+    },
+    "female": {
+      "0": "body",
+      "1": "eyes",
+      "2": "brows",
+      "3": "hair-long",
+      "4": "hair-buns"
+    }
+  },
+  "processing": "gltf-transform 4.5 weld + meshoptimizer simplify (no position quantization), textureCompress webp 512, animation resample tol 5e-4, scale and non-pelvis translation tracks removed",
+  "files": {
+    "ped-male.glb": {
+      "size": 364364,
+      "md5": "c7daedb7c1ec79e8320994ced0aa4223"
+    },
+    "ped-female.glb": {
+      "size": 538332,
+      "md5": "c81d2d50fc815bfb72f031cd76ead14d"
+    },
+    "ped-anims.glb": {
+      "size": 241156,
+      "md5": "6206768e5bc7c213b3eb16beaae3bf69"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+ "pack": "Kenney Car Kit 3.1",
+ "author": "Kenney (www.kenney.nl)",
+ "sourcePage": "https://kenney.nl/assets/car-kit",
+ "license": "CC0-1.0",
+ "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+ "retrieved": "2026-10-23",
+ "adaptation": "Unmodified GLBs. Shared external texture Textures/colormap.png kept as authored (relative uri). Wheel nodes keep their authored names (wheel-front-left, ...). Runtime: geometry merged per model into one BatchedMesh, uniform scale, body-paint recolour by UV swatch.",
+ "assets": [
+  {
+   "file": "sedan-sports.glb",
+   "original": "Models/GLB format/sedan-sports.glb",
+   "bytes": 177676,
+   "sha256": "2889c428ca1dd9c975c3ff760eb8757883490410555ab60b818f712f583826d6",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "hatchback-sports.glb",
+   "original": "Models/GLB format/hatchback-sports.glb",
+   "bytes": 197804,
+   "sha256": "bd5c9d4c3b4bdd254a66b8426563a68b1487ae7a5076df3a2488e6ffed7be64f",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "suv-luxury.glb",
+   "original": "Models/GLB format/suv-luxury.glb",
+   "bytes": 175908,
+   "sha256": "9e2a79dc050189d4555a88d2e9da0f30ff946ba74f1d43b5b3bda3c193d1f7d7",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "van.glb",
+   "original": "Models/GLB format/van.glb",
+   "bytes": 175664,
+   "sha256": "ed4ed56e8e5ed98db050af09ed2062b3b6bb7b93eab1e563cb6774b387b233a1",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "delivery.glb",
+   "original": "Models/GLB format/delivery.glb",
+   "bytes": 240264,
+   "sha256": "426a3e3a2c242c05c889b1445ba02ef95b2c8b7cd6f597e1275ef736a826014b",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "truck.glb",
+   "original": "Models/GLB format/truck.glb",
+   "bytes": 176360,
+   "sha256": "5e1bc66c343501dd7d5734b57e672dd949bf95d7abdce680c6508cef99d374f8",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "garbage-truck.glb",
+   "original": "Models/GLB format/garbage-truck.glb",
+   "bytes": 268224,
+   "sha256": "6f2943e0ba4c6d86eb69a9243224259d6e0f169f474228439cda0579d49d3509",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "ambulance.glb",
+   "original": "Models/GLB format/ambulance.glb",
+   "bytes": 233612,
+   "sha256": "9e429e2b6202c0d78d0c38b2adbaae6b77716bb2a0f6fbb2811556e1fb31edba",
+   "use": "parked cars + traffic"
+  },
+  {
+   "file": "police.glb",
+   "original": "Models/GLB format/police.glb",
+   "bytes": 195336,
+   "sha256": "a617b880594f56239b7ac4cf6fd4d74ebdae3ba6c5d842e77c76a5906eff352a",
+   "use": "shared with wanted/activities module; parked + traffic"
+  }
+ ],
+ "textures": [
+  {
+   "file": "Textures/colormap.png",
+   "original": "Models/GLB format/Textures/colormap.png",
+   "bytes": 12371,
+   "sha256": "f3622a03a20c6696065cae9cbe391351be873508af190c2ebd1d420c055787a5"
+  }
+ ]
+}

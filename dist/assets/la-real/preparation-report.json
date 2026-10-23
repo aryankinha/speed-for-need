@@ -1,0 +1,368 @@
+[
+  {
+    "file": "la-building-small.glb",
+    "bytes": 2576676,
+    "sha256": "0147eb9afd3a315c460d973fd72310558ba66eca272dc2b2513f29d9a605461c",
+    "triangles": 18344,
+    "materials": [
+      "MI_RedBrick_Pale",
+      "MI_Trim",
+      "MI_Trim_MetalConcrete",
+      "MI_Glass",
+      "MI_FakeInterior_2",
+      "MI_FakeInterior_1",
+      "MI_Concrete",
+      "MI_FakeInterior_4",
+      "MI_Asphalt",
+      "MI_InteriorFloor"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -7.2300004959106445,
+          -0.01194706466048956,
+          -12.230000495910645
+        ],
+        "max": [
+          5.2300004959106445,
+          17.014022827148438,
+          2.3060078620910645
+        ]
+      }
+    ],
+    "nodes": [
+      "Building_Small_1"
+    ],
+    "sourceFileSha256": "3c864724fffd016ca440191bca169d6ba486e14617bb3cafa09ddbac7532f3d7"
+  },
+  {
+    "file": "la-building-medium.glb",
+    "bytes": 2973712,
+    "sha256": "ce14c5e9236dee0019d85acf6f8247cd982ca9028f1fc65d75da817734a6ed54",
+    "triangles": 25612,
+    "materials": [
+      "MI_InteriorFloor",
+      "MI_Trim_Green",
+      "MI_FakeInterior_1",
+      "MI_FakeInterior_2",
+      "MI_FakeInterior_4",
+      "MI_InteriorWall",
+      "MI_Glass",
+      "MI_Asphalt"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -7.52787971496582,
+          -0.01027514785528183,
+          -12.487659454345703
+        ],
+        "max": [
+          7.527803421020508,
+          24.998384475708008,
+          0.5680221319198608
+        ]
+      }
+    ],
+    "nodes": [
+      "Building_Medium_2.001"
+    ],
+    "sourceFileSha256": "423f4b3e709ef5633eac4a94a8a1ce25750aa42fe34e3b983d7aac39846f9a1c"
+  },
+  {
+    "file": "la-building-large.glb",
+    "bytes": 4228180,
+    "sha256": "1cddd5901cc523f4e1c1e6a90ddb399040d18538f3a9f5478441d15a8ac60cad",
+    "triangles": 45122,
+    "materials": [
+      "MI_InteriorFloor",
+      "MI_Trim_Dark",
+      "MI_Trim_MetalConcrete",
+      "MI_InteriorWall",
+      "MI_Glass",
+      "MI_FakeInterior_2",
+      "MI_FakeInterior_3",
+      "MI_FakeInterior_4",
+      "MI_Asphalt"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -9.322053909301758,
+          0,
+          -16.322298049926758
+        ],
+        "max": [
+          11.32205581665039,
+          28.000038146972656,
+          0.3222980499267578
+        ]
+      }
+    ],
+    "nodes": [
+      "Building_Large_2"
+    ],
+    "sourceFileSha256": "903209b63ad4e151190dce32ccab47a2c0dc256c09d999835984a0459ef2bd91"
+  },
+  {
+    "file": "la-facade-kit.glb",
+    "bytes": 1688204,
+    "sha256": "6d160111c9391da8db4ec5901c9051b598ecd51f795d76b83b9bb3a9dcdc1b71",
+    "triangles": 4793,
+    "materials": [
+      "modular_urban_apartments_facade_objects",
+      "modular_urban_apartments_facade_glass",
+      "modular_urban_apartments_facade_trim_02",
+      "modular_urban_apartments_facade_plaster"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -3.000001907348633,
+          -3.427267074584961e-7,
+          -0.24000000953674316
+        ],
+        "max": [
+          8.344651405423065e-7,
+          3.000000476837158,
+          0.33000001311302185
+        ]
+      }
+    ],
+    "nodes": [
+      "door_centered_large_01",
+      "crown_standard_standard_01",
+      "wall_door_centered_large_01",
+      "wall_window_centered_large_01",
+      "wall_standard_standard_01",
+      "window_centered_large_01"
+    ],
+    "sourceFileSha256": "1a5a17dffd27fb9e1236dea7e51c4e0393a9d88ed0885a0621e67a37f80b27eb"
+  },
+  {
+    "file": "la-street-lamp.glb",
+    "bytes": 1182196,
+    "sha256": "98da625637331c1c8761356648208f973db9f33e591aac53a91443b2118e8c34",
+    "triangles": 30610,
+    "materials": [
+      "street_lamp_01",
+      "street_lamp_01_glass"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -0.35216811299324036,
+          0,
+          -0.19324657320976257
+        ],
+        "max": [
+          0.35216811299324036,
+          3.8705554008483887,
+          0.19324658811092377
+        ]
+      }
+    ],
+    "nodes": [
+      "street_lamp_01"
+    ],
+    "sourceFileSha256": "5d0358ede168b5e04547780b99d8e6d651cbe644e468e67cb505019047cbd5c8"
+  },
+  {
+    "file": "la-palm.glb",
+    "bytes": 2310884,
+    "sha256": "f4f83eaa1ec88f0c35085f9c51adea838bbff36c5486eb79e617253a09d77bc8",
+    "triangles": 56000,
+    "materials": [
+      "bark",
+      "Ripe dates",
+      "Date palm foliage",
+      "leaf"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -3.3502316637737977,
+          3.089142275314316e-10,
+          -3.3772316936779134
+        ],
+        "max": [
+          3.56175404874773,
+          11.999999983297585,
+          3.423528288207308
+        ]
+      }
+    ],
+    "nodes": [
+      "Date bunch supporting stalk",
+      "Date fruit cluster",
+      "Date palm feather leaflets",
+      "Date palm frond stem"
+    ],
+    "sourceFileSha256": "bcd87c59c5bc637290fb76e4cac1de7b31027d8c693547bb6f2334a5c5e772c2"
+  },
+  {
+    "file": "la-building-small-lod.glb",
+    "bytes": 1726216,
+    "sha256": "e8e7c24a95c0c86525a974dd634aa851a891f6f786d245e9e9b272774888c899",
+    "triangles": 3700,
+    "materials": [
+      "MI_RedBrick_Pale",
+      "MI_Trim",
+      "MI_Trim_MetalConcrete",
+      "MI_Glass",
+      "MI_FakeInterior_2",
+      "MI_FakeInterior_1",
+      "MI_Concrete",
+      "MI_FakeInterior_4",
+      "MI_Asphalt",
+      "MI_InteriorFloor"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -7.2300004959106445,
+          -0.01194706466048956,
+          -12.230000495910645
+        ],
+        "max": [
+          5.2300004959106445,
+          17.014022827148438,
+          2.3060078620910645
+        ]
+      }
+    ],
+    "nodes": [
+      "Building_Small_1"
+    ],
+    "sourceFileSha256": "0147eb9afd3a315c460d973fd72310558ba66eca272dc2b2513f29d9a605461c",
+    "simplification": {
+      "targetRatio": 0.15,
+      "error": 0.015,
+      "attributes": "NORMAL .1 / TEXCOORD_0 .1",
+      "flags": [
+        "Permissive"
+      ]
+    }
+  },
+  {
+    "file": "la-building-medium-lod.glb",
+    "bytes": 1562784,
+    "sha256": "62ae7ea23fa36bbc878e69c7434c00b4fd211234d1ff66763d1b7236afee78f5",
+    "triangles": 4942,
+    "materials": [
+      "MI_InteriorFloor",
+      "MI_Trim_Green",
+      "MI_FakeInterior_1",
+      "MI_FakeInterior_2",
+      "MI_FakeInterior_4",
+      "MI_InteriorWall",
+      "MI_Glass",
+      "MI_Asphalt"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -7.52787971496582,
+          -0.01027514785528183,
+          -12.487659454345703
+        ],
+        "max": [
+          7.527803421020508,
+          24.998384475708008,
+          0.5680221319198608
+        ]
+      }
+    ],
+    "nodes": [
+      "Building_Medium_2.001"
+    ],
+    "sourceFileSha256": "ce14c5e9236dee0019d85acf6f8247cd982ca9028f1fc65d75da817734a6ed54",
+    "simplification": {
+      "targetRatio": 0.15,
+      "error": 0.015,
+      "attributes": "NORMAL .1 / TEXCOORD_0 .1",
+      "flags": [
+        "Permissive"
+      ]
+    }
+  },
+  {
+    "file": "la-building-large-lod.glb",
+    "bytes": 1953384,
+    "sha256": "594c8ae48cbf3fbc2cd9413a7a6962118b97d731e4a5879fb245385d50173a57",
+    "triangles": 8447,
+    "materials": [
+      "MI_InteriorFloor",
+      "MI_Trim_Dark",
+      "MI_Trim_MetalConcrete",
+      "MI_InteriorWall",
+      "MI_Glass",
+      "MI_FakeInterior_2",
+      "MI_FakeInterior_3",
+      "MI_FakeInterior_4",
+      "MI_Asphalt"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -9.322053909301758,
+          0,
+          -16.322298049926758
+        ],
+        "max": [
+          11.32205581665039,
+          28.000038146972656,
+          0.3222980499267578
+        ]
+      }
+    ],
+    "nodes": [
+      "Building_Large_2"
+    ],
+    "sourceFileSha256": "1cddd5901cc523f4e1c1e6a90ddb399040d18538f3a9f5478441d15a8ac60cad",
+    "simplification": {
+      "targetRatio": 0.15,
+      "error": 0.015,
+      "attributes": "NORMAL .1 / TEXCOORD_0 .1",
+      "flags": [
+        "Permissive"
+      ]
+    }
+  },
+  {
+    "file": "la-street-lamp-lod.glb",
+    "bytes": 528932,
+    "sha256": "72aa576bd0a8eba0e2b5f0312220cc9d7ee4af2aafa72ae726686f18575d44ab",
+    "triangles": 3303,
+    "materials": [
+      "street_lamp_01",
+      "street_lamp_01_glass"
+    ],
+    "bounds": [
+      {
+        "min": [
+          -0.35216811299324036,
+          0,
+          -0.19324657320976257
+        ],
+        "max": [
+          0.35216811299324036,
+          3.8705554008483887,
+          0.19324658811092377
+        ]
+      }
+    ],
+    "nodes": [
+      "street_lamp_01"
+    ],
+    "sourceFileSha256": "98da625637331c1c8761356648208f973db9f33e591aac53a91443b2118e8c34",
+    "simplification": {
+      "targetRatio": 0.15,
+      "error": 0.015,
+      "attributes": "NORMAL .1 / TEXCOORD_0 .1",
+      "flags": [
+        "Permissive"
+      ]
+    }
+  }
+]

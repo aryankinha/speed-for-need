@@ -1,0 +1,22 @@
+{
+  "title": "Concrete Floor 02",
+  "source": "https://polyhaven.com/a/concrete_floor_02",
+  "license": "CC0-1.0",
+  "licenseURL": "https://polyhaven.com/license",
+  "files": [
+    {
+      "file": "concrete-diffuse.jpg",
+      "size": 776097,
+      "md5": "1cfee53d2f82fa59726ab7ae6a2e8c09",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_02/concrete_floor_02_diff_1k.jpg",
+      "sha256": "6db84a6d87dc50508b9d134d6fbd2b7e876b8081a5f43a118a249ca18de73af5"
+    },
+    {
+      "file": "concrete-normal.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_02/concrete_floor_02_nor_gl_1k.jpg",
+      "size": 192757,
+      "md5": "c2065fd81f571f4e39163ea5661128fb",
+      "sha256": "fcda391b57a816d646ae15544688be53790478da5cd48dbe514b3c6901415e61"
+    }
+  ]
+}

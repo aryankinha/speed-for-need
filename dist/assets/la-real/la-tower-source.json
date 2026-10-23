@@ -1,0 +1,108 @@
+{
+  "uid": "24e68bfc7c63479d8dc6b19570073b51",
+  "name": "City Buildings - BlackThornProd Video",
+  "url": "https://sketchfab.com/3d-models/city-buildings-blackthornprod-video-24e68bfc7c63479d8dc6b19570073b51",
+  "license": {
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution 4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "slug": "by",
+    "requirements": "Author must be credited. Commercial use is allowed."
+  },
+  "isDownloadable": true,
+  "faceCount": 2720,
+  "author": {
+    "username": "tikoavp",
+    "displayName": "Tiko",
+    "profileUrl": "https://sketchfab.com/tikoavp"
+  },
+  "sourceFileSha256": "f3f4c902e56fa46457c82bfb673e10c13ade874df05dc299da98586051b2d344",
+  "verifiedAt": "2026-10-23",
+  "changes": "Split one scene into seven per-building GLBs; baked node transforms and re-pivoted to base centre; removed night emissive and KHR_materials_specular maps, tangents and double-siding; base colour 1024 px and normal/ORM 512 px re-encoded as WebP; float geometry kept unquantized so it can be merged into static batches. Authored geometry otherwise unchanged.",
+  "files": [
+    {
+      "file": "la-tower-a.glb",
+      "sourceMesh": "Cube_Building1_0",
+      "triangles": 60,
+      "sourceSize": [
+        39.94,
+        125.02,
+        41.18
+      ],
+      "bytes": 205952,
+      "sha256": "3554a5390e481a7c7f8d4b91624adadb9f24e943b44b44a55f0d8a4b710a235a"
+    },
+    {
+      "file": "la-tower-b.glb",
+      "sourceMesh": "Cube.001_Building2_0",
+      "triangles": 512,
+      "sourceSize": [
+        60.7,
+        234.52,
+        60.07
+      ],
+      "bytes": 311464,
+      "sha256": "c1ffc58a8cae36227d44214bd06567c5629f5e5033858abf3b4088e599dccd31"
+    },
+    {
+      "file": "la-tower-c.glb",
+      "sourceMesh": "Cube.002_Building3_0",
+      "triangles": 632,
+      "sourceSize": [
+        60.7,
+        234.52,
+        63.65
+      ],
+      "bytes": 340328,
+      "sha256": "142e6f07bfce04d62b1425481b2aadc641f941c2630b11977b1ab799a150b118"
+    },
+    {
+      "file": "la-tower-d.glb",
+      "sourceMesh": "Cube.003_Building4_0",
+      "triangles": 612,
+      "sourceSize": [
+        60.69,
+        270.62,
+        75.4
+      ],
+      "bytes": 402148,
+      "sha256": "1580c5f9b6eb234e1fab5285203da718173b8606fa58bcd36ea6e03c45c1c948"
+    },
+    {
+      "file": "la-tower-e.glb",
+      "sourceMesh": "Cube.004_Building5_0",
+      "triangles": 128,
+      "sourceSize": [
+        148.9,
+        140.1,
+        60.06
+      ],
+      "bytes": 295276,
+      "sha256": "6c1b63172c562cce629bd42fc842272ec20e8b2331f2e5de2ae7280adfca3f87"
+    },
+    {
+      "file": "la-tower-f.glb",
+      "sourceMesh": "Cube.005_Building6_0",
+      "triangles": 140,
+      "sourceSize": [
+        148.9,
+        185.07,
+        60.06
+      ],
+      "bytes": 295116,
+      "sha256": "84909ce154d10aac3e8ab1ae2c8eed9190720aa0fd0e705a670c90175e898826"
+    },
+    {
+      "file": "la-tower-g.glb",
+      "sourceMesh": "Cube.006_Building7_0",
+      "triangles": 564,
+      "sourceSize": [
+        81.34,
+        234.52,
+        165.09
+      ],
+      "bytes": 379548,
+      "sha256": "90d9a54a098ce5ae5f16ba558c1a81b82e81aa8c8957c4a7351431ffe263594a"
+    }
+  ]
+}

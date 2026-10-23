@@ -219,3 +219,26 @@ Asphalt 02 by **Rob Tuytel / Poly Haven**, CC0. Official source: https://polyhav
 
 ## Solana Coast map districts
 Kenney City Kit (Suburban) 2.0 and City Kit (Industrial) 2.0, **Kenney**, **CC0 1.0**. Official pages: https://kenney.nl/assets/city-kit-suburban and https://kenney.nl/assets/city-kit-industrial . Selected models downloaded from Kenney's own https://opengameart.org/content/city-kit-suburban and https://opengameart.org/content/city-kit-industrial uploads. Six houses, four industrial buildings, water tower and shipping container. Original palette textures embedded into GLBs; runtime scale and placement. Original geometry retained. Original license texts: assets/la-suburban-LICENSE.txt and assets/la-industrial-LICENSE.txt; provenance and hashes: assets/la-city-sources.json. Solana Coast is an original LA-inspired layout and contains no GTA map rip.
+
+## Realistic towers and palms (Solana Coast and default maps)
+City Buildings - BlackThornProd Video by **Tiko** (https://sketchfab.com/tikoavp): https://sketchfab.com/3d-models/city-buildings-blackthornprod-video-24e68bfc7c63479d8dc6b19570073b51 — **Creative Commons Attribution 4.0** (https://creativecommons.org/licenses/by/4.0/). Shipped as assets/la-real/la-tower-a … la-tower-g.glb. Changes: split into one GLB per building, night emissive and specular maps removed, textures downscaled and re-encoded as WebP; runtime scale, rotation and lot placement. No endorsement implied. Records: assets/la-real/la-tower-source.json and la-tower-LICENSE.md.
+
+Free palm treeZ v3 (palm_straight) by **Nobiax / Yughues**: https://opengameart.org/content/free-palm-treez-v3 — **CC0 1.0** (https://creativecommons.org/publicdomain/zero/1.0/). Shipped as assets/la-real/la-palm-coconut.glb. Changes: OBJ to glTF, base pivot and 10.5 m scale, diffuse brightened and re-encoded as WebP, alpha-tested leaves. Record: assets/la-real/la-palm-coconut-source.json.
+
+## Ground surface textures (assets/surfaces/, see surfaces-source.json)
+Lawn: Grass 005, ambientCG — https://ambientcg.com/a/Grass005 — CC0 1.0 (https://docs.ambientcg.com/license/)
+Sidewalk: Concrete Pavement by Charlotte Baglioni, Poly Haven — https://polyhaven.com/a/concrete_pavement — CC0
+Beach sand: Dense Sand by Dimitrios Savva, Poly Haven — https://polyhaven.com/a/dense_sand — CC0
+Plaza / stunt park concrete: Concrete Floor 02, Poly Haven — https://polyhaven.com/a/concrete_floor_02 — CC0 (shared with assets/la-real/)
+Re-encoded at 1024 px / JPEG quality 80; tinted at runtime.
+
+## Parked cars and extra traffic (assets/cars/)
+Kenney Car Kit 3.1, **Kenney**, **CC0 1.0** — https://kenney.nl/assets/car-kit (https://creativecommons.org/publicdomain/zero/1.0/). Shipped unmodified: sedan-sports, hatchback-sports, suv-luxury, van, delivery, truck, garbage-truck, ambulance and police GLBs plus the shared Textures/colormap.png. Runtime scale, kerbside placement and body-paint recolouring (dist/street-cars.js). Provenance and hashes: assets/cars/cars-source.json; license text: assets/cars/LICENSE-kenney-car-kit.txt.
+
+## Knockable street furniture (assets/props/, see props-source.json)
+"Rusty Fire Hydrant" by **tedpermana** — https://sketchfab.com/3d-models/rusty-fire-hydrant-4e0b0f865e7b4e6ebff58588dc8e769c — **Creative Commons Attribution 4.0** (https://creativecommons.org/licenses/by/4.0/). Shipped as assets/props/rusty-fire-hydrant.glb. Changes: simplified from 15k to ~1.9k triangles, textures downscaled to 512/256 px WebP, re-pivoted; runtime scale and sidewalk placement. No endorsement implied.
+Metal Trash Can, Utility Box 01, Trashbag and Plastic Monobloc Chair 01 — **Poly Haven** (https://polyhaven.com/a/metal_trash_can, /a/utility_box_01, /a/trashbag, /a/plastic_monobloc_chair_01) — **CC0 1.0** (https://creativecommons.org/publicdomain/zero/1.0/). Changes: one mesh/material each, meshopt-simplified to ≤1.2k triangles, textures resized to 512/256 px WebP.
+Electricity pole, construction fence, construction light and warning sign — City Kit Roads 2.2 by **Kenney**, **CC0 1.0** — https://kenney.nl/assets/city-kit-roads. Changes: colormap embedded as WebP, re-pivoted. Cones and barriers reuse the existing assets/construction-cone.glb and construction-barrier.glb.
+
+## Pedestrians (assets/peds/, see peds-source.json)
+Universal Base Characters [Standard] (Superhero_Male/Female_FullBody, Hair_SimpleParted, Hair_Buzzed, Hair_Beard, Hair_Long, Hair_Buns) and Universal Animation Library [Standard] (UAL1_Standard, in-place) by **Quaternius** — https://quaternius.com — **CC0 1.0** (https://creativecommons.org/publicdomain/zero/1.0/). Shipped as assets/peds/ped-male.glb, ped-female.glb and ped-anims.glb. Changes: body, eyes, brows and hair merged into one skinned primitive per character (hair variants tagged by a _PART attribute), meshoptimizer-simplified to ~5k body triangles, skin base colour resized to 512 px WebP, normal/roughness maps dropped; 11 clips kept (rotations stored as normalized int16, pelvis translation only). Clothes are painted at runtime by a shader (dist/pedestrians.js), no extra textures.

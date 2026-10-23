@@ -1,0 +1,35 @@
+{
+  "verifiedDate": "2026-10-23",
+  "processing": "Re-encoded with macOS sips: JPEG quality 80, max 1024 px. No other edits; tint, contrast and anti-tiling are applied at runtime in surface-materials.js.",
+  "surfaces": {
+    "lawn": {
+      "asset": "Grass 005", "author": "Lennart Demes (ambientCG)", "source": "https://ambientcg.com/a/Grass005",
+      "download": "https://ambientcg.com/get?file=Grass005_1K-JPG.zip",
+      "license": "CC0-1.0", "licenseSource": "https://docs.ambientcg.com/license/", "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "files": {
+        "lawn-color.jpg": {"from": "Grass005_1K-JPG_Color.jpg", "sourceSha256": "5fd8edc1a04e2b9b093229dd0ec41f29668dda9fc698f6610b12cdd83b7690cb", "sha256": "69f7738aaafa6d10597b94ed4db6503063c75564ebf123a75fae300ebcf8a657"},
+        "lawn-normal.jpg": {"from": "Grass005_1K-JPG_NormalGL.jpg", "sourceSha256": "f89e3a1701511d379a9772774ec6b9d7b7ccf3e944fdcc2b98c09dee4cfd804f", "sha256": "a4522d58d6b7237f1350ce92f70a8d89f7f6f1a552fa0339315f3cd6a1edd1da"}
+      }
+    },
+    "sidewalk": {
+      "asset": "Concrete Pavement", "author": "Charlotte Baglioni (Poly Haven)", "source": "https://polyhaven.com/a/concrete_pavement", "physicalSizeMetres": 1.8,
+      "license": "CC0-1.0", "licenseSource": "https://polyhaven.com/license", "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "files": {
+        "sidewalk-color.jpg": {"url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_pavement/concrete_pavement_diff_1k.jpg", "sourceSha256": "70d3ff969a7421c7ae057b5d16386d11f5e59c6740db643352e1039413f419c4", "sha256": "b95a91a774910eae683780e0001bc8b72358161b9f2f50f26e190a235e02c02e"},
+        "sidewalk-normal.jpg": {"url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_pavement/concrete_pavement_nor_gl_1k.jpg", "sourceSha256": "a5009e409ff0f7b2d19e1316fe5e2b2b4f28e4a6b79990a664be69d4e8a0e690", "sha256": "029a64deb17f8f6d4334eeaf836b0e68af2afe1d7a4f0d837bdd2275aa3c5216"}
+      }
+    },
+    "sand": {
+      "asset": "Dense Sand", "author": "Dimitrios Savva (Poly Haven)", "source": "https://polyhaven.com/a/dense_sand", "physicalSizeMetres": 1.8,
+      "license": "CC0-1.0", "licenseSource": "https://polyhaven.com/license", "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "files": {
+        "sand-color.jpg": {"url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dense_sand/dense_sand_diff_1k.jpg", "sourceSha256": "0d2430c115167a2da3f60d60eb9ea2aa51e71472e2672f94c7f5df78342081ff", "sha256": "e2988cd432248653bf65a308a23ae5938c8ef9e692221a21167e742799f3ef0d"},
+        "sand-normal.jpg": {"url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dense_sand/dense_sand_nor_gl_1k.jpg", "sourceSha256": "776fe4f5008ee5043a709b0b63a9a7ec758f18ac5e62db65a0e99c04cc782617", "sha256": "fb0950824df1bd539a366001e8cbe16f37edc67a878b687b6d7109ff0c436bb4"}
+      }
+    },
+    "plaza": {
+      "asset": "Concrete Floor 02 (reused, not duplicated)", "files": ["../la-real/concrete-diffuse.jpg", "../la-real/concrete-normal.jpg"],
+      "provenance": "../la-real/concrete-source.json", "source": "https://polyhaven.com/a/concrete_floor_02", "license": "CC0-1.0"
+    }
+  }
+}

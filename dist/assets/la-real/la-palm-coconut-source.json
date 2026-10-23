@@ -1,0 +1,24 @@
+{
+  "name": "Free palm treeZ v3 (palm_straight)",
+  "url": "https://opengameart.org/content/free-palm-treez-v3",
+  "nodeUrl": "https://opengameart.org/node/6731",
+  "download": "https://opengameart.org/sites/default/files/PACK%20V3_0.7z",
+  "archiveSha256": "3d50fc508d289fbe56254235955cf5c38c35ddba7064a3c7931a9852b3f8e98f",
+  "sourceFile": "palm_straight.obj",
+  "sourceFileSha256": "d9e9ff47bead0b4f4273cb34c5c459ac057f601ce6f18669153e4d9a7fdc7ce3",
+  "license": {
+    "label": "CC0 1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "author": {
+    "displayName": "Nobiax / Yughues",
+    "profileUrl": "https://opengameart.org/users/yughues",
+    "requestedLink": "nobiax.deviantart.com"
+  },
+  "verifiedAt": "2026-10-23",
+  "changes": "OBJ converted to glTF (quads triangulated, V flipped), scaled to 10.5 m and re-pivoted to the trunk base; diffuse with alpha channel brightened (RGB gain 1.75/1.95/1.6; source albedo is very dark) and resized to 1024 px and normal 512 px re-encoded as WebP; alpha-tested (MASK 0.45) double-sided material; translucency/specular maps dropped; float geometry kept unquantized for static batching.",
+  "file": "la-palm-coconut.glb",
+  "triangles": 940,
+  "bytes": 554712,
+  "sha256": "e70c504e3a47926e60826e031d45e11d60b156c312989b9b04a46f5935a6297e"
+}
