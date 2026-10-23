@@ -7,10 +7,11 @@ export const DESTINATIONS=Object.freeze([
   {id:'coast',name:'Pacific Boardwalk',x:-445.7,z:110,heading:0},
   {id:'sunset',name:'Sunset Mile',x:-275,z:-175,heading:-Math.PI/4},
   {id:'downtown',name:'Downtown Solana',x:4.3,z:-110,heading:0},
+  {id:'park',name:'Garden Park',x:-184,z:75,heading:Math.PI/2},
   {id:'gardens',name:'Palm Gardens',x:-145.7,z:-565,heading:Math.PI},
   {id:'arts',name:'Arts & Warehouse',x:154.3,z:380,heading:0},
 ]);
-export function mapDistrict(x,z){if(x>-438&&x<-312&&z>312&&z<588)return'Stunt Park';if(x<-300)return'Pacific Boardwalk';if(z<-300)return'Palm Gardens';if(z>300)return'Arts & Warehouse';if(x>=0)return'Downtown Solana';return'Sunset Mile';}
+export function mapDistrict(x,z){if(x>-278&&x<-172&&z>22&&z<128)return'Garden Park';if(x>-438&&x<-312&&z>312&&z<588)return'Stunt Park';if(x<-300)return'Pacific Boardwalk';if(z<-300)return'Palm Gardens';if(z>300)return'Arts & Warehouse';if(x>=0)return'Downtown Solana';return'Sunset Mile';}
 export function sunsetDistance(x,z){const dx=SUNSET.bx-SUNSET.ax,dz=SUNSET.bz-SUNSET.az,t=Math.max(0,Math.min(1,((x-SUNSET.ax)*dx+(z-SUNSET.az)*dz)/(dx*dx+dz*dz)));return Math.hypot(x-SUNSET.ax-t*dx,z-SUNSET.az-t*dz);}
 export function clearOfSunset(bounds,margin=0){
   // Segment crosses the four northern blocks. A conservative support radius

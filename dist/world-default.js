@@ -13,7 +13,7 @@ export function normalize(root,length,axis='z'){
 }
 export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const {left,right,top,bottom,roadsX,roadsZ}=WORLD;
-  const obstacles=[],buildingLots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
+  const obstacles=[],buildingLots=[],interactiveProps=[],interactiveTemplates={},parkPlots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
   const material=(color,roughness=.9)=>new THREE.MeshStandardMaterial({color,roughness});
   const inStuntArea=(x,z)=>x>STUNT_AREA.left&&x<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom;
   // CC0 PBR ground surfaces, one shared material each (surface-materials.js): sidewalk concrete slabs, lawn, plaza/stunt concrete, beach sand.
@@ -30,7 +30,10 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   function slab(width,height,length,x,y,z,mat){const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,length),mat);mesh.position.set(x,y,z);mesh.userData.surface=true;mesh.updateMatrixWorld();batchMesh(mesh);mesh.geometry.dispose();}
   function place(template,x,z,rotation=0,scale=1){const clone=template.clone(true);clone.position.set(x,0,z);clone.rotation.y=rotation;clone.scale.multiplyScalar(scale);clone.updateMatrixWorld(true);return clone;}
   function staticBox(root,name,{baseOnly=false}={}){root.updateMatrixWorld(true);let bounds=new THREE.Box3().setFromObject(root,true);const fullBounds=bounds.clone();if(baseOnly){const low=new THREE.Box3();root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){temp.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(temp.y<.8)low.expandByPoint(temp);}}});if(!low.isEmpty())bounds=low;}const size=bounds.getSize(new THREE.Vector3()),c=bounds.getCenter(new THREE.Vector3());if(size.x>.02&&size.z>.02){const actor=physics.addBox({x:c.x,z:c.z,width:size.x,length:size.z,userData:{kind:name}});actor.minY=fullBounds.min.y;actor.maxY=fullBounds.max.y;obstacles.push({box:bounds.clone(),actor});}return bounds;}
-  function addStatic(root,name,collision=true,baseOnly=false){root.updateMatrixWorld(true);if(collision)staticBox(root,name,{baseOnly});root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;batchMesh(o);}});}
+  function addStatic(root,name,collision=true,baseOnly=false){root.updateMatrixWorld(true);if(['planter','bench','dumpster','signal','lamp','stop-sign','cone','barrier'].includes(name)){
+    if(!interactiveTemplates[name]){const t=root.clone(true);t.position.set(0,0,0);t.rotation.set(0,0,0);t.scale.setScalar(1);t.updateMatrixWorld(true);interactiveTemplates[name]=t;}
+    interactiveProps.push({type:name,x:root.position.x,z:root.position.z,rot:root.rotation.y,scale:root.scale.x});return;
+  }if(collision)staticBox(root,name,{baseOnly});root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;batchMesh(o);}});}
   // Surface details are layout geometry; all cars, buildings, vegetation and props are sourced GLBs.
   // Preserve the established seeded city layout when replacing its old noise texture.
   for(let i=0;i<128*128;i++)random();
@@ -68,7 +71,7 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
     }
     slab(126,.16,126,bx,-.02,bz,pavement);slab(114,.04,114,bx,.08,bz,grass);
     const park=(i===1&&j===4)||(i===4&&j===2)||(i===2&&j===6);
-    if(park){slab(7,.02,116,bx,.115,bz,plaza);slab(116,.02,7,bx,.116,bz,plaza);for(const dx of [-28,28])for(const dz of [-30,30]){addStatic(place(palmT,bx+dx,bz+dz,random()*6), 'tree',true,true);addStatic(place(bench,bx+dx+4,bz+dz,Math.PI/2),'bench');propCount+=2;}continue;}
+    if(park){parkPlots.push({x:bx,z:bz,width:106,length:106,ground:.105});slab(7,.02,116,bx,.115,bz,plaza);slab(116,.02,7,bx,.116,bz,plaza);for(const dx of [-28,28])for(const dz of [-30,30]){addStatic(place(palmT,bx+dx,bz+dz,random()*6), 'tree',true,true);addStatic(place(bench,bx+dx+4,bz+dz,Math.PI/2),'bench');propCount+=2;}continue;}
     for(const dx of [-33,33])for(const dz of [-33,33]){const tall=i>2&&j>1&&j<7&&random()>.35;const options=templates.filter(t=>t.tall===tall),template=options[Math.floor(random()*options.length)].template;const m=place(template,bx+dx,bz+dz,Math.floor(random()*4)*Math.PI/2,.8+random()*.2);const bounds=staticBox(m,'building');buildingLots.push({minX:bx+dx-25,maxX:bx+dx+25,minZ:bz+dz-25,maxZ:bz+dz+25,bounds});m.traverse(o=>{if(o.isMesh)batchMesh(o);});buildingCount++;}
     for(const side of [-1,1]){addStatic(place(planter,bx+side*58,bz,Math.PI/2),'planter');addStatic(place(bench,bx,bz+side*58,side>0?Math.PI:0),'bench');propCount+=2;}
     if((i+j)%3===0){addStatic(place(dumpster,bx+55,bz+52,Math.PI/2),'dumpster');propCount++;}
@@ -123,5 +126,5 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(5000,5400),new THREE.ShaderMaterial({uniforms:{time:{value:0},normalMap:{value:normal}},vertexShader:`varying vec3 worldP;void main(){worldP=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(worldP,1.);}`,fragmentShader:`varying vec3 worldP;uniform float time;uniform sampler2D normalMap;void main(){vec2 p=worldP.xz;vec3 n1=texture2D(normalMap,p*.018+vec2(time*.012,time*.007)).rgb;vec3 n2=texture2D(normalMap,p*.032-vec2(time*.008,time*.011)).rgb;float ripple=(n1.x+n2.y-1.);float edge=max(abs(p.x)-490.,abs(p.y)-670.);float shallow=1.-smoothstep(25.,100.,edge);vec3 c=mix(vec3(.10,.25,.30),vec3(.30,.52,.49),shallow*.7+ripple*.12);float wave=sin(edge*.65-time*1.5+n1.x*1.2);float foam=(1.-smoothstep(31.,42.,abs(edge-36.)))*pow(max(0.,wave),12.)*.38;c=mix(c,vec3(.83,.84,.73),foam);float gleam=pow(max(0.,ripple*.7+.2),8.)*2.;c+=vec3(.7,.44,.22)*gleam;float haze=1.-exp(-length(p-cameraPosition.xz)*.0006);gl_FragColor=vec4(mix(c,vec3(.64,.61,.59),haze),1.);}`}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-.30,0);scene.add(sea);
   const placementErrors=buildingLots.filter(l=>l.bounds.min.x<l.minX||l.bounds.max.x>l.maxX||l.bounds.min.z<l.minZ||l.bounds.max.z>l.maxZ).length;
   if(placementErrors)throw new Error(`${placementErrors} buildings escaped their allocated lots`);
-  return {obstacles,sea,buildingLots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
+  return {obstacles,sea,buildingLots,interactiveProps,interactiveTemplates,parkPlots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
 }

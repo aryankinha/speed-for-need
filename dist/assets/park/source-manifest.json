@@ -1,0 +1,421 @@
+{
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "sources": [
+    {
+      "asset": "grass_bermuda_01",
+      "page": "https://polyhaven.com/a/grass_bermuda_01",
+      "file": "grass.glb",
+      "selectedNodes": [
+        "grass_bermuda_01_medium_a"
+      ],
+      "selectionNote": "One medium_a variant; display-grid translation removed.",
+      "nativeBounds": {
+        "min": [
+          -0.01621454767882824,
+          5.208975958903572e-11,
+          -0.020826347172260284
+        ],
+        "max": [
+          0.0222976952791214,
+          0.09775002300739288,
+          0.007740985602140427
+        ]
+      },
+      "nativeTriangles": 17,
+      "outputBounds": {
+        "min": [
+          -0.019256122410297394,
+          0,
+          -0.014283666387200356
+        ],
+        "max": [
+          0.019256122410297394,
+          0.09775002300739288,
+          0.014283666387200356
+        ]
+      },
+      "triangles": 17,
+      "bytes": 49864,
+      "sha256": "8390f41cd6a7b19947d6ce4ba3ad9a2ea89460088840ee379dd993b049f077ab",
+      "downloads": [
+        {
+          "asset": "grass_bermuda_01",
+          "file": "grass_bermuda_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/grass_bermuda_01/grass_bermuda_01_1k.gltf",
+          "bytes": 32912,
+          "md5": "a1bdd74118d2387a42dba4f605226f87"
+        },
+        {
+          "asset": "grass_bermuda_01",
+          "file": "textures/grass_bermuda_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/grass_bermuda_01/grass_bermuda_01_nor_gl_1k.jpg",
+          "bytes": 709845,
+          "md5": "73a585e0963ff6bf3cefa845cbee0645"
+        },
+        {
+          "asset": "grass_bermuda_01",
+          "file": "textures/grass_bermuda_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/grass_bermuda_01/grass_bermuda_01_diff_1k.jpg",
+          "bytes": 175425,
+          "md5": "234be9f52cfcd3380c7f782baaa841c3"
+        },
+        {
+          "asset": "grass_bermuda_01",
+          "file": "textures/grass_bermuda_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/grass_bermuda_01/grass_bermuda_01_arm_1k.jpg",
+          "bytes": 500088,
+          "md5": "87c58d5d3345d579eab570f7eb446313"
+        },
+        {
+          "asset": "grass_bermuda_01",
+          "file": "grass_bermuda_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/grass_bermuda_01/grass_bermuda_01.bin",
+          "bytes": 32260,
+          "md5": "2940aa3405004b62983fd70bede8e47f"
+        }
+      ]
+    },
+    {
+      "asset": "shrub_01",
+      "page": "https://polyhaven.com/a/shrub_01",
+      "file": "shrub.glb",
+      "selectedNodes": [
+        "shrub_01_a"
+      ],
+      "selectionNote": "Rightmost isolated shrub in the single-node display row, triangles wholly x > -0.15m; checked no crossing triangles.",
+      "nativeBounds": {
+        "min": [
+          -0.09931521862745285,
+          -0.008752564899623394,
+          -0.11381389200687408
+        ],
+        "max": [
+          0.13184572756290436,
+          0.3633118271827698,
+          0.09227585792541504
+        ]
+      },
+      "nativeTriangles": 8780,
+      "outputBounds": {
+        "min": [
+          -0.11547699570655823,
+          0,
+          -0.10288471728563309
+        ],
+        "max": [
+          0.11547699570655823,
+          0.37170737981796265,
+          0.10288471728563309
+        ]
+      },
+      "triangles": 1449,
+      "bytes": 102100,
+      "sha256": "6965692ca7ed0199a0b918372593a933761a241f0152f13eb91fad426e9a62dd",
+      "downloads": [
+        {
+          "asset": "shrub_01",
+          "file": "shrub_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/shrub_01/shrub_01_1k.gltf",
+          "bytes": 2895,
+          "md5": "4ac1312e5ea687b321b78382f5f209c8"
+        },
+        {
+          "asset": "shrub_01",
+          "file": "textures/shrub_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_01/shrub_01_nor_gl_1k.jpg",
+          "bytes": 746497,
+          "md5": "985fa065ed411dc49e07d564330555ac"
+        },
+        {
+          "asset": "shrub_01",
+          "file": "shrub_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/shrub_01/shrub_01.bin",
+          "bytes": 5239664,
+          "md5": "baf77d162f397f43fa4737b545d73e1a"
+        },
+        {
+          "asset": "shrub_01",
+          "file": "textures/shrub_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_01/shrub_01_arm_1k.jpg",
+          "bytes": 386309,
+          "md5": "1682705926a9fc60ab34d079564f1a9e"
+        },
+        {
+          "asset": "shrub_01",
+          "file": "textures/shrub_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_01/shrub_01_diff_1k.jpg",
+          "bytes": 502162,
+          "md5": "c5ac2665a0e2b4f11fd20b3296d62fe2"
+        }
+      ]
+    },
+    {
+      "asset": "potted_plant_01",
+      "page": "https://polyhaven.com/a/potted_plant_01",
+      "file": "pot.glb",
+      "selectedNodes": [
+        "potted_plant_01_stem",
+        "potted_plant_01_pebbles",
+        "potted_plant_01_pot",
+        "potted_plant_01_leaves"
+      ],
+      "selectionNote": "One complete plant assembly including pot, stem, pebbles and leaves.",
+      "nativeBounds": {
+        "min": [
+          -0.33836793899536133,
+          -0.013706624507904053,
+          -0.36367878317832947
+        ],
+        "max": [
+          0.24901919066905975,
+          1.336457371711731,
+          0.2698860168457031
+        ]
+      },
+      "nativeTriangles": 176226,
+      "outputBounds": {
+        "min": [
+          -0.2887314558029175,
+          0,
+          -0.314634770154953
+        ],
+        "max": [
+          0.2887314558029175,
+          1.334896445274353,
+          0.314634770154953
+        ]
+      },
+      "triangles": 6809,
+      "bytes": 376044,
+      "sha256": "dde8c3a1902c27d710ededb162fed7481d49ff825468e2b3bf2f7da03ea9421e",
+      "downloads": [
+        {
+          "asset": "potted_plant_01",
+          "file": "potted_plant_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/potted_plant_01/potted_plant_01_1k.gltf",
+          "bytes": 7969,
+          "md5": "199e9e3d68f5447142db4066d60ae3f0"
+        },
+        {
+          "asset": "potted_plant_01",
+          "file": "textures/potted_plant_01_pot_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_01/potted_plant_01_pot_rough_1k.jpg",
+          "bytes": 173192,
+          "md5": "8f2e400f94843a9239229bfe99d16688"
+        },
+        {
+          "asset": "potted_plant_01",
+          "file": "textures/potted_plant_01_leaves_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_01/potted_plant_01_leaves_nor_gl_1k.jpg",
+          "bytes": 177105,
+          "md5": "0a7ea996bb2a4e9e19a5299a5b654406"
+        },
+        {
+          "asset": "potted_plant_01",
+          "file": "textures/potted_plant_01_pot_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_01/potted_plant_01_pot_diff_1k.jpg",
+          "bytes": 204900,
+          "md5": "67114dcd68232a6da88c627e144e65c4"
+        },
+        {
+          "asset": "potted_plant_01",
+          "file": "potted_plant_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/potted_plant_01/potted_plant_01.bin",
+          "bytes": 5345188,
+          "md5": "18377bd8d99b20a8d5fc5cf03cbf94b2"
+        },
+        {
+          "asset": "potted_plant_01",
+          "file": "textures/potted_plant_01_leaves_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_01/potted_plant_01_leaves_rough_1k.jpg",
+          "bytes": 91706,
+          "md5": "6251bfd59ced0360c16d9c286adbb131"
+        },
+        {
+          "asset": "potted_plant_01",
+          "file": "textures/potted_plant_01_pot_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_01/potted_plant_01_pot_nor_gl_1k.jpg",
+          "bytes": 200349,
+          "md5": "7388c8cba421175fd70969df077988a1"
+        },
+        {
+          "asset": "potted_plant_01",
+          "file": "textures/potted_plant_01_leaves_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_01/potted_plant_01_leaves_diff_1k.jpg",
+          "bytes": 124730,
+          "md5": "8cbaaa24c18c61be4201c473773dbffc"
+        }
+      ]
+    },
+    {
+      "asset": "painted_wooden_bench",
+      "page": "https://polyhaven.com/a/painted_wooden_bench",
+      "file": "bench.glb",
+      "selectedNodes": [
+        "painted_wooden_bench"
+      ],
+      "selectionNote": "Complete authored furniture assembly.",
+      "nativeBounds": {
+        "min": [
+          -0.5760610699653625,
+          -0.0004994967021048069,
+          -0.25369879603385925
+        ],
+        "max": [
+          0.5888825058937073,
+          0.8887919783592224,
+          0.24284429848194122
+        ]
+      },
+      "nativeTriangles": 630,
+      "outputBounds": {
+        "min": [
+          -0.5824717879295349,
+          0,
+          -0.24827155470848083
+        ],
+        "max": [
+          0.5824717879295349,
+          0.8892914652824402,
+          0.24827155470848083
+        ]
+      },
+      "triangles": 630,
+      "bytes": 70392,
+      "sha256": "d7029a597ca941375cdefb640ab7ce854c961af4710489cc1b2360d4325b27be",
+      "downloads": [
+        {
+          "asset": "painted_wooden_bench",
+          "file": "painted_wooden_bench_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/painted_wooden_bench/painted_wooden_bench_1k.gltf",
+          "bytes": 2835,
+          "md5": "784a49250144aa5299a93c1f3b6968d7"
+        },
+        {
+          "asset": "painted_wooden_bench",
+          "file": "textures/painted_wooden_bench_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_diff_1k.jpg",
+          "bytes": 545216,
+          "md5": "60c7d0f34f52b1003345d318e35f468d"
+        },
+        {
+          "asset": "painted_wooden_bench",
+          "file": "textures/painted_wooden_bench_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_nor_gl_1k.jpg",
+          "bytes": 830104,
+          "md5": "08b74bebcff262c14beae35a4f7b3405"
+        },
+        {
+          "asset": "painted_wooden_bench",
+          "file": "textures/painted_wooden_bench_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_arm_1k.jpg",
+          "bytes": 586040,
+          "md5": "754ecc7f47b1e5d032e45e22334954f1"
+        },
+        {
+          "asset": "painted_wooden_bench",
+          "file": "painted_wooden_bench.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_bench/painted_wooden_bench.bin",
+          "bytes": 25444,
+          "md5": "ed331b50f955852f007313c1a75c2e2d"
+        }
+      ]
+    },
+    {
+      "asset": "wooden_picnic_table",
+      "page": "https://polyhaven.com/a/wooden_picnic_table",
+      "file": "picnic.glb",
+      "selectedNodes": [
+        "wooden_picnic_table"
+      ],
+      "selectionNote": "Complete authored furniture assembly.",
+      "nativeBounds": {
+        "min": [
+          -1.1212488412857056,
+          -0.0002588331699371338,
+          -1.501520037651062
+        ],
+        "max": [
+          1.1197271347045898,
+          0.745728075504303,
+          1.520809531211853
+        ]
+      },
+      "nativeTriangles": 10210,
+      "outputBounds": {
+        "min": [
+          -1.1180626153945923,
+          0,
+          -1.5111647844314575
+        ],
+        "max": [
+          1.1180626153945923,
+          0.7447925806045532,
+          1.5111647844314575
+        ]
+      },
+      "triangles": 1517,
+      "bytes": 160304,
+      "sha256": "2433f907b6e7a170d9d823b809e0e55207845704ee94e1e9b7f71452ad686ad1",
+      "downloads": [
+        {
+          "asset": "wooden_picnic_table",
+          "file": "wooden_picnic_table_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/wooden_picnic_table/wooden_picnic_table_1k.gltf",
+          "bytes": 5099,
+          "md5": "6da01f8a75e559f356b494059f7b0eda"
+        },
+        {
+          "asset": "wooden_picnic_table",
+          "file": "textures/wooden_picnic_table_top_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_top_arm_1k.jpg",
+          "bytes": 747432,
+          "md5": "7455dbd1d31d365961ff55b7a2a67186"
+        },
+        {
+          "asset": "wooden_picnic_table",
+          "file": "textures/wooden_picnic_table_top_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_top_nor_gl_1k.jpg",
+          "bytes": 625681,
+          "md5": "cab70a224d5b87bcb6c0595e14565626"
+        },
+        {
+          "asset": "wooden_picnic_table",
+          "file": "wooden_picnic_table.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/wooden_picnic_table/wooden_picnic_table.bin",
+          "bytes": 279116,
+          "md5": "5d52db76187b9990c328f79612eafe5b"
+        },
+        {
+          "asset": "wooden_picnic_table",
+          "file": "textures/wooden_picnic_table_bottom_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_arm_1k.jpg",
+          "bytes": 699984,
+          "md5": "11af6815971a16983c1e70103cd8300e"
+        },
+        {
+          "asset": "wooden_picnic_table",
+          "file": "textures/wooden_picnic_table_top_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_top_diff_1k.jpg",
+          "bytes": 722582,
+          "md5": "5ad2a2cb0ff9f55602ea0ad23096116f"
+        },
+        {
+          "asset": "wooden_picnic_table",
+          "file": "textures/wooden_picnic_table_bottom_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_nor_gl_1k.jpg",
+          "bytes": 548315,
+          "md5": "6b9ad57ca60a3dc5bc5e6e57acfd6cc9"
+        },
+        {
+          "asset": "wooden_picnic_table",
+          "file": "textures/wooden_picnic_table_bottom_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_picnic_table/wooden_picnic_table_bottom_diff_1k.jpg",
+          "bytes": 680087,
+          "md5": "496b544a3dded845915431cef92e2f7d"
+        }
+      ]
+    }
+  ]
+}

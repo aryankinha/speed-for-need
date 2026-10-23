@@ -3,7 +3,7 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {STREET_WORLD} from './street-layout.js';
 // Downloads supply every facade, building, tree and lamp. Only street surfaces and markings are primitives.
 export async function buildStreetWorld({scene,physics,models,anisotropy=4}){
- const root=new THREE.Group();root.name='FreeCityStreetStudy';scene.add(root);const obstacles=[],buildingLots=[],bins=new Map();let buildings=0;
+ const root=new THREE.Group();root.name='FreeCityStreetStudy';scene.add(root);const obstacles=[],buildingLots=[],interactiveProps=[],interactiveTemplates={},bins=new Map();let buildings=0;
  const texture=async(name,srgb=false)=>{const t=await new THREE.TextureLoader().loadAsync('assets/'+name);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=anisotropy;if(srgb)t.colorSpace=THREE.SRGBColorSpace;return t;};
  const [asphalt,normal,concrete,concreteNormal]=await Promise.all([texture('asphalt-diffuse.jpg',true),texture('asphalt-normal.jpg'),texture('la-real/concrete-diffuse.jpg',true),texture('la-real/concrete-normal.jpg')]);
  const road=new THREE.MeshStandardMaterial({map:asphalt,normalMap:normal,roughness:.91,normalScale:new THREE.Vector2(.23,.23),color:0xc2c6c9});
@@ -27,11 +27,11 @@ export async function buildStreetWorld({scene,physics,models,anisotropy=4}){
  for(const [x,w]of [[-33,36],[35,40],[103,36]])collider(new THREE.Box3(new THREE.Vector3(x-w/2,0,-99),new THREE.Vector3(x+w/2,32,99)));
  const skyline=[];models['street-real/city-skyline'].traverse(m=>{if(m.isMesh){const o=m.clone(),g=new THREE.Group();o.applyMatrix4(m.parent.matrixWorld);g.add(o);g.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(g,true),c=b.getCenter(new THREE.Vector3());o.position.sub(new THREE.Vector3(c.x,b.min.y,c.z));skyline.push(g);}});
  skyline.forEach((t,i)=>place(t,-230+i*92,-250-(i%2)*85,0,1));
- const palm=models['la-real/la-palm'],lamp=models['la-real/la-street-lamp-lod'];
- for(const x of [-10.4,80.4])for(let z=-80;z<=88;z+=32){place(palm,x,z,0,1);place(lamp,x,z+12,x<0?Math.PI/2:-Math.PI/2,1);}
+ const palm=models['la-real/la-palm'],lamp=models['la-real/la-street-lamp-lod'];interactiveTemplates['street-lamp']=lamp;
+ for(const x of [-10.4,80.4])for(let z=-80;z<=88;z+=32){place(palm,x,z,0,1);interactiveProps.push({type:'street-lamp',x,z:z+12,rot:x<0?Math.PI/2:-Math.PI/2});}
  for(const [x,z,w,l]of [[-64,0,1,260],[134,0,1,260],[35,-129,200,1],[35,129,200,1]])collider(new THREE.Box3(new THREE.Vector3(x-w/2,0,z-l/2),new THREE.Vector3(x+w/2,5,z+l/2)),'boundary');
  for(const bin of bins.values()){const geometry=mergeGeometries(bin.geo,false);if(!geometry)throw new Error('Street geometry batching failed');const mesh=new THREE.Mesh(geometry,bin.material);mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);for(const g of bin.geo)g.dispose();}
  // Same animation interface as the existing worlds, with no ocean geometry in this city study.
  const sea={material:{uniforms:{time:{value:0}}}};
- return {root,sea,obstacles,buildingLots,ramps:[],stuntArea:null,updateVisible(){},stats:{map:'City Street Study',buildings,props:24,colliders:physics.objects.length,areaKm2:'0.052',placementErrors:0}};
+ return {root,sea,obstacles,buildingLots,interactiveProps,interactiveTemplates,ramps:[],stuntArea:null,updateVisible(){},stats:{map:'City Street Study',buildings,props:24,colliders:physics.objects.length,areaKm2:'0.052',placementErrors:0}};
 }

@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {STUNT_AREA} from './stunts.js';
 import {SUNSET,sunsetDistance,mapDistrict} from './map-layout.js';
+import {PropObstacles} from './prop-obstacles.js';
 import {STREET_WORLD} from './street-layout.js';
 // GTA-style knockable street furniture: hydrants, bins, news boxes, bags, chairs, cones, barriers, works fences, warning signs, plus static power poles.
 // Layout and knock physics are pure (tested in node); rendering is one InstancedMesh per prop part holding only the props near the car.
@@ -18,6 +19,15 @@ export const PROP_TYPES=Object.freeze({
   fence:{asset:'props/construction-fence',len:2.2,r:.55,mass:.25},
   worklight:{asset:'props/construction-light',h:1.1,r:.25,mass:.1},
   warning:{asset:'props/road-sign-warning',h:2.3,r:.3,mass:.22},
+  planter:{asset:'planter',len:2,r:.9,mass:.9,slide:true,kg:280},
+  bench:{asset:'park/bench',native:true,r:.6,mass:.65,slide:true,kg:90},
+  dumpster:{asset:'dumpster',len:1.8,r:.8,mass:.95,slide:true,kg:350},
+  signal:{asset:'traffic-light',h:4.8,r:.23,mass:.75,breakSpeed:8},
+  'street-lamp':{asset:'la-real/la-street-lamp-lod',h:3.8706,r:.2,mass:.75,breakSpeed:10},
+  lamp:{asset:'light-curved',h:7,r:.23,mass:.85,breakSpeed:12},
+  'stop-sign':{asset:'road-sign-stop',h:2.8,r:.18,mass:.4,breakSpeed:5},
+  picnic:{asset:'park/picnic',native:true,r:1.4,mass:.8,slide:true,kg:180},
+  pot:{asset:'park/pot',h:.65,r:.3,mass:.2},
   pole:{asset:'props/electricity-pole-single',h:9.5,slim:.3,tint:0x6f5a45,r:.25,mass:1,static:true},
 });
 const HEAVY=.4;// at or above this mass the car loses speed on impact
@@ -80,6 +90,22 @@ export class PropGrid{
   key(i,j){return i*73856093^j*19349663;}
   forNear(x,z,radius,fn){const c=this.cell,n=Math.ceil(radius/c),gi=Math.floor(x/c),gj=Math.floor(z/c);for(let i=-n;i<=n;i++)for(let j=-n;j<=n;j++){const list=this.cells.get(this.key(gi+i,gj+j));if(list)for(const k of list)fn(k);}}
 }
+/** Small curated garden clusters leave the two 7 m park paths and entrances open. */
+export function layoutParkProps(plots,blocked=()=>false){
+ const items=[];for(const plot of plots)for(const sx of [-1,1])for(const sz of [-1,1]){
+  const x=plot.x+sx*27,z=plot.z+sz*26;
+  for(const [type,dx,dz,rot]of [['bench',0,0,sz>0?Math.PI:0],['chair',-3,4,0],['chair',3,4,Math.PI],['picnic',0,7,Math.PI/2],['pot',-6,-3,0],['pot',6,-3,0],['trashcan',7,5,0]]){
+   if(!blocked(x+dx,z+dz,PROP_TYPES[type].r))items.push({type,x:x+dx,z:z+dz,rot,ground:plot.ground||.1});
+  }
+ }return items;
+}
+/** Sweep the moving car rectangle against a prop circle. Teleports intentionally produce no path. */
+export function sweptCarOverlapsProp(car,previous,px,pz,r){
+ if(carOverlapsProp(car,px,pz,r))return true;if(!previous)return false;
+ const dx=car.x-previous.x,dz=car.z-previous.z,travel=Math.hypot(dx,dz);if(travel>20)return false;
+ const n=Math.max(1,Math.ceil(travel/Math.max(.15,r*.7))),dh=Math.atan2(Math.sin(car.heading-previous.heading),Math.cos(car.heading-previous.heading));
+ for(let i=0;i<n;i++){const t=i/n;if(carOverlapsProp({...car,x:previous.x+dx*t,z:previous.z+dz*t,heading:previous.heading+dh*t},px,pz,r))return true;}return false;
+}
 /** Circle (prop) vs oriented car rectangle in the car's frame. Heading 0 faces -z (physics.js convention). */
 export function carOverlapsProp(car,px,pz,r){const dx=px-car.x,dz=pz-car.z,s=Math.sin(car.heading),c=Math.cos(car.heading),lateral=dx*c-dz*s,along=-dx*s-dz*c,hw=(car.width||1.9)/2,hl=(car.length||4.5)/2;const qx=Math.max(Math.abs(lateral)-hw,0),qz=Math.max(Math.abs(along)-hl,0);return qx*qx+qz*qz<r*r;}
 /** Loose-body state for one prop. Position is the centre of mass; half/r are its half height and radius for ground contact. */
@@ -134,9 +160,11 @@ class WaterSpray{
 /** Scene + physics glue. Construct after the world is built; await load(loader) before driving; call update() once per frame. */
 export class StreetProps{
   constructor({scene,physics,world,map,blocked}){
-    this.scene=scene;this.map=map;this.time=0;this.knocks=0;this.ready=false;
+    this.scene=scene;this.physics=physics;this.world=world;this.templates=world?.interactiveTemplates||{};this.map=map;this.time=0;this.knocks=0;this.ready=false;this.previous=null;this.before=null;
     const obstacles=world?.obstacles||[],near=(x,z,r)=>obstacles.some(o=>x+r>o.box.min.x&&x-r<o.box.max.x&&z+r>o.box.min.z&&z-r<o.box.max.z);
-    this.items=layoutStreetProps(map,{blocked:blocked||near});
+    const placed=world?.interactiveProps||[],garden=layoutParkProps(world?.parkPlots||[],blocked||near);
+    this.obstacleGrid=new PropObstacles(obstacles);
+    this.items=[...placed,...garden,...layoutStreetProps(map,{blocked:(x,z,r)=>(blocked||near)(x,z,r)||[...placed,...garden].some(p=>Math.hypot(p.x-x,p.z-z)<PROP_TYPES[p.type].r+r+.2)})];
     // Poles are plain static Planck boxes, exactly like the world's lamps and signals.
     for(const it of this.items)if(PROP_TYPES[it.type].static)physics?.addBox({x:it.x,z:it.z,width:.5,length:.5,userData:{kind:'power-pole'}});
     this.bodies=this.items.map(it=>makeBody(it));this.bodies.forEach((b,i)=>b.index=i);
@@ -147,49 +175,68 @@ export class StreetProps{
   }
   async load(loader){
     const types=Object.keys(this.counts);
-    await Promise.all(types.map(async name=>{try{const t=PROP_TYPES[name],gltf=await loader.loadAsync(`assets/${t.asset}.glb`);this.build(name,gltf.scene);}catch(error){console.warn('street prop failed to load',name,error);}}));
+    await Promise.all(types.map(async name=>{try{const t=PROP_TYPES[name],root=(name==='bench'?null:this.templates[name])|| (await loader.loadAsync(`assets/${t.asset}.glb`)).scene;this.build(name,root);}catch(error){console.warn('street prop failed to load',name,error);}}));
     this.ready=true;
   }
   build(name,root){
     const t=PROP_TYPES[name];root.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(root,true),size=box.getSize(new THREE.Vector3());
-    const scale=t.len?t.len/Math.max(size.z,size.x):t.h/size.y,height=size.y*scale,center=box.getCenter(new THREE.Vector3());
+    const scale=t.native?1:t.len?t.len/Math.max(size.z,size.x):t.h/size.y,height=size.y*scale,center=box.getCenter(new THREE.Vector3());
     // Bake: centre in x/z, centre of mass at origin (loose bodies rotate about it).
     // slim: horizontal-only factor for stylised kit parts that are too chunky at real height (Kenney pole is ~1.5 m thick at 9.5 m).
     const xz=scale*(t.slim||1),bake=new THREE.Matrix4().makeScale(xz,scale,xz).multiply(new THREE.Matrix4().makeTranslation(-center.x,-(box.min.y+size.y/2),-center.z));
-    const parts=[],max=Math.min(this.counts[name],PROP_CONFIG.maxActive*(t.static?1:3));
+    const parts=[],max=this.counts[name];
     root.traverse(o=>{if(!o.isMesh)return;const geometry=o.geometry.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(bake,o.matrixWorld));let material=o.material;if(t.tint){material=material.clone();material.color.setHex(t.tint);}const mesh=new THREE.InstancedMesh(geometry,material,max);mesh.count=0;mesh.frustumCulled=false;mesh.castShadow=height>.9;mesh.receiveShadow=true;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.name='street-prop-'+name;this.scene.add(mesh);parts.push(mesh);});
-    for(const b of this.bodies)if(b.type===name){b.half=height/2;b.y=b.state==='rest'?b.half:b.y;}
+    for(const b of this.bodies)if(b.type===name){const k=b.home.scale||1;b.half=height*k/2;b.r=t.r*k;b.ground=b.home.ground??.06;b.y=b.half+b.ground;
+      if(t.slide&&this.physics){b.actor=this.physics.addProp({x:b.x,z:b.z,width:size.x*xz*k,length:size.z*xz*k,heading:-b.home.rot,mass:t.kg,height:height*k,userData:{kind:'movable-'+name}});b.actor.body.setAwake(false);b.actor.body.setActive(false);}
+      else if(t.breakSpeed&&this.physics){b.actor=this.physics.addCircle({x:b.x,z:b.z,radius:t.r,userData:{kind:'breakable-'+name,managedActivation:true}});b.actor.minY=b.ground;b.actor.maxY=height;}
+    }
     this.meshes[name]={parts,max,height};
   }
-  writeMatrix(b){const m=this.meshes[b.type],slot=this.slots[b.index];if(!m||slot<0)return;_m.compose(_p.set(b.x,b.y+(b.state==='rest'?.06:0),b.z),b.q,_s);for(const part of m.parts){part.setMatrixAt(slot,_m);part.instanceMatrix.needsUpdate=true;}}
+  writeMatrix(b){const m=this.meshes[b.type],slot=this.slots[b.index];if(!m||slot<0)return;_m.compose(_p.set(b.x,b.y,b.z),b.q,_s.setScalar(b.home.scale||1));for(const part of m.parts){part.setMatrixAt(slot,_m);part.instanceMatrix.needsUpdate=true;}}
   // Rebuilds each type's instance list from props within viewRadius of the car (a few hundred matrices, 4×/s).
   refresh(x,z){
     const R=PROP_CONFIG.viewRadius,fill={};this.slots.fill(-1);
     const take=b=>{const m=this.meshes[b.type];if(!m)return;const n=fill[b.type]||0;if(n>=m.max)return;this.slots[b.index]=n;fill[b.type]=n+1;this.writeMatrix(b);};
+    for(const b of this.bodies)if(b.actor&&PROP_TYPES[b.type].slide&&Math.hypot(b.x-x,b.z-z)<R)take(b);
     for(const b of this.displaced)if(Math.hypot(b.x-x,b.z-z)<R)take(b);
-    this.grid.forNear(x,z,R,i=>{const b=this.bodies[i];if(b.state==='rest'&&Math.abs(b.x-x)<R&&Math.abs(b.z-z)<R)take(b);});
+    this.grid.forNear(x,z,R,i=>{const b=this.bodies[i];if(!PROP_TYPES[b.type].slide&&b.state==='rest'&&Math.abs(b.x-x)<R&&Math.abs(b.z-z)<R)take(b);});
     for(const [name,m] of Object.entries(this.meshes))for(const part of m.parts){part.count=fill[name]||0;part.instanceMatrix.needsUpdate=true;}
+  }
+  // Called before the physics step: remove a breakaway pole's solid base before a high-speed hit.
+  beforeStep(car,dt){
+    if(!this.ready)return;this.before={x:car.x,z:car.z,heading:car.heading};
+    const predicted={x:car.x+car.vx*dt,z:car.z+car.vz*dt,heading:car.heading,width:car.width,length:car.length,vx:car.vx,vz:car.vz};
+    for(const b of this.bodies){const t=PROP_TYPES[b.type];if(!b.actor)continue;
+      if(t.slide){const active=Math.hypot(b.x-car.x,b.z-car.z)<85;if(b.actor.body.isActive()!==active)b.actor.body.setActive(active);}
+      if(t.breakSpeed&&Math.hypot(b.x-car.x,b.z-car.z)<car.length+car.speed*dt+2&&b.state==='rest'&&car.speed>=t.breakSpeed&&!car.isAirborne&&(car.groundElevation||0)<1&&sweptCarOverlapsProp(predicted,this.before,b.x,b.z,b.r)){
+        b.actor.body.setActive(false);this.launch(b,predicted);
+      }
+    }
+  }
+  launch(b,car){const t=PROP_TYPES[b.type];if(t.slide||t.static)return 0;if(b.state==='rest'&&t.spray)this.spray?.start(b.x,.25,b.z,this.time+PROP_CONFIG.sprayTime);
+    b.lastHit=this.time;const impact=knockBody(b,car);if(t.breakSpeed){b.vx*=.28;b.vz*=.28;b.vy=Math.min(b.vy,2);}
+    this.loose.add(b);this.displaced.add(b);this.knocks++;if(this.slots[b.index]<0)this.refreshClock=1;return impact;
   }
   /** car: the player actor (x,z,heading,vx,vz,width,length,elevation,body). Returns the number of knocks this frame. */
   update(dt,car,{camera,audio}={}){
     if(!this.ready||!car)return 0;this.time+=dt;let knocks=0,heavy=0,impact=0;
     const elevated=(car.elevation||0)+(car.groundElevation||0)>1.1;
     if(!elevated&&car.speed>PROP_CONFIG.knockSpeed){const state={x:car.x,z:car.z,heading:car.heading,width:car.width,length:car.length,vx:car.vx,vz:car.vz};
-      const hit=b=>{if(PROP_TYPES[b.type].static||this.time-b.lastHit<PROP_CONFIG.rehitCooldown||b.y-b.half>1.2||!carOverlapsProp(state,b.x,b.z,b.r))return;
-        if(b.state==='rest'&&PROP_TYPES[b.type].spray)this.spray?.start(b.x,.25,b.z,this.time+PROP_CONFIG.sprayTime);
-        b.lastHit=this.time;impact=Math.max(impact,knockBody(b,state));this.loose.add(b);this.displaced.add(b);if(this.slots[b.index]<0)this.refreshClock=1;heavy=Math.max(heavy,b.mass);knocks++;};
-      this.grid.forNear(car.x,car.z,PROP_CONFIG.cell,i=>{const b=this.bodies[i];if(b.state==='rest')hit(b);});
+      const hit=b=>{if(PROP_TYPES[b.type].static||PROP_TYPES[b.type].slide||(PROP_TYPES[b.type].breakSpeed&&b.state==='rest')||this.time-b.lastHit<PROP_CONFIG.rehitCooldown||b.y-b.half>1.2||!sweptCarOverlapsProp(state,this.before||this.previous,b.x,b.z,b.r))return;
+        impact=Math.max(impact,this.launch(b,state));heavy=Math.max(heavy,b.mass);knocks++;};
+      this.grid.forNear(car.x,car.z,PROP_CONFIG.cell+Math.min(20,Math.hypot(car.x-(this.before?.x??car.x),car.z-(this.before?.z??car.z))),i=>{const b=this.bodies[i];if(b.state==='rest')hit(b);});
       for(const b of this.displaced)hit(b);}
-    if(knocks){this.knocks+=knocks;
+    if(knocks){
       // Heavy props bleed some speed (planck velocity, scaled once per hit frame); light ones are free to plough through.
       if(heavy>=HEAVY&&car.body){const v=car.body.getLinearVelocity(),f=1-heavy*.16;car.body.setLinearVelocity({x:v.x*f,y:v.y*f});}
       audio?.onImpact?.(Math.min(14,impact*(.25+heavy*.5)));}
     if(this.loose.size>PROP_CONFIG.maxActive)for(const b of this.loose){if(this.loose.size<=PROP_CONFIG.maxActive)break;b.age=PROP_CONFIG.maxLoose;}
-    for(const b of this.loose){const moving=stepBody(b,dt,PROP_CONFIG,.05);this.writeMatrix(b);if(!moving)this.loose.delete(b);}
+    for(const b of this.loose){let remaining=Math.min(dt,.1),moving=true;while(remaining>1e-6&&moving){const step=Math.min(remaining,1/120),old={x:b.x,z:b.z};moving=stepBody(b,step,PROP_CONFIG,b.ground??.06);const hit=this.obstacleGrid.sweep(old,b,b.r,Math.max(0,b.y-b.half),b.y+b.half);if(hit){const t=Math.max(0,hit.t-.001);b.x=old.x+(b.x-old.x)*t;b.z=old.z+(b.z-old.z)*t;const dot=b.vx*hit.nx+b.vz*hit.nz;if(dot<0){b.vx-=1.25*dot*hit.nx;b.vz-=1.25*dot*hit.nz;}}remaining-=step;}this.writeMatrix(b);if(!moving)this.loose.delete(b);}
     if(this.displaced.size){let visibleTest=null;if(camera){this.projView.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);this.frustum.setFromProjectionMatrix(this.projView);visibleTest=(x,z)=>this.frustum.containsPoint(_p.set(x,.5,z));}
-      for(const b of this.displaced){if(b.state!=='settled')continue;const d=Math.hypot(b.x-car.x,b.z-car.z),seen=visibleTest?visibleTest(b.x,b.z)||visibleTest(b.home.x,b.home.z):d<PROP_CONFIG.respawnDistance;if(maybeRespawn(b,dt,Math.min(d,Math.hypot(b.home.x-car.x,b.home.z-car.z)),seen)){this.displaced.delete(b);this.writeMatrix(b);}}}
+      for(const b of this.displaced){if(b.state!=='settled')continue;const d=Math.hypot(b.x-car.x,b.z-car.z),seen=visibleTest?visibleTest(b.x,b.z)||visibleTest(b.home.x,b.home.z):d<PROP_CONFIG.respawnDistance;if(maybeRespawn(b,dt,Math.min(d,Math.hypot(b.home.x-car.x,b.home.z-car.z)),seen)){this.displaced.delete(b);b.y=b.half+(b.ground??.06);if(b.actor)b.actor.body.setActive(true);this.writeMatrix(b);}}}
     this.refreshClock+=dt;if(this.refreshClock>.25){this.refreshClock=0;this.refresh(car.x,car.z);}
-    this.spray?.update(dt,this.time);return knocks;
+    for(const b of this.bodies)if(b.actor&&PROP_TYPES[b.type].slide&&b.actor.body.isActive()){const p=b.actor.body.getPosition();b.x=p.x;b.z=p.y;b.q.setFromAxisAngle(_up.set(0,1,0),b.actor.body.getAngle());this.writeMatrix(b);}
+    this.previous={x:car.x,z:car.z,heading:car.heading};this.before=null;this.spray?.update(dt,this.time);return knocks;
   }
   get stats(){return {props:this.items.length,counts:this.counts,loose:this.loose.size,displaced:this.displaced.size,knocks:this.knocks,drawn:Object.fromEntries(Object.entries(this.meshes).map(([k,m])=>[k,m.parts[0]?.count||0])),spray:this.spray?.points.visible||false};}
 }

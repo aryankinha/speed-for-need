@@ -27,7 +27,8 @@ test('real stunt park has no cone colliders or perimeter obstacles and keeps con
     const physics=createDrivingWorld();
     const world=await buildWorld({scene:new THREE.Scene(),physics,models,random:()=>.4});
     assert.equal(physics.objects.filter(o=>o.userData?.kind==='stunt-cone').length,0);
-    assert.equal(physics.objects.filter(o=>o.userData?.kind==='cone').length,5);
+    assert.equal(physics.objects.filter(o=>o.userData?.kind==='cone').length,0,'construction cones no longer stop the car like walls');
+    assert.equal(world.interactiveProps.filter(o=>o.type==='cone').length,5,'construction cones remain present as knockable props');
     const parkObstacles=world.obstacles.filter(o=>o.actor.x>STUNT_AREA.left&&o.actor.x<STUNT_AREA.right&&o.actor.z>STUNT_AREA.top&&o.actor.z<STUNT_AREA.bottom);
     assert.equal(parkObstacles.length,RAMPS.filter(r=>r.x>STUNT_AREA.left&&r.x<STUNT_AREA.right&&r.z>STUNT_AREA.top&&r.z<STUNT_AREA.bottom).length);
     assert.ok(parkObstacles.every(o=>o.actor.userData?.kind==='stunt-ramp'));

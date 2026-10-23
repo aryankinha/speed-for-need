@@ -6,6 +6,8 @@ import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {placePackages,layoutFor,ActivityStore,SpeedTraps,DriftZones,Collectibles,describeEvent,TRAP_HEAT_KMH,starString} from './activities.js';
 import {WantedSystem,HEAT,pursuitTarget,spawnCandidates,readPoliceSetting,writePoliceSetting,setActiveWanted,addHeat} from './wanted.js';
+import {TACTICS,DriftSighting,pitEnabled,flankEnabled,blockEnabled,pitCandidate,pitYawImpulse,pitAim,flankSide,flankPoint,roadblockPoint,blockTarget} from './police-tactics.js';
+import {buildLightBar,lightBarY,makeLightBarShared,lightBarState,FLASH_HZ} from './police-lights.js';
 
 const TOAST_SECONDS=3,COP_LENGTH=4.7,MAX_COPS=3;
 
@@ -77,7 +79,7 @@ export class OpenWorldActivities{
     for(let i=0;i<this.packages.packages.length;i++){const p=this.packages.packages[i],on=!this.packages.collected[i];d.position.set(p.x,p.y+Math.sin(t*2.2+i)*.18,p.z);d.rotation.set(0,t*2+i,0);d.scale.setScalar(on?1:0);d.updateMatrix();m.setMatrixAt(i,d.matrix);}
     m.instanceMatrix.needsUpdate=true;
   }
-  buildPoliceMaterials(){this.redMat=new THREE.MeshBasicMaterial({color:new THREE.Color(.3,0,0)});this.blueMat=new THREE.MeshBasicMaterial({color:new THREE.Color(0,0,.3)});this.barGeo=new THREE.BoxGeometry(.5,.16,.3);}
+  buildPoliceMaterials(){this.redMat=new THREE.MeshBasicMaterial({color:new THREE.Color(.3,0,0)});this.blueMat=new THREE.MeshBasicMaterial({color:new THREE.Color(0,0,.3)});this.lightBar=makeLightBarShared(THREE,this.redMat,this.blueMat);}
   preparePolice(root){
     root.rotation.y=Math.PI;const group=this.normalize(root,COP_LENGTH,'z');group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
     const size=new THREE.Box3().setFromObject(group,true).getSize(new THREE.Vector3());this.policeTemplate={group,size};
@@ -86,7 +88,7 @@ export class OpenWorldActivities{
   dressCop(cop){
     if(cop.dressed||!this.policeTemplate)return;cop.dressed=true;const {group,size}=this.policeTemplate,body=group.clone(true);cop.mesh.add(body);cop.mesh.remove(cop.placeholder);
     cop.wheels=[];body.traverse(o=>{if(/^wheel/.test(o.name))cop.wheels.push(o);});
-    const y=size.y+.02;for(const [x,mat] of [[-.3,this.redMat],[.3,this.blueMat]]){const bar=new THREE.Mesh(this.barGeo,mat);bar.position.set(x,y,.15);cop.mesh.add(bar);}
+    const bar=buildLightBar(THREE,this.lightBar);bar.position.set(0,lightBarY(size.y),.15);cop.mesh.add(bar);
   }
   makeCop(){
     const mesh=new THREE.Group();mesh.name='police';const placeholder=new THREE.Mesh(new THREE.BoxGeometry(1.9,1.3,COP_LENGTH),new THREE.MeshStandardMaterial({color:0x111418}));placeholder.position.y=.65;mesh.add(placeholder);
@@ -153,20 +155,27 @@ export class OpenWorldActivities{
     this.updatePolice(dt,player);
   }
   updatePolice(dt,player){
-    const w=this.wanted,ps=this.playerState;
+    const w=this.wanted,ps=this.playerState,T=this.tacticsFrame(dt,ps);
     const event=w.update(dt,ps,this.copStates,this.bounds);
     if(event){if(event.type==='wanted')this.toast(`WANTED ${starString(event.stars)}`,'busted');else if(event.type==='escaped'){this.toast('YOU LOST THE COPS','package');this.clearCops(false);}else if(event.type==='busted'){this.toast('BUSTED!','busted');this.clearCops(false);}}
     const want=w.desiredCops;let active=0;for(const c of this.cops)if(!c.leaving)active++;
     this.spawnClock-=dt;if(active<want&&this.spawnClock<=0){this.spawnClock=1.2;this.spawnCop(player);}
     // Light bar: alternating red/blue, 5 Hz, bright enough to bloom.
-    this.flash+=dt*5;const phase=(this.flash|0)%2===0,lit=w.stars>0;this.redMat.color.setRGB(lit&&phase?7:.35,lit&&phase?.15:0,lit&&phase?.1:0);this.blueMat.color.setRGB(lit&&!phase?.1:0,lit&&!phase?.25:0,lit&&!phase?7:.35);
+    this.flash+=dt*FLASH_HZ;const lb=lightBarState(this.flash/FLASH_HZ,w.stars>0);this.redMat.color.setRGB(lb.red,lb.red*.02,lb.red*.015);this.blueMat.color.setRGB(lb.blue*.015,lb.blue*.035,lb.blue);
     const speed=w.copSpeed();let nearest=Infinity;
     for(let i=this.cops.length-1;i>=0;i--){
       const cop=this.cops[i],a=cop.actor,d=Math.hypot(a.x-ps.x,a.z-ps.z);
       if(cop.leaving>0){cop.leaving-=dt;a.setTarget(this.stopTarget(a));if(cop.leaving<=0||d>160){this.despawn(i);continue;}}
       else{
-        nearest=Math.min(nearest,d);pursuitTarget(a,ps,this.bounds,speed,this.copTarget);a.setTarget(this.copTarget);
-        cop.stuck=a.speed<1.5&&d>25?cop.stuck+dt:0;if(cop.stuck>4||d>650){this.despawn(i);continue;}
+        nearest=Math.min(nearest,d);
+        if(!(cop.block>0))this.copTactics(cop,a,player,T);
+        if(cop.block>0){cop.block-=dt;if(cop.block<=0&&T.blockCop===cop)T.blockCop=null;a.setTarget(blockTarget(cop.blockHeading,this.copTarget));} // roadblock: hold across the road
+        else{
+          pursuitTarget(a,cop===T.flankCop?T.flankPlayer:ps,this.bounds,speed,this.copTarget);
+          if(this.time<cop.pitUntil)pitAim(a,ps,this.copTarget);
+          a.setTarget(this.copTarget);
+          cop.stuck=a.speed<1.5&&d>25?cop.stuck+dt:0;if(cop.stuck>4||d>650){this.despawn(i);continue;}
+        }
       }
       cop.x=a.x;cop.z=a.z;cop.mesh.position.set(a.x,a.groundElevation||0,a.z);cop.mesh.rotation.y=a.heading;cop.roll+=a.forwardSpeed*dt/.34;for(const wheel of cop.wheels)wheel.rotation.x=-cop.roll;
     }
@@ -174,6 +183,40 @@ export class OpenWorldActivities{
     this.siren.set(w.stars>0&&nearest<Infinity&&this.audio?.canPlay?.()?.11*Math.max(0,1-nearest/260):0);
   }
   stopTarget(a){const s=this.copTarget;s.vx=0;s.vz=0;s.heading=a.heading;s.maxAcceleration=8;return s;}
+  // ---------- tactics (police-tactics.js holds the decision logic; this applies it) ----------
+  makeTactics(){return {pitCooldown:0,grace:1,lastX:NaN,lastZ:NaN,blockCop:null,flankCop:null,flankSide:1,flankClock:0,flankPlayer:{x:0,z:0,vx:0,vz:0,speed:0,heading:0},blockPose:{x:0,z:0,heading:0},drift:new DriftSighting(),blockedFn:(x,z,m)=>this.obstacleNear(x,z,m)};}
+  /** Static obstacle (not vehicles) within m metres of a point; the same box test spawnCop uses. */
+  obstacleNear(x,z,m){const o=this.world?.obstacles;if(o)for(let i=0;i<o.length;i++){const b=o[i].box;if(b&&x>b.min.x-m&&x<b.max.x+m&&z>b.min.z-m&&z<b.max.z+m&&b.max.y>.3)return true;}return false;}
+  /** Once per frame, before cops move: teleport grace, PIT cooldown, flank assignment and the drift-in-sight heat trigger. */
+  tacticsFrame(dt,ps){
+    const T=this.tac||(this.tac=this.makeTactics()),w=this.wanted;
+    // A jump (reset, map travel) disarms PIT and roadblocks for a second and drops any roadblock, as traps ignore the jump.
+    if(!(Math.abs(ps.x-T.lastX)<25&&Math.abs(ps.z-T.lastZ)<25)){T.grace=1;this.endBlock(T);T.drift.reset();}else if(T.grace>0)T.grace-=dt;
+    T.lastX=ps.x;T.lastZ=ps.z;if(T.pitCooldown>0)T.pitCooldown-=dt;
+    T.flankCop=null;
+    if(flankEnabled(w.stars)&&T.grace<=0){
+      let n=0;for(let i=0;i<this.cops.length;i++){const c=this.cops[i];if(c.leaving>0||c.block>0)continue;if(++n===2){T.flankCop=c;break;}}
+      if(T.flankCop){T.flankClock-=dt;if(T.flankClock<=0){T.flankClock=TACTICS.flank.holdTime;T.flankSide=flankSide(ps,this.bounds);}
+        const f=T.flankPlayer;flankPoint(ps,T.flankSide,f);f.vx=ps.vx;f.vz=ps.vz;f.speed=ps.speed;f.heading=ps.heading;}
+    }
+    if(T.drift.update(dt,ps,this.cops))w.addHeat(HEAT.drift);
+    return T;
+  }
+  endBlock(T){if(T.blockCop){T.blockCop.block=0;T.blockCop=null;}}
+  /** P.I.T. and roadblock triggers for one pursuing cop. The player body is only ever touched through an angular impulse. */
+  copTactics(cop,a,player,T){
+    const ps=this.playerState,stars=this.wanted.stars;
+    if(T.grace>0||player.isAirborne)return;
+    if(pitEnabled(stars)&&T.pitCooldown<=0){
+      const side=pitCandidate(ps,a,stars,T.pitCooldown),body=player.body;
+      if(side&&body){const impulse=pitYawImpulse(body.getInertia(),side,ps.speed);
+        if(impulse){body.applyAngularImpulse(impulse,true);T.pitCooldown=TACTICS.pit.cooldown;cop.pitUntil=this.time+TACTICS.pit.aimTime;this.toast('P.I.T.!','busted');}}
+    }
+    if(!T.blockCop&&blockEnabled(stars)){
+      const p=roadblockPoint(a,ps,this.bounds,T.blockedFn,T.blockPose);
+      if(p){cop.block=TACTICS.block.duration;cop.blockHeading=p.heading;T.blockCop=cop;}
+    }
+  }
   spawnCop(player){
     const ps=this.playerState,boxes=this.world?.obstacles||[];
     const free=(x,z)=>!boxes.some(o=>o.box&&x>o.box.min.x-3&&x<o.box.max.x+3&&z>o.box.min.z-3&&z<o.box.max.z+3&&o.box.max.y>.3)&&!this.physics.vehicles.some(v=>Math.hypot(v.x-x,v.z-z)<8);
@@ -183,14 +226,14 @@ export class OpenWorldActivities{
         const cop=this.copPool.pop()||this.makeCop();this.dressCop(cop);
         const size=this.policeTemplate?.size;cop.actor=this.physics.addVehicle({x:c.x,z:c.z,heading:c.heading,width:size?.x||1.95,length:size?.z||COP_LENGTH,height:size?.y||1.5,mass:1700,userData:{kind:'police'}});
         cop.actor.setPose({x:c.x,z:c.z,heading:c.heading,vx:-Math.sin(c.heading)*15,vz:-Math.cos(c.heading)*15});
-        cop.stuck=0;cop.leaving=0;cop.x=c.x;cop.z=c.z;cop.mesh.visible=true;this.cops.push(cop);this.copStates.push(cop);return cop;
+        cop.stuck=0;cop.leaving=0;cop.block=0;cop.pitUntil=0;cop.x=c.x;cop.z=c.z;cop.mesh.visible=true;this.cops.push(cop);this.copStates.push(cop);return cop;
       }
     }
     return null;
   }
-  despawn(i){const cop=this.cops[i];this.cops.splice(i,1);const j=this.copStates.indexOf(cop);if(j>=0)this.copStates.splice(j,1);if(cop.actor){this.physics.remove(cop.actor);cop.actor=null;}cop.mesh.visible=false;this.copPool.push(cop);}
+  despawn(i){const cop=this.cops[i];if(this.tac?.blockCop===cop)this.tac.blockCop=null;cop.block=0;this.cops.splice(i,1);const j=this.copStates.indexOf(cop);if(j>=0)this.copStates.splice(j,1);if(cop.actor){this.physics.remove(cop.actor);cop.actor=null;}cop.mesh.visible=false;this.copPool.push(cop);}
   /** Stand the pursuers down: they stop where they are and are removed a few seconds later (now = immediately). */
-  clearCops(now){if(now){for(let i=this.cops.length-1;i>=0;i--)this.despawn(i);this.siren.set(0);return;}for(const c of this.cops)c.leaving=4;this.copStates.length=0;}
+  clearCops(now){if(now){for(let i=this.cops.length-1;i>=0;i--)this.despawn(i);this.siren.set(0);return;}for(const c of this.cops){c.leaving=4;c.block=0;}if(this.tac)this.tac.blockCop=null;this.copStates.length=0;}
   // ---------- maps ----------
   /** Inside drawRadar's world transform (rotated, scaled by zoom, centred on the player). */
   drawRadar(ctx,zoom){

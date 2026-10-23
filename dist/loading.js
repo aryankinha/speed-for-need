@@ -16,11 +16,13 @@
 
   // Tips: each rotation swaps the text and replays the .is-swap keyframe fade (no timers gate visibility).
   const TIPS = [
-    'Hold SHIFT for nitro',
-    'Collect nitro bottles for a boost',
-    'Hold SPACE to handbrake-drift',
-    'Press ESC to pause',
-    'Watch the sea road',
+    'Hold SHIFT for nitro boost · Refill with roadside pick-ups',
+    'Hold SPACE into sharp corners to initiate high-speed drift',
+    'Pacific Coast Highway: High-speed sweepers with elevation drops',
+    'Launch off stunt ramps at 180+ KM/H for maximum aerial hangtime',
+    'Visit the Garage to tune colors, wheels, and customize your fleet',
+    'Press C to cycle between Chase, Bumper, and Hood cameras',
+    'Press ESC at any time to open Pause Menu for graphics & controls',
   ];
   if (tipEl) {
     let index = Math.floor(Math.random() * TIPS.length);
@@ -49,7 +51,10 @@
     if (pct) pct.textContent = `${Math.round(value)}%`;
     track?.setAttribute('aria-valuenow', String(Math.round(value)));
     track?.style.setProperty('--p', `${widthValue}%`);
-    if (status) status.textContent = text.replace(/\s*[·•|\-–]?\s*\d{1,3}\s*%\s*$/, '').trim() || text;
+    if (status) {
+      const clean = text.replace(/\s*[·•|\-–]?\s*\d{1,3}\s*%\s*$/, '').trim() || text;
+      status.innerHTML = `<i class="ld-status-pip" aria-hidden="true"></i>${clean}`;
+    }
   };
   new MutationObserver(syncProgress).observe(bar, {attributes: true, attributeFilter: ['style']});
   if (loadtext) new MutationObserver(syncProgress).observe(loadtext, {childList: true, characterData: true, subtree: true});

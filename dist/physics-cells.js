@@ -10,7 +10,7 @@ export class PhysicsCells {
     for(const actor of new Set(objects)){
       const body=actor?.body;
       // Never deactivate a moving body, even if its actor type is mislabeled.
-      if(!body||actor.type==='vehicle'||body.isDynamic?.()||body.getType?.()==='dynamic'||body.isKinematic?.()||body.getType?.()==='kinematic')continue;
+      if(!body||actor.userData?.managedActivation||actor.type==='vehicle'||body.isDynamic?.()||body.getType?.()==='dynamic'||body.isKinematic?.()||body.getType?.()==='kinematic')continue;
       this.entries.push(actor);
       if(actor.userData?.alwaysActive||actor.userData?.kind==='boundary'){this.always.push(actor);continue;}
       // Register the full collider extent, rather than just its centre. Large

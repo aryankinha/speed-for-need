@@ -39,16 +39,41 @@
 #loader .ld-top{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
 #loader .load-brand{display:flex;align-items:center;gap:10px;font:700 clamp(14px,1.5vw,18px)/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--white);text-align:left;white-space:nowrap}
 #loader .load-brand i{display:grid;place-items:center;width:26px;height:26px;background:var(--lime);color:#0d2024;font-style:normal;font-size:18px;transform:skewX(-10deg)}
-#loader .ld-tag{font:600 clamp(11px,1vw,13px)/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+#loader .ld-telemetry-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+#loader .ld-tag{display:inline-flex;align-items:center;font:600 clamp(11px,1vw,13px)/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+#loader .ld-subtag{font:600 10px/1 'Barlow Condensed',sans-serif;letter-spacing:2px;color:rgba(255,255,255,.45);text-transform:uppercase}
+#loader .ld-live-pulse{display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px rgba(222,247,158,.7);animation:ldLivePulse 1.6s ease-in-out infinite}
+@keyframes ldLivePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+
+/* Tactical viewport reticles */
+#loader .ld-reticles{position:absolute;inset:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));pointer-events:none;z-index:2}
+#loader .ld-reticle{position:absolute;width:14px;height:14px;border:1px solid rgba(222,247,158,.35)}
+#loader .ld-reticle.tl{top:0;left:0;border-right:0;border-bottom:0}
+#loader .ld-reticle.tr{top:0;right:0;border-left:0;border-bottom:0}
+#loader .ld-reticle.bl{bottom:0;left:0;border-right:0;border-top:0}
+#loader .ld-reticle.br{bottom:0;right:0;border-left:0;border-top:0}
 
 /* Hero: wordmark and tagline (left third kept clear for the title) */
 #loader .ld-hero{position:relative;z-index:3;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 max(16px,env(safe-area-inset-right)) clamp(14px,3.5vh,40px) max(16px,env(safe-area-inset-left))}
+#loader .ld-district-kicker{display:inline-flex;align-items:center;gap:8px;margin-bottom:6px;transform:skewX(-10deg);transform-origin:0 100%}
+#loader .ld-badge-chip{padding:3px 7px 2px;background:var(--lime);color:#0d2024;font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+#loader .ld-kicker-title{font:700 clamp(11px,1.2vw,14px)/1 'Barlow Condensed',sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--lime)}
 #loader .ld-title{margin:0;font:700 clamp(40px,min(17vw,19vh),220px)/.84 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:-.005em;transform:skewX(-10deg);transform-origin:0 100%;text-shadow:0 10px 40px rgba(0,0,0,.45)}
 #loader .ld-title span{display:block;color:var(--white);animation:ldIn .9s cubic-bezier(.2,.7,.2,1) both}
 #loader .ld-title span+span{color:var(--lime);animation-delay:.12s}
 @keyframes ldIn{from{opacity:0;transform:translate3d(-36px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-#loader .ld-hero p{display:flex;align-items:center;gap:10px;margin:clamp(10px,1.6vh,18px) 0 0;font:600 clamp(12px,1.3vw,16px)/1 'Barlow Condensed',sans-serif;letter-spacing:4px;text-transform:uppercase;color:var(--lime)}
+#loader .ld-hero p{display:flex;align-items:center;gap:10px;margin:clamp(8px,1.4vh,16px) 0 0;font:600 clamp(12px,1.3vw,16px)/1 'Barlow Condensed',sans-serif;letter-spacing:4px;text-transform:uppercase;color:var(--lime)}
 #loader .ld-hero p::before{content:'';width:34px;height:2px;background:#ff8a3d;box-shadow:0 0 10px rgba(255,138,61,.7)}
+
+/* Featured Vehicle Card: authentic in-engine telemetry HUD */
+#loader .ld-vehicle-card{display:flex;flex-direction:column;gap:8px;margin-top:clamp(10px,1.8vh,20px);padding:10px 14px 11px;max-width:380px;background:rgba(6,19,26,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-left:3px solid var(--lime);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);animation:ldIn .9s .2s cubic-bezier(.2,.7,.2,1) both}
+#loader .ld-vcard-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1)}
+#loader .ld-vcard-chip{font:700 10px/1 'Barlow Condensed',sans-serif;letter-spacing:2px;color:var(--lime);text-transform:uppercase}
+#loader .ld-vcard-model{font:700 clamp(13px,1.3vw,16px)/1 'Barlow Condensed',sans-serif;letter-spacing:1.5px;color:var(--white);text-transform:uppercase}
+#loader .ld-vcard-specs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#loader .ld-vstat{display:flex;flex-direction:column;gap:2px}
+#loader .ld-vstat small{font:600 9px/1 'Barlow Condensed',sans-serif;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+#loader .ld-vstat span{font:700 clamp(11px,1.1vw,13px)/1 'Barlow Condensed',sans-serif;letter-spacing:1px;color:var(--white);white-space:nowrap}
 
 /* Bottom info strip: rotating tip on the left, percent and progress on the right */
 #loader .ld-strip{position:relative;z-index:3;display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(14px,3vw,48px);padding:clamp(16px,2.6vh,30px) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:linear-gradient(180deg,rgba(4,14,18,0),rgba(4,14,18,.82) 35%,rgba(3,10,13,.96))}
@@ -63,7 +88,8 @@
 #loader .ld-meta{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;min-width:0}
 /* game.js writes #loadtext with its own percent; it stays in the DOM for screen readers, and the visible copy is #ld-status (percent removed) */
 #loader #loadtext{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
-#loader .ld-status{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,1.1vw,13px);letter-spacing:.5px;color:var(--dim)}
+#loader .ld-status{display:inline-flex;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,1.1vw,13px);letter-spacing:.5px;color:var(--dim)}
+#loader .ld-status-pip{display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px rgba(222,247,158,.8);vertical-align:middle;animation:ldLivePulse 1.2s ease-in-out infinite}
 #loader .ld-pct{font:700 clamp(28px,3.2vw,44px)/.9 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.5px;color:var(--white)}
 
 /* Progress bar: the #loadbar fill has a glowing head; the steering wheel rides on --p (no filter, so it stays cheap) */
@@ -90,8 +116,16 @@
   #loader .ld-prog{width:100%}
   #loader .ld-strip{flex-direction:column;align-items:stretch;gap:16px}
   #loader .ld-streaks i:nth-child(3){display:none}
+  #loader .ld-reticles{display:none}
+  #loader .ld-vehicle-card{max-width:100%;margin-top:12px;padding:8px 10px}
+  #loader .ld-subtag{display:none}
 }
-@media (max-width:560px){#loader .ld-tag{display:none}}
+@media (max-width:560px){
+  #loader .ld-tag{font-size:10px;letter-spacing:1.5px}
+  #loader .ld-subtag{display:none}
+  #loader .ld-vstat small{font-size:8px}
+  #loader .ld-vstat span{font-size:11px}
+}
 @media (max-width:640px){#loader .ld-art{background-image:url(assets/loading-art-mobile.jpg)}}
 @media (min-width:641px){#loader .ld-art{background-image:url(assets/loading-art.jpg)}}
 

@@ -56,6 +56,13 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     const b=rawWorld.createBody({position:Vec2(x,z)});
     return register(b,b.createFixture(Circle(radius),{friction,restitution:.04}),userData,'circle');
   };
+
+  // Ground-plane furniture uses the same contact solver as cars. Vertical tipping remains visual.
+  api.addProp=({x=0,z=0,width=.8,length=.8,heading=0,mass=80,height=1,userData}={})=>{
+    if(!(width>0&&length>0&&mass>0))throw new RangeError('Prop dimensions and mass must be positive.');
+    const b=rawWorld.createDynamicBody({position:Vec2(x,z),angle:-heading,allowSleep:true,linearDamping:3.8,angularDamping:4});
+    const a=register(b,b.createFixture(Box(width/2,length/2),{density:mass/(width*length),friction:.5,restitution:.03}),userData,'prop');a.minY=0;a.maxY=height;return a;
+  };
   api.addVehicle=(options={})=>{
     const config={...BASE,...options};
     const {width,length,mass}=config;
@@ -132,9 +139,9 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     if(brake&&Math.abs(vf)>.01)acceleration-=Math.sign(vf)*Math.min(c.brakeAcceleration*brake,Math.abs(vf)/dt);
     // Rolling/aerodynamic resistance decelerates gradually: releasing boost never
     // clamps speed to a different cap in one frame.
-    acceleration-=Math.sign(vf)*Math.min(.22+vf*vf*.0012,Math.abs(vf)/dt);
+    acceleration-=Math.sign(vf)*Math.min(.22+(actor.surfaceDrag||0)+vf*vf*.0012,Math.abs(vf)/dt);
     if(k.handbrake&&Math.abs(vf)>.01)acceleration-=Math.sign(vf)*Math.min(6,Math.abs(vf)/dt);
-    const lateralAccel=clamp(-vr*(k.handbrake?1.5:14),-(k.handbrake?3.0:c.grip)*(actor.landGrip??1),(k.handbrake?3.0:c.grip)*(actor.landGrip??1));
+    const lateralAccel=clamp(-vr*(k.handbrake?1.5:14),-(k.handbrake?3.0:c.grip)*(actor.landGrip??1)*(actor.surfaceGrip??1),(k.handbrake?3.0:c.grip)*(actor.landGrip??1)*(actor.surfaceGrip??1));
     body.applyForceToCenter(force.setNum(mass*(forward.x*acceleration+right.x*lateralAccel),mass*(forward.y*acceleration+right.y*lateralAccel)),true);
     // Kinematic bicycle yaw target with bidirectional low-speed assist and arcade grip authority.
     const steer=clamp(finite(k.steer,0),-1,1);

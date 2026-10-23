@@ -178,25 +178,36 @@ kbd{background:rgba(14,16,19,.08);border:1px solid rgba(14,16,19,.28);border-rad
 /* Loader: keep the cinematic art, swap lime for amber, white wordmark, amber-to-red bar */
 #loader{background:var(--night);color:var(--white)}
 #loader .ld-art{background-color:var(--night)}
-/* Neutral grade over the key art: desaturate (cheap blend, no filter) then a warm amber-to-charcoal multiply */
-#loader .ld-art::before{content:'';position:absolute;inset:0;background:#7d7d7d;mix-blend-mode:saturation;opacity:.72;pointer-events:none}
-#loader .ld-art::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#fcaf17 0%,#3a2e20 60%,#16120d 100%);mix-blend-mode:multiply;opacity:.1;pointer-events:none}
+/* Golden-hour cinematic grade over the key art: subtle contrast vignette + amber atmospheric glow */
+#loader .ld-art::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 55% 45%,rgba(0,0,0,0) 45%,rgba(11,13,16,.55) 100%);pointer-events:none}
+#loader .ld-art::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(252,175,23,.12) 0%,transparent 42%,rgba(8,9,11,.42) 100%);mix-blend-mode:overlay;pointer-events:none}
 #loader .ld-shade{background:
   linear-gradient(180deg,rgba(8,9,11,.86) 0%,rgba(8,9,11,.34) 30%,rgba(8,9,11,.08) 46%,rgba(8,9,11,.4) 70%,rgba(6,7,9,.94) 100%),
   linear-gradient(90deg,rgba(6,7,9,.5) 0%,rgba(6,7,9,.12) 40%,rgba(6,7,9,0) 60%),
   radial-gradient(ellipse at 88% 18%,rgba(252,175,23,.16),rgba(252,175,23,0) 55%)}
 #loader .ld-sweep{background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,226,166,.2) 50%,rgba(255,255,255,0) 100%)}
 #loader .ld-streaks i{background:linear-gradient(180deg,rgba(255,226,166,0),rgba(255,226,166,.55) 45%,rgba(255,226,166,0))}
+#loader .ld-reticle{border-color:rgba(252,175,23,.38)}
 #loader .load-brand{color:var(--white)}
 #loader .load-brand i{background:var(--amber);color:var(--ink)}
+#loader .ld-live-pulse{background:var(--amber);box-shadow:0 0 6px rgba(252,175,23,.7)}
 #loader .ld-tag{color:#c9cdd4}
+#loader .ld-subtag{color:rgba(255,255,255,.5)}
+#loader .ld-district-kicker .ld-badge-chip{background:var(--amber);color:var(--ink)}
+#loader .ld-district-kicker .ld-kicker-title{color:var(--amber)}
 #loader .ld-title span{color:var(--white)}
 #loader .ld-title span+span{color:var(--amber)}
 #loader .ld-hero p{color:#e6e8ec}
 #loader .ld-hero p::before{background:var(--red);box-shadow:0 0 10px rgba(228,0,43,.7)}
+#loader .ld-vehicle-card{background:rgba(14,16,19,.74);border-color:rgba(255,255,255,.14);border-left-color:var(--amber)}
+#loader .ld-vehicle-card .ld-vcard-chip{color:var(--amber)}
+#loader .ld-vehicle-card .ld-vcard-model{color:var(--white)}
+#loader .ld-vehicle-card .ld-vstat small{color:var(--dim)}
+#loader .ld-vehicle-card .ld-vstat span{color:var(--white)}
 #loader .ld-kicker{background:var(--amber);color:var(--ink)}
 #loader #ld-tip{color:#f6f6f2}
 #loader .ld-status{color:var(--dim)}
+#loader .ld-status-pip{background:var(--amber);box-shadow:0 0 6px rgba(252,175,23,.8)}
 #loader .ld-pct{color:var(--white)}
 #loader .ld-strip{background:linear-gradient(180deg,rgba(8,9,11,0),rgba(8,9,11,.82) 35%,rgba(6,7,9,.96))}
 #loader .load-track{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}

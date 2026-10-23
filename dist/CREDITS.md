@@ -242,3 +242,13 @@ Electricity pole, construction fence, construction light and warning sign — Ci
 
 ## Pedestrians (assets/peds/, see peds-source.json)
 Universal Base Characters [Standard] (Superhero_Male/Female_FullBody, Hair_SimpleParted, Hair_Buzzed, Hair_Beard, Hair_Long, Hair_Buns) and Universal Animation Library [Standard] (UAL1_Standard, in-place) by **Quaternius** — https://quaternius.com — **CC0 1.0** (https://creativecommons.org/publicdomain/zero/1.0/). Shipped as assets/peds/ped-male.glb, ped-female.glb and ped-anims.glb. Changes: body, eyes, brows and hair merged into one skinned primitive per character (hair variants tagged by a _PART attribute), meshoptimizer-simplified to ~5k body triangles, skin base colour resized to 512 px WebP, normal/roughness maps dropped; 11 clips kept (rotations stored as normalized int16, pelvis translation only). Clothes are painted at runtime by a shader (dist/pedestrians.js), no extra textures.
+
+## Interactive garden furniture and vegetation
+
+Poly Haven (CC0): [Grass Bermuda 01](https://polyhaven.com/a/grass_bermuda_01),
+[Shrub 01](https://polyhaven.com/a/shrub_01), [Potted Plant 01](https://polyhaven.com/a/potted_plant_01),
+[Painted Wooden Bench](https://polyhaven.com/a/painted_wooden_bench),
+[Wooden Picnic Table](https://polyhaven.com/a/wooden_picnic_table).
+Downloaded authored models; selected variants, optimized geometry and compressed textures.
+Source download checksums, authors and output hashes are recorded in `assets/park/source-manifest.json`.
+Existing Kenney furniture and signals retain the credits above.

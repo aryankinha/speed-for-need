@@ -12,7 +12,7 @@ export const WANTED_DEFAULTS=Object.freeze({
   directRange:70,turnSpeed:13,turnBrake:8,copAccel:10,
 });
 export const POLICE_KEY='speed-for-need-police';
-export const HEAT=Object.freeze({traffic:.6,police:1.2,trap:1,prop:.25});
+export const HEAT=Object.freeze({traffic:.6,police:1.2,trap:1,prop:.25,drift:.8}); // drift: drifting in front of a police car that is not chasing (police-tactics.js)
 
 export function starsForHeat(heat,thresholds=WANTED_DEFAULTS.thresholds){let s=0;for(const t of thresholds)if(heat>=t)s++;return s;}
 export function readPoliceSetting(storage){try{return storage?.getItem(POLICE_KEY)!=='off';}catch{return true;}}
