@@ -1,0 +1,17 @@
+/* Thumb controls share the game's charcoal, white and amber palette. */
+:root{--drive-stick-size:clamp(112px,23vmin,148px)}
+#touch{left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:5;align-items:flex-end;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#touch .drive-stick{position:relative;display:block;flex:none;width:var(--drive-stick-size);height:var(--drive-stick-size);border:1px solid #ffffff55;border-radius:50%;background:radial-gradient(circle,#0e101355 36%,#0e101388 37%,#0e101344 65%,#ffffff18 66%,#0e101366 68%);box-shadow:0 2px 18px #0003;pointer-events:auto;touch-action:none;contain:layout style}
+.drive-stick::before,.drive-stick::after{content:'';position:absolute;left:50%;top:50%;background:#ffffff20;transform:translate(-50%,-50%);pointer-events:none}
+.drive-stick::before{width:1px;height:72%}.drive-stick::after{height:1px;width:72%}
+.drive-stick-thumb{position:absolute;left:31%;top:31%;width:38%;height:38%;border-radius:50%;border:2px solid #ffffffb3;background:linear-gradient(145deg,#53575bd9,#17191de6);box-shadow:0 3px 10px #0005;transform:translate(var(--stick-x,0px),var(--stick-y,0px));pointer-events:none;will-change:transform}
+.drive-stick.is-held{border-color:#fcaf1799}.is-held .drive-stick-thumb{border-color:#fcaf17;background:#493716e6}
+.drive-stick-label{position:absolute;bottom:8%;width:100%;text-align:center;font:600 9px/1 'Barlow Condensed',sans-serif;letter-spacing:1.6px;color:#ffffff99;pointer-events:none}
+#touch .touch-actions{display:flex;flex-direction:column;gap:12px;pointer-events:none}
+#touch .touch-actions button{width:60px;height:56px;border-radius:12px;border:1px solid #ffffff80;background:#0e101399;color:#fff;font:700 13px/1 'Barlow Condensed',sans-serif;letter-spacing:.8px;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent}
+#touch .touch-actions button.is-held{background:#fcaf17;color:#0e1013;border-color:#fcaf17}
+.touch-setting{display:flex}
+.touch-help{display:none}
+@media(pointer:coarse){.home-controls{display:none}.touch-help{display:block;font-size:13px;line-height:1.8;color:#e5e6e8}}
+@media(max-width:640px) and (orientation:portrait){body.touch-driving #nitro-hud{top:auto;bottom:calc(max(16px,env(safe-area-inset-bottom)) + var(--drive-stick-size) + 12px)}}
+@media(max-height:420px){:root{--drive-stick-size:112px}#touch{bottom:max(10px,env(safe-area-inset-bottom))}#touch .touch-actions{gap:8px}#touch .touch-actions button{width:56px;height:48px}}

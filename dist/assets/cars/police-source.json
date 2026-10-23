@@ -1,0 +1,28 @@
+{
+  "uid": "578e2bfb9c8f415d932527a938e2fc64",
+  "name": "Dodge Charger Police NYPD",
+  "viewerUrl": "https://sketchfab.com/3d-models/dodge-charger-police-nypd-578e2bfb9c8f415d932527a938e2fc64",
+  "isDownloadable": true,
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "author": {
+    "displayName": "David_Holiday",
+    "profileUrl": "https://sketchfab.com/David_Holiday",
+    "username": "David_Holiday"
+  },
+  "verifiedDate": "2026-10-23",
+  "apiSource": "https://api.sketchfab.com/v3/models/578e2bfb9c8f415d932527a938e2fc64",
+  "redistribution": "https://raw.githubusercontent.com/pedrosoandre/carros/main/assets/dodge-charger-police.glb",
+  "file": "assets/cars/police-david-holiday.glb",
+  "sha256": "a08389c3477644047f2dd5922d162782f4a592c8d7f196c36960061cf68fdf35",
+  "bytes": 504292,
+  "triangles": 16542,
+  "adaptations": "Shipped unmodified from the redistribution (weld/simplify/prune/Meshopt by the mirror). Scaled to 4.7 m length and rotated 180 degrees in the game loader (dist/open-world.js); its red and blue roof lenses (Giro_rouge, Giro_glass) are bound at load to the game's flashing police materials, so no extra light bar is added.",
+  "verifiedAt": "2026-10-23"
+}

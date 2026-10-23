@@ -138,3 +138,22 @@ export function stepChaseCamera(cam, car, dt, p, snap, shake) {
   pushOutOfCar(cam, car);
   return stepGoal;
 }
+
+// The chase camera only ever reaches ~20 m from the car, but a coast map holds ~87,000 collider boxes (buildings are compound
+// colliders), and clampDistance walked all of them every frame. This keeps a radius-limited subset of the box list and only
+// rebuilds it once the car has moved `slack` metres from where it was built. The subset holds every box within radius+slack
+// of the build point, so any box that could touch the camera ray (maxDist + 2 m around the car) is still in it.
+export function makeBoxWindow(radius = 60, slack = 40) {
+  let source = null, cx = NaN, cz = NaN, subset = [];
+  return function boxWindow(boxes, x, z) {
+    if (boxes !== source || !(Math.abs(x - cx) <= slack && Math.abs(z - cz) <= slack)) {
+      source = boxes; cx = x; cz = z; subset = [];
+      const r = radius + slack, minX = x - r, maxX = x + r, minZ = z - r, maxZ = z + r;
+      for (let i = 0; i < boxes.length; i++) {
+        const b = boxes[i];
+        if (!(b.max.x < minX || b.min.x > maxX || b.max.z < minZ || b.min.z > maxZ)) subset.push(b);
+      }
+    }
+    return subset;
+  };
+}

@@ -32,7 +32,7 @@ export class OpenWorldActivities{
     this.spawnClock=0;this.flash=0;this.time=0;this.heatClock=0;this.lastX=NaN;this.lastZ=NaN;this.toastUntil=0;this.toastText='';this.toastKind='';this.liveClock=0;this.liveText='';this.trapFlash=new Float32Array(this.layout.traps.length);
     this.siren=new Siren(audio);this.policeTemplate=null;this.blocked=[];
     this.buildTraps(models);this.buildZones();this.buildPackages();this.buildPoliceMaterials();this.buildDom();this.validate();
-    loader?.loadAsync('assets/cars/police.glb').then(g=>this.preparePolice(g.scene)).catch(error=>console.warn('Police model unavailable',error));
+    loader?.loadAsync('assets/cars/police-david-holiday.glb').then(g=>this.preparePolice(g.scene)).catch(error=>console.warn('Police model unavailable',error));
     if(typeof window!=='undefined'){window.gameActivities=this;window.addHeat=addHeat;}
   }
   // ---------- scene ----------
@@ -81,13 +81,16 @@ export class OpenWorldActivities{
   }
   buildPoliceMaterials(){this.redMat=new THREE.MeshBasicMaterial({color:new THREE.Color(.3,0,0)});this.blueMat=new THREE.MeshBasicMaterial({color:new THREE.Color(0,0,.3)});this.lightBar=makeLightBarShared(THREE,this.redMat,this.blueMat);}
   preparePolice(root){
-    root.rotation.y=Math.PI;const group=this.normalize(root,COP_LENGTH,'z');group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
-    const size=new THREE.Box3().setFromObject(group,true).getSize(new THREE.Vector3());this.policeTemplate={group,size};
+    root.rotation.y=Math.PI;const group=this.normalize(root,COP_LENGTH,'z');let ownBar=false;
+    // A model with its own light bar keeps it: its red and blue lenses (Giro_rouge/Giro_glass) share the flashing redMat/blueMat.
+    group.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;if(/light|siren|lightbar/i.test(o.name))ownBar=true;const lens=o.material?.name;if(lens==='Giro_rouge'){o.material=this.redMat;ownBar=true;}else if(lens==='Giro_glass'){o.material=this.blueMat;ownBar=true;}});
+    const size=new THREE.Box3().setFromObject(group,true).getSize(new THREE.Vector3());this.policeTemplate={group,size,ownBar};
     for(const cop of this.copPool)this.dressCop(cop);
   }
   dressCop(cop){
-    if(cop.dressed||!this.policeTemplate)return;cop.dressed=true;const {group,size}=this.policeTemplate,body=group.clone(true);cop.mesh.add(body);cop.mesh.remove(cop.placeholder);
+    if(cop.dressed||!this.policeTemplate)return;cop.dressed=true;const {group,size,ownBar}=this.policeTemplate,body=group.clone(true);cop.mesh.add(body);cop.mesh.remove(cop.placeholder);
     cop.wheels=[];body.traverse(o=>{if(/^wheel/.test(o.name))cop.wheels.push(o);});
+    if(ownBar)return;
     const bar=buildLightBar(THREE,this.lightBar);bar.position.set(0,lightBarY(size.y),.15);cop.mesh.add(bar);
   }
   makeCop(){

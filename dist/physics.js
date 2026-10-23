@@ -51,6 +51,13 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     const b=rawWorld.createBody({position:Vec2(x,z),angle:-heading});
     return register(b,b.createFixture(PolygonShape(vertices.map(([a,c])=>Vec2(a,c))),{friction,restitution}),userData,'box');
   };
+  // Compound static building surfaces: one body, separate height-aware fixtures.
+  api.addCompound=({x=0,z=0,heading=0,parts,userData}={})=>{
+    if(!parts?.length||parts.some(p=>!(p.width>0&&p.length>0&&Number.isFinite(p.minY)&&p.maxY>=p.minY)))throw new RangeError('Compound collider needs valid parts.');
+    const body=rawWorld.createBody({position:Vec2(x,z),angle:-heading});
+    const fixtures=parts.map(p=>body.createFixture(Box(p.width/2,p.length/2,Vec2(p.x,p.z)),{friction:.15,restitution:.02,userData:{minY:p.minY,maxY:p.maxY}}));
+    const actor=register(body,fixtures[0],userData,'box');actor.fixtures=fixtures;actor.minY=Math.min(...parts.map(p=>p.minY));actor.maxY=Math.max(...parts.map(p=>p.maxY));return actor;
+  };
   api.addCircle=({x=0,z=0,radius,friction=.3,userData}={})=>{
     if(!(radius>0))throw new RangeError('Collider radius must be positive.');
     const b=rawWorld.createBody({position:Vec2(x,z)});
@@ -94,18 +101,21 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     Object.defineProperty(actor,'state',{get(){const p=body.getPosition(),v=body.getLinearVelocity(),h=-body.getAngle(),s=Math.sin(h),c=Math.cos(h);return {x:p.x,z:p.y,heading:h,vx:v.x,vz:v.y,speed:Math.hypot(v.x,v.y),forwardSpeed:-v.x*s-v.y*c,lateralSpeed:v.x*c-v.y*s,yawRate:-body.getAngularVelocity()};}});
     vehicles.push(actor);return actor;
   };
-  api.overlaps=(a,b)=>testOverlap(a.fixture.getShape(),0,b.fixture.getShape(),0,a.body.getTransform(),b.body.getTransform());
+  const fixturesOf=a=>a.fixtures||[a.fixture];
+  const heightOf=(a,f)=>a.fixtures?f.getUserData():a;
+  const pairAtHeight=(a,fa,b,fb)=>{const ha=heightOf(a,fa),hb=heightOf(b,fb),ay=(a.elevation||0)+(a.groundElevation||0),by=(b.elevation||0)+(b.groundElevation||0);return ay+ha.minY<=by+hb.maxY+.025&&by+hb.minY<=ay+ha.maxY+.025;};
+  const overlapFixtures=(a,b,atHeight)=>fixturesOf(a).some(fa=>fixturesOf(b).some(fb=>(!atHeight||pairAtHeight(a,fa,b,fb))&&testOverlap(fa.getShape(),0,fb.getShape(),0,a.body.getTransform(),b.body.getTransform())));
+  api.overlaps=(a,b)=>overlapFixtures(a,b,false);
   api.remove=actor=>{rawWorld.destroyBody(actor.body);byRaw.delete(actor.body);const i=vehicles.indexOf(actor);if(i>=0)vehicles.splice(i,1);objects.splice(objects.indexOf(actor),1);};
   // Spawn/ride-change safety must test the same vertical intervals as contacts.
-  api.overlapsAtHeight=(a,b)=>{const ay=(a.elevation||0)+(a.groundElevation||0),by=(b.elevation||0)+(b.groundElevation||0);return ay+a.minY<=by+b.maxY+.025&&by+b.minY<=ay+a.maxY+.025&&api.overlaps(a,b);};
+  api.overlapsAtHeight=(a,b)=>overlapFixtures(a,b,true);
   rawWorld.on('pre-solve',contact=>{
     const a=byRaw.get(contact.getFixtureA().getBody()),b=byRaw.get(contact.getFixtureB().getBody());if(!a||!b)return;
     // Only filter this pair. An airborne player must never disable traffic/traffic contacts.
     if((a.rampId&&a.rampId===b.userData?.rampId)||(b.rampId&&b.rampId===a.userData?.rampId)||(a.isAirborne&&a.ignoreRampId&&a.ignoreRampId===b.userData?.rampId)||(b.isAirborne&&b.ignoreRampId&&b.ignoreRampId===a.userData?.rampId)){contact.setEnabled(false);return;}
     // Stunts use a relative height. Map support layers add their world height
     // so a channel vehicle cannot hit street traffic passing over its bridge.
-    const ay=(a.elevation||0)+(a.groundElevation||0),by=(b.elevation||0)+(b.groundElevation||0);
-    if(ay+a.minY>b.maxY+by+.025||by+b.minY>a.maxY+ay+.025)contact.setEnabled(false);
+    if(!pairAtHeight(a,contact.getFixtureA(),b,contact.getFixtureB()))contact.setEnabled(false);
   });
   rawWorld.on('post-solve',(contact,impulses)=>{
     const a=byRaw.get(contact.getFixtureA().getBody()),b=byRaw.get(contact.getFixtureB().getBody());

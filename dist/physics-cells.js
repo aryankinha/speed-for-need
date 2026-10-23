@@ -15,7 +15,8 @@ export class PhysicsCells {
       if(actor.userData?.alwaysActive||actor.userData?.kind==='boundary'){this.always.push(actor);continue;}
       // Register the full collider extent, rather than just its centre. Large
       // buildings straddling a cell edge must be ready on either approach.
-      const bounds=actor.fixture?.getAABB?.(0),p=body.getPosition();
+      const allBounds=(actor.fixtures||[actor.fixture]).map(f=>f?.getAABB?.(0)).filter(Boolean),p=body.getPosition();
+      const bounds=allBounds.length?{lowerBound:{x:Math.min(...allBounds.map(b=>b.lowerBound.x)),y:Math.min(...allBounds.map(b=>b.lowerBound.y))},upperBound:{x:Math.max(...allBounds.map(b=>b.upperBound.x)),y:Math.max(...allBounds.map(b=>b.upperBound.y))}}:null;
       const minX=Math.floor((bounds?.lowerBound.x??p.x)/cellSize),maxX=Math.floor((bounds?.upperBound.x??p.x)/cellSize);
       const minZ=Math.floor((bounds?.lowerBound.y??p.y)/cellSize),maxZ=Math.floor((bounds?.upperBound.y??p.y)/cellSize);
       for(let x=minX;x<=maxX;x++)for(let z=minZ;z<=maxZ;z++){

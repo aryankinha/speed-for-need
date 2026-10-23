@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {addBuildingColliders} from './building-colliders.js';
 import {makeBeachGeometry} from './coast.js';
 import {RAMPS,STUNT_AREA,addRampColliders} from './stunts.js';
 import {prepareRampModel} from './ramp-model.js';
@@ -29,7 +30,7 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   }
   function slab(width,height,length,x,y,z,mat){const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,length),mat);mesh.position.set(x,y,z);mesh.userData.surface=true;mesh.updateMatrixWorld();batchMesh(mesh);mesh.geometry.dispose();}
   function place(template,x,z,rotation=0,scale=1){const clone=template.clone(true);clone.position.set(x,0,z);clone.rotation.y=rotation;clone.scale.multiplyScalar(scale);clone.updateMatrixWorld(true);return clone;}
-  function staticBox(root,name,{baseOnly=false}={}){root.updateMatrixWorld(true);let bounds=new THREE.Box3().setFromObject(root,true);const fullBounds=bounds.clone();if(baseOnly){const low=new THREE.Box3();root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){temp.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(temp.y<.8)low.expandByPoint(temp);}}});if(!low.isEmpty())bounds=low;}const size=bounds.getSize(new THREE.Vector3()),c=bounds.getCenter(new THREE.Vector3());if(size.x>.02&&size.z>.02){const actor=physics.addBox({x:c.x,z:c.z,width:size.x,length:size.z,userData:{kind:name}});actor.minY=fullBounds.min.y;actor.maxY=fullBounds.max.y;obstacles.push({box:bounds.clone(),actor});}return bounds;}
+  function staticBox(root,name,{baseOnly=false}={}){if(name==='building')return addBuildingColliders(root,physics,obstacles);root.updateMatrixWorld(true);let bounds=new THREE.Box3().setFromObject(root,true);const fullBounds=bounds.clone();if(baseOnly){const low=new THREE.Box3();root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){temp.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(temp.y<.8)low.expandByPoint(temp);}}});if(!low.isEmpty())bounds=low;}const size=bounds.getSize(new THREE.Vector3()),c=bounds.getCenter(new THREE.Vector3());if(size.x>.02&&size.z>.02){const actor=physics.addBox({x:c.x,z:c.z,width:size.x,length:size.z,userData:{kind:name}});actor.minY=fullBounds.min.y;actor.maxY=fullBounds.max.y;obstacles.push({box:bounds.clone(),actor});}return bounds;}
   function addStatic(root,name,collision=true,baseOnly=false){root.updateMatrixWorld(true);if(['planter','bench','dumpster','signal','lamp','stop-sign','cone','barrier'].includes(name)){
     if(!interactiveTemplates[name]){const t=root.clone(true);t.position.set(0,0,0);t.rotation.set(0,0,0);t.scale.setScalar(1);t.updateMatrixWorld(true);interactiveTemplates[name]=t;}
     interactiveProps.push({type:name,x:root.position.x,z:root.position.z,rot:root.rotation.y,scale:root.scale.x});return;
