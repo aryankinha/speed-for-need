@@ -17,7 +17,7 @@ const hooks=registerHooks({resolve(specifier,context,next){
 const {buildWorld}=await import('../dist/world.js');
 hooks.deregister();
 
-test('real stunt park has no cone colliders or perimeter obstacles and keeps construction cones elsewhere',async()=>{
+test('real stunt park has no cone colliders or perimeter obstacles and keeps construction cones elsewhere',async t=>{
   const names=Array.from({length:14},(_,i)=>`building-${String.fromCharCode(97+i)}`).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','building-skyscraper-d','building-skyscraper-e','stunt-ramp','tree-palmdetailedtall','light-curved','traffic-light','bench','planter','dumpster','construction-cone','construction-barrier','road-sign-stop','sign-highway-detailed','rock-largea',...CITY_MODELS]);
   const models=Object.fromEntries(await Promise.all(names.map(async name=>[name,await loadVehicleGeometry(name)])));
   const originalDocument=globalThis.document,originalLoad=THREE.TextureLoader.prototype.loadAsync;
@@ -26,6 +26,9 @@ test('real stunt park has no cone colliders or perimeter obstacles and keeps con
   try{
     const physics=createDrivingWorld();
     const world=await buildWorld({scene:new THREE.Scene(),physics,models,random:()=>.4});
+    t.diagnostic('Coast lot fill: '+JSON.stringify(world.lotFill.stats));
+    assert.equal(world.lots.length,172);assert.equal(world.lots.filter(l=>l.dropped).length,12);
+    assert.equal(world.lotFill.cars.length,65);assert.ok(world.lotFill.stats.trees>100);
     assert.equal(physics.objects.filter(o=>o.userData?.kind==='stunt-cone').length,0);
     assert.equal(physics.objects.filter(o=>o.userData?.kind==='cone').length,0,'construction cones no longer stop the car like walls');
     assert.equal(world.interactiveProps.filter(o=>o.type==='cone').length,5,'construction cones remain present as knockable props');

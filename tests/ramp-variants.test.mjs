@@ -99,7 +99,7 @@ test('a mega ramp that is not climbed is still a solid obstacle with the mega he
 
 test('the standard profile is 6 m wide (widened from 4.6 m for edge entries) and the spin variants are tagged',()=>{
   assert.equal(RAMP_SHAPES.standard.width,6);
-  assert.deepEqual(RAMPS.filter(r=>r.variant==='spin').map(r=>r.id).sort(),['civic','roadspin']);
+  assert.deepEqual(RAMPS.filter(r=>r.variant==='spin').map(r=>r.id).sort(),['civic']);
 });
 
 test('every trick ramp has a boost pad on its approach, within 25 m in front of the toe, and says so in its hint',()=>{
@@ -110,10 +110,16 @@ test('every trick ramp has a boost pad on its approach, within 25 m in front of 
   }
 });
 
-test('the perimeter spin ramp keeps clear of the traffic lane (x = -445.7)',()=>{
-  const r=RAMPS.find(r=>r.id==='roadspin');
-  const gap=Math.abs(r.x+445.7)-r.shape.width/2-.95;
-  assert.ok(gap>2,`gap to the traffic lane ${gap.toFixed(2)} m`);
+test('all ramps stay inside the stunt park and the removed road ramp leaves both lanes passable',()=>{
+  assert.equal(RAMPS.some(r=>r.id==='roadspin'),false);
+  assert.equal(BOOST_PADS.some(p=>p.id==='road-spin'),false);
+  for(const r of RAMPS){assert.ok(r.x-r.shape.width/2>STUNT_AREA.left&&r.x+r.shape.width/2<STUNT_AREA.right);assert.ok(r.z-r.shape.length>STUNT_AREA.top&&r.z<STUNT_AREA.bottom);}
+  for(const x of [-455,-445.7])for(const direction of [-1,1]){
+    const world=createDrivingWorld();addRampColliders(world);const car=world.addVehicle({x,z:-100-direction*30}),stunts=new StuntSystem(RAMP_SHAPES.standard,storage());stunts.reset(car);
+    car.setPose({x,z:-100-direction*30,heading:direction<0?0:Math.PI,vz:direction*20});
+    for(let i=0;i<240;i++)world.step(1/120,()=>{stunts.beginStep(car);car.setControls({throttle:1});},dt=>stunts.step(car,dt));
+    assert.ok(direction*(car.z+100)>10,'car must pass through the former ramp footprint');assert.equal(car.rampId,null);assert.equal(car.isAirborne,false);
+  }
 });
 
 test('the barrel roll now has its own approach pad, so its speed hint is true',()=>{

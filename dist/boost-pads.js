@@ -8,8 +8,6 @@ export const BOOST_PADS = Object.freeze([
   PAD('road-east', 445.7, 75, Math.PI),
   PAD('park-mega', -355, 522, 0),
   PAD('park-spin', -375, 566, 0),
-  // Lane the perimeter spin ramp occupies (the one traffic leaves free).
-  PAD('road-spin', -455, -75, 0),
   // Approach to the barrel roll (the park lane between the spin and the roll toe is clear of the mega and kicker).
   PAD('park-roll', -340, 566, 0),
 ]);

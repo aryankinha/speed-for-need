@@ -15,8 +15,6 @@ export const RAMPS=Object.freeze([
   {id:'east',name:'Stunt Park / Barrel Roll',label:'BARREL ROLL',x:-340,z:545,heading:0,trick:'roll',hintPad:true,shape:RAMP_SHAPES.standard},
   {id:'kicker',name:'Stunt Park / Kicker',label:'KICKER',x:-428,z:430,heading:0,trick:null,shape:RAMP_SHAPES.kicker},
   {id:'mega',name:'Stunt Park / Mega Ramp',label:'MEGA RAMP',x:-355,z:500,heading:0,trick:null,shape:RAMP_SHAPES.mega},
-  // Perimeter road: sits in the lane traffic does not use (traffic runs at x=-445.7), 20 m past its boost pad.
-  {id:'roadspin',name:'Perimeter Road / 360 Spin',label:'360 SPIN',x:-455,z:-95,heading:0,trick:'spin',variant:'spin',hintPad:true,shape:RAMP_SHAPES.standard},
 ].map(r=>Object.freeze({...r,fx:-Math.sin(r.heading),fz:-Math.cos(r.heading)})));
 export function rampSurface(shape,progress){return Math.max(0,Math.min(1,progress/shape.slopeRun))*shape.height;}
 export function rampProgress(r,x,z){return (x-r.x)*r.fx+(z-r.z)*r.fz;}

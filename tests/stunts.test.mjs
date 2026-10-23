@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createDrivingWorld} from '../dist/physics.js';
 import {StuntSystem,RAMPS,STUNT_AREA,rampSurface,rampProgress,rampLateral,addRampColliders} from '../dist/stunts.js';
 import {RAMP_SHAPE} from '../dist/ramp-model.js';
-// The stunt park's own lanes. The perimeter spin ramp is tested separately.
+// All stunt ramps belong to the reserved park; public roads stay clear.
 const PARK=RAMPS.filter(r=>r.x>STUNT_AREA.left&&r.x<STUNT_AREA.right&&r.z>STUNT_AREA.top&&r.z<STUNT_AREA.bottom);
 
 const near=(a,b,tolerance=1e-6)=>assert.ok(Math.abs(a-b)<tolerance,`${a} != ${b}`);
