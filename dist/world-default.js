@@ -6,6 +6,7 @@ import {prepareRampModel} from './ramp-model.js';
 import {BOOST_PADS} from './boost-pads.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {surfaceMaterial} from './surface-materials.js';
+import {facadeTowerTemplates} from './facade-towers.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
 const BATCH_CELL_M=220;
 export const WORLD={left:-490,right:490,top:-670,bottom:670,shore:-486,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600],spawn:{x:-445.7,z:110,heading:0}};
@@ -53,6 +54,8 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const templates=buildingNames.map((name,i)=>{const root=models[name];const t=normalize(root,name.includes('skyscraper')?48+random()*30:14+random()*17,'y');const b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());const fit=Math.min(1,46/b.x,46/b.z);t.scale.multiplyScalar(fit);root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.cityAtlas=true;o.material.color.multiply(new THREE.Color([0xcbd0c6,0xcabfac,0xc3c9ce,0xd8cec0,0xb5c2b7][i%5]));}});return {template:t,tall:name.includes('skyscraper')};});
   // Tiko's photo-textured towers (CC BY 4.0) replace Kenney skyscrapers when loaded; 0.24-0.34 m per source unit keeps window floors near real storey heights.
   for(const name of Object.keys(models).filter(n=>n.startsWith('la-real/la-tower-'))){const root=models[name],h=new THREE.Box3().setFromObject(root,true).getSize(new THREE.Vector3()).y,t=normalize(root,h*(.24+random()*.1),'y'),b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());t.scale.multiplyScalar(Math.min(1,46/b.x,46/b.z));root.traverse(o=>{if(o.isMesh)for(const m of [o.material.map,o.material.normalMap])if(m)m.anisotropy=anisotropy;});templates.push({template:t,tall:true});}
+  // Procedural glass/concrete/stone towers with window grids, bands, a lit storefront podium and rooftop plant (facade-towers.js); shared materials keep batching intact.
+  templates.push(...await facadeTowerTemplates({count:8,minHeight:56,maxHeight:104,anisotropy}));
   let buildingCount=0,propCount=0;
   // Two adjacent blocks and the unused internal street form one continuous lot.
   slab(STUNT_AREA.right-STUNT_AREA.left,.02,STUNT_AREA.bottom-STUNT_AREA.top,(STUNT_AREA.left+STUNT_AREA.right)/2,.015,(STUNT_AREA.top+STUNT_AREA.bottom)/2,plaza);

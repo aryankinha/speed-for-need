@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {planLotFill} from './lot-fill.js';
 import {addBuildingColliders} from './building-colliders.js';
 import {makeBeachGeometry} from './coast.js';
 import {RAMPS,STUNT_AREA,addRampColliders} from './stunts.js';
@@ -7,6 +8,7 @@ import {BOOST_PADS} from './boost-pads.js';
 import {SUNSET,CITY_MODELS,mapDistrict,clearOfSunset,blockPolygons} from './map-layout.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {surfaceMaterial} from './surface-materials.js';
+import {facadeTowerTemplates} from './facade-towers.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
 const BATCH_CELL_M=220;
 export const WORLD={left:-490,right:490,top:-670,bottom:670,shore:-486,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600],spawn:{x:-445.7,z:110,heading:0}};
@@ -15,7 +17,7 @@ export function normalize(root,length,axis='z'){
 }
 export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const {left,right,top,bottom,roadsX,roadsZ}=WORLD;
-  const obstacles=[],buildingLots=[],interactiveProps=[],interactiveTemplates={},parkPlots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
+  const obstacles=[],buildingLots=[],lots=[],interactiveProps=[],interactiveTemplates={},parkPlots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
   const material=(color,roughness=.9)=>new THREE.MeshStandardMaterial({color,roughness});
   const inStuntArea=(x,z)=>x>STUNT_AREA.left&&x<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom;
   // CC0 PBR ground surfaces, one shared material each (surface-materials.js): sidewalk concrete slabs, lawn, plaza/stunt concrete, beach sand.
@@ -64,6 +66,8 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const templates=buildingNames.map((name,i)=>{const root=models[name];const t=normalize(root,name.includes('skyscraper')?75+random()*50:12+random()*12,'y');const b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());const fit=Math.min(1,46/b.x,46/b.z);t.scale.multiplyScalar(fit);root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.cityAtlas=true;o.material.color.multiply(new THREE.Color([0xcbd0c6,0xcabfac,0xc3c9ce,0xd8cec0,0xb5c2b7][i%5]));}});return {template:t,tall:name.includes('skyscraper')};});
   // Tiko's photo-textured towers (CC BY 4.0) replace Kenney skyscrapers when loaded; 0.3-0.42 m per source unit keeps window floors near real storey heights.
   for(const name of Object.keys(models).filter(n=>n.startsWith('la-real/la-tower-'))){const root=models[name],h=new THREE.Box3().setFromObject(root,true).getSize(new THREE.Vector3()).y,t=normalize(root,h*(.3+random()*.12),'y'),b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());t.scale.multiplyScalar(Math.min(1,46/b.x,46/b.z));root.traverse(o=>{if(o.isMesh)for(const m of [o.material.map,o.material.normalMap])if(m)m.anisotropy=anisotropy;});templates.push({template:t,tall:true});}
+  // Procedural glass/concrete/stone towers with window grids, bands, a lit storefront podium and rooftop plant (facade-towers.js); shared materials keep batching intact.
+  templates.push(...await facadeTowerTemplates({count:8,minHeight:70,maxHeight:130,anisotropy}));
   // Preserve each authored palette, but share it within a kit for spatial batching.
   const paletteMaterials=new Map();const extraTemplates={};
   for(const name of CITY_MODELS){const root=models[name];if(!root)throw new Error(`Missing map asset ${name}`);const pack=name.startsWith('la-house')?'house':'industry';root.traverse(o=>{if(o.isMesh){const key=pack+'|'+o.material.name;if(!paletteMaterials.has(key))paletteMaterials.set(key,o.material);o.material=paletteMaterials.get(key);}});const target=name.includes('water-tower')?18:name.includes('container')?8:pack==='house'?21:42;const t=normalize(root,target,name.includes('water-tower')?'y':'x'),size=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());t.scale.multiplyScalar(Math.min(1,46/size.x,46/size.z));extraTemplates[name]=t;}
@@ -93,11 +97,11 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
     const park=(i===1&&j===4)||(i===4&&j===2)||(i===2&&j===6);
     if(park){parkPlots.push({x:bx,z:bz,width:106,length:106,ground:.105});slab(7,.02,116,bx,.115,bz,plaza);slab(116,.02,7,bx,.116,bz,plaza);for(const dx of [-28,28])for(const dz of [-30,30]){addStatic(place(palmT,bx+dx,bz+dz,random()*6), 'tree',true,true);addStatic(place(bench,bx+dx+4,bz+dz,Math.PI/2),'bench');propCount+=2;}continue;}
     for(const dx of [-32,32])for(const dz of [-33,33]){
-      const lot={minX:bx+dx-24,maxX:bx+dx+24,minZ:bz+dz-24,maxZ:bz+dz+24};if(!clearOfSunset(lot,1))continue;
+      const lot={minX:bx+dx-24,maxX:bx+dx+24,minZ:bz+dz-24,maxZ:bz+dz+24,blockX:bx,blockZ:bz,district};lots.push(lot);if(!clearOfSunset(lot,1)){lot.dropped=true;continue;}
       const tall=commercial||(district==='Sunset Mile'&&dx>0&&random()>.65),options=templates.filter(t=>t.tall===tall);
       const template=residential?houses[Math.floor(random()*houses.length)]:industrial?warehouses[Math.floor(random()*warehouses.length)]:options[Math.floor(random()*options.length)].template;
       const m=place(template,bx+dx,bz+dz,Math.floor(random()*4)*Math.PI/2,residential?.85+random()*.12:.82+random()*.15);
-      const bounds=staticBox(m,'building');buildingLots.push({...lot,bounds,district});m.traverse(o=>{if(o.isMesh)batchMesh(o);});buildingCount++;districtBuildings[district]=(districtBuildings[district]||0)+1;
+      const bounds=staticBox(m,'building');lot.bounds=bounds;buildingLots.push({...lot,bounds,district});m.traverse(o=>{if(o.isMesh)batchMesh(o);});buildingCount++;districtBuildings[district]=(districtBuildings[district]||0)+1;
       if(residential)patch(5,17,bx+dx,.11,bz+dz+20,asphalt,SUNSET.width/2+SUNSET.sidewalk);
     }
     if(industrial){addStatic(place(extraTemplates['la-industry-water-tower'],bx,bz,0,.9),'water-tower');for(const dz of [-18,18])addStatic(place(extraTemplates['la-industry-shipping-container-a'],bx,bz+dz,Math.PI/2),'shipping-container');}
@@ -151,11 +155,16 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   // Palms and sourced rocks finish the north, south and east promenades too.
   for(let z=top+20;z<bottom;z+=80){addStatic(place(rock,right+25+random()*5,z,random()*6,.8+random()*.5),'coast-rock',false);}
   for(const z of [top,bottom])for(let x=left+25;x<right;x+=75){addStatic(place(palmT,x,z+(z<0?12:-12),random()*6,.8),'coast-tree',false);addStatic(place(rock,x,z+(z<0?-26:26),random()*6,.8+random()*.5),'coast-rock',false);const nearRoad=d=>roadsX.some(r=>Math.abs(x+d-r)<13);if(x+37.5<440&&!nearRoad(37.5))addStatic(place(lampT,x+37.5,z+(z<0?27:-27),z<0?Math.PI:0),'lamp',true,true);if(x+20<440&&!nearRoad(20))addStatic(place(bench,x+20,z+(z<0?12:-12)),'bench',true);}
+  // Dress only Coast lots after the seeded city is complete. The planner owns its RNG.
+  const lotFill=planLotFill({lots,obstacles,interactiveProps,parkPlots});
+  interactiveProps.push(...lotFill.items);
+  for(const p of lotFill.surfaces)patch(p.maxX-p.minX,p.maxZ-p.minZ,(p.minX+p.maxX)/2,p.kind==='paint'?.137:.13,(p.minZ+p.maxZ)/2,({asphalt,plaza,sand:beachSand,white})[p.material],SUNSET.width/2+SUNSET.sidewalk);
+  for(const p of lotFill.containers)addStatic(place(extraTemplates['la-industry-shipping-container-a'],p.x,p.z,p.rot),'lot-fill');
   // Merge each cell/material bin exactly once, after every static piece (including shoreline props) has been added.
   for(const bin of batches.values())if(bin.geometries.length){const geo=mergeGeometries(bin.geometries,false);if(!geo)throw new Error('Static geometry batching failed');const m=new THREE.Mesh(geo,bin.material);m.castShadow=bin.casts;m.receiveShadow=true;m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);for(const g of bin.geometries)g.dispose();bin.geometries=[];}
   const normal=await new THREE.TextureLoader().loadAsync('assets/sea-normal.jpg');normal.wrapS=normal.wrapT=THREE.RepeatWrapping;
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(5000,5400),new THREE.ShaderMaterial({uniforms:{time:{value:0},normalMap:{value:normal}},vertexShader:`varying vec3 worldP;void main(){worldP=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(worldP,1.);}`,fragmentShader:`varying vec3 worldP;uniform float time;uniform sampler2D normalMap;void main(){vec2 p=worldP.xz;vec3 n1=texture2D(normalMap,p*.018+vec2(time*.012,time*.007)).rgb;vec3 n2=texture2D(normalMap,p*.032-vec2(time*.008,time*.011)).rgb;float ripple=(n1.x+n2.y-1.);float edge=max(abs(p.x)-490.,abs(p.y)-670.);float shallow=1.-smoothstep(25.,100.,edge);vec3 c=mix(vec3(.10,.25,.30),vec3(.30,.52,.49),shallow*.7+ripple*.12);float wave=sin(edge*.65-time*1.5+n1.x*1.2);float foam=(1.-smoothstep(31.,42.,abs(edge-36.)))*pow(max(0.,wave),12.)*.38;c=mix(c,vec3(.83,.84,.73),foam);float gleam=pow(max(0.,ripple*.7+.2),8.)*2.;c+=vec3(.7,.44,.22)*gleam;float haze=1.-exp(-length(p-cameraPosition.xz)*.0006);gl_FragColor=vec4(mix(c,vec3(.64,.61,.59),haze),1.);}`}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-.30,0);scene.add(sea);
   const placementErrors=buildingLots.filter(l=>l.bounds.min.x<l.minX||l.bounds.max.x>l.maxX||l.bounds.min.z<l.minZ||l.bounds.max.z>l.maxZ).length;
   if(placementErrors)throw new Error(`${placementErrors} buildings escaped their allocated lots`);
-  return {obstacles,sea,buildingLots,interactiveProps,interactiveTemplates,parkPlots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{map:'Solana Coast',districtBuildings,buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
+  return {obstacles,sea,buildingLots,lots,lotFill,interactiveProps,interactiveTemplates,parkPlots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{map:'Solana Coast',districtBuildings,buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
 }
