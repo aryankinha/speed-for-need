@@ -19,8 +19,6 @@ test('pause menu HTML contains all required elements and IDs', () => {
   const requiredIds = [
     'menu',
     'resume',
-    'vehicle',
-    'car-description',
     'camera',
     'sound',
     'touch-toggle',
@@ -29,8 +27,6 @@ test('pause menu HTML contains all required elements and IDs', () => {
     'race-status',
     'controls',
     'showroom',
-    'session-distance',
-    'session-speed',
     'minimap',
     'district',
     'menu-status',
@@ -41,6 +37,14 @@ test('pause menu HTML contains all required elements and IDs', () => {
     assert.ok(
       html.includes(`id="${id}"`),
       `Expected element with id="${id}" to exist in index.html`
+    );
+  }
+
+  const removedIds = ['vehicle', 'car-description', 'session-distance', 'session-speed'];
+  for (const id of removedIds) {
+    assert.ok(
+      !html.includes(`id="${id}"`),
+      `Expected element with id="${id}" to NOT exist in pause DOM`
     );
   }
 });
@@ -82,11 +86,13 @@ test('HTML structure: semantic tags, accessibility, and kbd elements', () => {
   assert.ok(html.includes('<dt>Drive / brake & reverse</dt>'), 'Expected <dt>');
   assert.ok(html.includes('<dd><kbd>W</kbd>'), 'Expected <dd>');
   assert.ok(html.includes('<aside class="pause-map-dock" aria-label="District map">'), 'Expected map <aside>');
-  assert.ok(html.includes('<aside class="pause-telemetry-dock" aria-label="Session telemetry">'), 'Expected telemetry <aside>');
+  assert.ok(!html.includes('pause-telemetry-dock'), 'Expected telemetry dock to be removed from pause DOM');
+  assert.ok(!html.includes('85% clear view'), 'Expected 85% clear view text to be removed');
+  assert.ok(!html.includes('A LITTLE FURTHER. A LITTLE FREER.'), 'Expected A little further text to be removed from initial HTML');
 
   // Form labels with for attribute matching select id
-  assert.ok(html.includes('<label for="vehicle" class="pause-pill-label">'), 'Label for vehicle');
-  assert.ok(html.includes('<select id="vehicle"'), 'Select id vehicle');
+  assert.ok(!html.includes('for="vehicle"'), 'Vehicle picking removed from pause menu');
+  assert.ok(!html.includes('id="vehicle"'), 'Vehicle select removed from pause menu');
   assert.ok(html.includes('<label for="camera" class="pause-pill-label">'), 'Label for camera');
   assert.ok(html.includes('<select id="camera"'), 'Select id camera');
 
@@ -231,14 +237,14 @@ test('Edge cases: coastal sprint status and time formatting', () => {
   const getMenuStatus = (raceActive, cp) => (
     raceActive
       ? `COASTAL SPRINT · CHECKPOINT ${cp + 1} / ${totalGates}`
-      : 'A LITTLE FURTHER. A LITTLE FREER.'
+      : ''
   );
   const getRaceBtnText = (raceActive) => (
     raceActive ? 'Cancel sprint ↗' : 'Start coastal sprint ↗'
   );
 
   // Inactive
-  assert.equal(getMenuStatus(false, 0), 'A LITTLE FURTHER. A LITTLE FREER.');
+  assert.equal(getMenuStatus(false, 0), '');
   assert.equal(getRaceBtnText(false), 'Start coastal sprint ↗');
 
   // Active checkpoints 0 through 5
@@ -375,7 +381,9 @@ test('Three-button layout: Pause card contains exactly 3 primary action buttons'
   assert.ok(cardHtml.includes('id="pause-settings-btn"'), 'Expected #pause-settings-btn in pause-card');
   assert.ok(cardHtml.includes('id="showroom"'), 'Expected #showroom in pause-card');
 
-  assert.ok(!cardHtml.includes('id="vehicle"'), '#vehicle should be in settings drawer, not main card');
+  assert.ok(!cardHtml.includes('id="vehicle"'), '#vehicle should not be in main card');
+  assert.ok(!cardHtml.includes('85% clear view'), '85% clear view should not be in main card');
+  assert.ok(!cardHtml.includes('A LITTLE FURTHER. A LITTLE FREER.'), 'A little further text should not be in main card');
   assert.ok(!cardHtml.includes('id="camera"'), '#camera should be in settings drawer, not main card');
   assert.ok(!cardHtml.includes('id="sound"'), '#sound should be in settings drawer, not main card');
   assert.ok(!cardHtml.includes('id="controls"'), '#controls should be in settings drawer, not main card');
@@ -389,11 +397,79 @@ test('Setting drawer: #pause-drawer houses all configuration widgets cleanly', (
   assert.ok(html.includes('id="pause-drawer" class="pause-drawer home-drawer" hidden'), '#pause-drawer starts hidden');
   assert.ok(drawerHtml.includes('id="close-pause-drawer"'), 'Expected close button in drawer');
   assert.ok(drawerHtml.includes('id="back-pause-drawer"'), 'Expected back button in drawer');
-  assert.ok(drawerHtml.includes('id="vehicle"'), 'Expected #vehicle in drawer');
+  assert.ok(!drawerHtml.includes('id="vehicle"'), '#vehicle must not be in drawer (car picking only in garage)');
+  assert.ok(!drawerHtml.includes('id="car-description"'), '#car-description must not be in drawer');
   assert.ok(drawerHtml.includes('id="camera"'), 'Expected #camera in drawer');
   assert.ok(drawerHtml.includes('id="sound"'), 'Expected #sound in drawer');
   assert.ok(drawerHtml.includes('id="touch-toggle"'), 'Expected #touch-toggle in drawer');
   assert.ok(drawerHtml.includes('id="reset"'), 'Expected #reset in drawer');
   assert.ok(drawerHtml.includes('id="race"'), 'Expected #race in drawer');
   assert.ok(drawerHtml.includes('id="controls"'), 'Expected #controls in drawer');
+});
+
+test('Tabbed Drawer (Option 2): tab navigation, zero-scroll panels, and distinct visual affordances', () => {
+  const themeCss = fs.readFileSync(path.join(distDir, 'theme.css'), 'utf8');
+
+  // Verify tab navigation buttons
+  assert.ok(html.includes('class="pause-tab-bar"'), 'Expected .pause-tab-bar tablist');
+  assert.ok(html.includes('data-tab="settings"'), 'Expected settings tab button');
+  assert.ok(html.includes('data-tab="travel"'), 'Expected travel tab button');
+  assert.ok(html.includes('data-tab="controls"'), 'Expected controls tab button');
+
+  // Verify tab panels
+  assert.ok(html.includes('id="tab-settings"'), 'Expected #tab-settings panel');
+  assert.ok(html.includes('id="tab-travel"'), 'Expected #tab-travel panel');
+  assert.ok(html.includes('id="tab-controls"'), 'Expected #tab-controls panel');
+
+  // Verify visual distinction & categorization
+  assert.ok(html.includes('class="pause-section-title"'), 'Expected section title category dividers');
+  assert.ok(html.includes('class="pause-travel-block"'), 'Expected dedicated travel input card block');
+  assert.ok(html.includes('pause-action-primary'), 'Expected distinct primary action button style');
+  assert.ok(html.includes('pause-race-btn'), 'Expected distinct sprint button style');
+  assert.ok(html.includes('class="pause-info-box"'), 'Expected callout info box for activity status');
+
+  // Verify scroll containment and fixed sticky header/footer
+  assert.ok(themeCss.includes('overscroll-behavior:contain'), 'Must contain scroll chaining in theme.css');
+  assert.ok(css.includes('overscroll-behavior:contain'), 'Must contain scroll chaining in style.css');
+  assert.ok(themeCss.includes('.pause-tab-body{'), 'Must define inner scroll container');
+
+  // Verify tab switching in game.js
+  assert.ok(js.includes('document.querySelectorAll(\'.pause-tab-btn\')'), 'Tab switching wired in game.js');
+});
+
+test('Responsive Settings UI: text visibility, centered fitted dropdowns, and contrast safety', () => {
+  const themeCss = fs.readFileSync(path.join(distDir, 'theme.css'), 'utf8');
+
+  // Pill field & select: centered, fitted, high contrast
+  assert.ok(themeCss.includes('.pause-pill-field{flex-direction:row;justify-content:space-between;min-height:44px;'), 'Pill field has min-height and space-between layout');
+  assert.ok(themeCss.includes('.pause-select{appearance:none;'), 'Select has custom appearance reset');
+  assert.ok(themeCss.includes('max-width:65%'), 'Select is bounded to prevent label overflow');
+  assert.ok(themeCss.includes('text-align:right'), 'Select options are right-aligned');
+  assert.ok(themeCss.includes('.pause-pill-field:hover .pause-select,.pause-pill-field:focus-within .pause-select{color:var(--ink)}'), 'Select maintains readable ink color on hover/focus');
+
+  // Stunt park and travel pill fields match structure
+  assert.ok(html.includes('for="map-destination"'), 'Destination label exists');
+  assert.ok(html.includes('for="stunt-lane"'), 'Stunt lane label exists');
+  assert.ok(html.includes('<span class="pause-pill-label"><span>DESTINATION</span></span>'), 'Destination has semantic label span');
+  assert.ok(html.includes('<span class="pause-pill-label"><span>STUNT LANE</span></span>'), 'Stunt lane has semantic label span');
+
+  // Drawer responsive dimensions
+  assert.ok(themeCss.includes('width:380px;max-width:calc(100vw - 32px)'), 'Drawer width is responsive with viewport padding');
+  assert.ok(themeCss.includes('@media (max-width:760px){'), 'Mobile breakpoint exists in theme.css');
+  assert.ok(themeCss.includes('@media (max-height:600px){'), 'Compact height breakpoint exists in theme.css');
+});
+
+test('Responsive Settings UI: vertical toggle column and accordion focus safety', () => {
+  const themeCss = fs.readFileSync(path.join(distDir, 'theme.css'), 'utf8');
+
+  // Toggle rows are full-width vertical stack (never overflowing with 3 items)
+  assert.ok(themeCss.includes('.pause-toggle-row{display:flex;flex-direction:column;gap:6px;width:100%'), 'Toggle row is full-width vertical flex column');
+  assert.ok(themeCss.includes('.pause-toggle-item{position:relative;display:flex;align-items:center;justify-content:space-between;min-height:44px;'), 'Toggle item has min-height and space-between layout');
+  assert.ok(themeCss.includes('.toggle{background:transparent;border:1px solid rgba(14,16,19,.4);border-radius:2px;color:var(--ink)'), 'Toggle button has clean ink styling');
+
+  // Accordion outline & link spacing
+  assert.ok(themeCss.includes('.pause-accordion summary:focus-visible{outline:2px solid var(--amber);outline-offset:-2px}'), 'Accordion summary uses inset outline to prevent clipping');
+  assert.ok(themeCss.includes('.accordion-links{display:flex;align-items:center;gap:8px;padding-top:6px}'), 'Accordion links have dedicated flex container and padding');
+  assert.ok(html.includes('class="accordion-links"'), 'HTML contains accordion-links container');
+  assert.ok(!html.includes('<p class="subtle">Downloaded models and sounds, verified credits, and collision research are included. <p class="touch-help">'), 'Nested p tags eliminated');
 });

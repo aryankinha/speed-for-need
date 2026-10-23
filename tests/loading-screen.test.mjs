@@ -22,15 +22,18 @@ test('loading screen HTML contains all required elements, IDs, and themed teleme
 
   // Verify game theme in-engine HUD elements
   assert.ok(html.includes('class="ld-reticles"'), 'Must have tactical viewport reticles');
-  assert.ok(html.includes('class="ld-telemetry-meta"'), 'Must have telemetry header metadata');
-  assert.ok(html.includes('class="ld-live-pulse"'), 'Must have live pulse indicator');
   assert.ok(html.includes('class="ld-district-kicker"'), 'Must have district kicker');
   assert.ok(html.includes('PACIFIC COAST HIGHWAY'), 'Must feature Pacific Coast Highway');
-  assert.ok(html.includes('class="ld-vehicle-card"'), 'Must have vehicle telemetry card');
-  assert.ok(html.includes('TESLA ROADSTER 2.0'), 'Must feature Tesla Roadster 2.0');
-  assert.ok(html.includes('QUAD-MOTOR AWD'), 'Must display powertrain spec');
   assert.ok(html.includes('DRIVER INTEL'), 'Must display themed driver intel kicker');
   assert.ok(html.includes('class="ld-status-pip"'), 'Must have animated status pip');
+
+  // Verify requested removals (top bar and featured vehicle card)
+  assert.ok(!html.includes('class="ld-top"'), 'Top bar must be removed from loading screen');
+  assert.ok(!html.includes('class="ld-telemetry-meta"'), 'Top bar telemetry meta must be removed');
+  assert.ok(!html.includes('class="ld-vehicle-card"'), 'Featured vehicle card must be removed');
+  assert.ok(!html.includes('FEATURED VEHICLE'), 'Featured vehicle text must be removed');
+  assert.ok(!html.includes('TESLA ROADSTER 2.0'), 'Featured vehicle model must be removed');
+  assert.ok(!html.includes('QUAD-MOTOR AWD'), 'Featured vehicle specs must be removed');
 
   // Verify accessibility contracts
   assert.ok(html.includes('role="progressbar"'), 'Must provide role="progressbar"');
