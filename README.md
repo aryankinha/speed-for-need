@@ -17,7 +17,7 @@ Run `npm run dev` and open http://127.0.0.1:4173. No installation or build neede
 The pause button, radar and nitro meter appear while driving. Sprint time/results appear in the pause menu; green physical gates show the route.
 
 ## Validation
-`npm test` runs 191 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
+`npm test` runs 260 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
 
 [Research and root causes](dist/RESEARCH.md) · [Asset credits](dist/CREDITS.md)
 
@@ -28,3 +28,6 @@ Three sourced stunt ramps sit in a dedicated paved park with clear runways and s
 Garage paint and three authored wheel types are saved per car. All five cars have animated front steering and rolling wheels. [Customization and critic review](dist/CUSTOMIZATION_REVIEW.md).
 
 The three park lanes offer Long Jump, airborne 360 Spin and Barrel Roll. Choose a lane in Pause → Settings & Controls before visiting. Take the ramp above 14 m/s (about 50 km/h) to trigger its aerial move. Cones and cone colliders have been removed from the park. Moves are arcade visual rotations over the existing planar collision model. [Graphics and aerial stunt review](dist/AERIAL_GRAPHICS_REVIEW.md).
+
+## Solana Coast map
+The map now has Pacific Boardwalk, Sunset Mile, Palm Gardens, Downtown Solana and Arts & Warehouse districts. A diagonal boulevard crosses the northern blocks, while the existing traffic, stunt park and four beach sides remain connected. Pause → Settings & Controls → Explore the coast selects a district arrival. New downloaded Kenney models are bundled locally for browser and Electron; no map API is needed. [Verified map research and validation](dist/LA_MAP_RESEARCH.md).

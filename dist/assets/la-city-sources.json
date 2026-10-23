@@ -1,0 +1,123 @@
+{
+  "retrieved": "2026-10-23",
+  "license": "CC0-1.0",
+  "sourcePages": [
+    "https://kenney.nl/assets/city-kit-suburban",
+    "https://kenney.nl/assets/city-kit-industrial"
+  ],
+  "downloads": [
+    "https://opengameart.org/sites/default/files/kenney_city-kit-suburban_2.0.zip",
+    "https://opengameart.org/sites/default/files/kenney_city-kit-industrial_2.0.zip"
+  ],
+  "adaptation": "Embedded original palette PNGs into GLBs; unchanged authored geometry. Runtime scale and positioning.",
+  "assets": [
+    {
+      "file": "la-house-a.glb",
+      "author": "Kenney",
+      "pack": "suburban",
+      "original": "Models/GLB format/building-type-a.glb",
+      "sourceSha256": "49f32e20b9dcd24b1c8f6d6488807b8c8cb684cbb595bfb0bb36ad903e470faa",
+      "sha256": "c9a2751a753d178577580f5ccc62944ad8f9252564e758e31e3fb9e5ed15c72b",
+      "bytes": 110440
+    },
+    {
+      "file": "la-house-c.glb",
+      "author": "Kenney",
+      "pack": "suburban",
+      "original": "Models/GLB format/building-type-c.glb",
+      "sourceSha256": "86a69f30f1a09461283e158514945ae5cc9d56357b0ddc83a9a3f0eecd113591",
+      "sha256": "554f82156171a20eb17703b5507e9d37c6120d0aa13aa32be1ceb341180b213b",
+      "bytes": 111428
+    },
+    {
+      "file": "la-house-f.glb",
+      "author": "Kenney",
+      "pack": "suburban",
+      "original": "Models/GLB format/building-type-f.glb",
+      "sourceSha256": "6f778f50d7f03c86f9a018e428cf8ffdd9e918df09954c0651d1c9559584a22b",
+      "sha256": "489997574f13e06302fc15200f5f208f3f7aad41b085ac6b46a2bd1b9147943c",
+      "bytes": 150372
+    },
+    {
+      "file": "la-house-h.glb",
+      "author": "Kenney",
+      "pack": "suburban",
+      "original": "Models/GLB format/building-type-h.glb",
+      "sourceSha256": "b8b8eb7a50f85fa20b4862723e133157f553d69a0daad39b850ddbd2099ebb84",
+      "sha256": "1b2573dd4164efeaa1225fe6b0d563e726e8a2d0b65bc718321602324bfd246e",
+      "bytes": 77200
+    },
+    {
+      "file": "la-house-m.glb",
+      "author": "Kenney",
+      "pack": "suburban",
+      "original": "Models/GLB format/building-type-m.glb",
+      "sourceSha256": "36d31f4e45498f6229805b6a7a1577ef00230daeea4c6a4469481e9d5a0fdb7c",
+      "sha256": "f75d75024794ffbddcc997708e575c7fdab9efe00edf3900de978dfe01cbb52c",
+      "bytes": 108832
+    },
+    {
+      "file": "la-house-q.glb",
+      "author": "Kenney",
+      "pack": "suburban",
+      "original": "Models/GLB format/building-type-q.glb",
+      "sourceSha256": "9b56037cab0de804e308766cc5e69b95b3576ffb444084c9016a0748cbcaca04",
+      "sha256": "6f7e4042f57312cc21e8f90a49a07a09ce0cfa2f7cb88d9b13130ee4f62d6850",
+      "bytes": 110472
+    },
+    {
+      "file": "la-industry-a.glb",
+      "author": "Kenney",
+      "pack": "industrial",
+      "original": "Models/GLB format/building-a.glb",
+      "sourceSha256": "0e6ef8eb1e1bdbb9d06b5496b5daf3066e00eaf74b3fcd61b74072116a1c86cf",
+      "sha256": "c45092f157c933da4b4415c21bbf7df66d379c43a2b61c064db123f4fe8bca39",
+      "bytes": 189360
+    },
+    {
+      "file": "la-industry-c.glb",
+      "author": "Kenney",
+      "pack": "industrial",
+      "original": "Models/GLB format/building-c.glb",
+      "sourceSha256": "94eb05acef8d8e4c1d817eb12e1c2a1287ffed625879170663a8c4f48786b465",
+      "sha256": "a7e796b178c1de2a49a336554b523ceceb3cfc9166ae0966fa68c39c66bb71cc",
+      "bytes": 187888
+    },
+    {
+      "file": "la-industry-g.glb",
+      "author": "Kenney",
+      "pack": "industrial",
+      "original": "Models/GLB format/building-g.glb",
+      "sourceSha256": "d09d0d53e85989870f39087435f3c8fc788fe68e87589439fa6bf227c2e4a611",
+      "sha256": "7ca580bcf5d9101c148ba1ec7bac418a82810d8492a4205b93b64fdc9acb4f20",
+      "bytes": 118984
+    },
+    {
+      "file": "la-industry-j.glb",
+      "author": "Kenney",
+      "pack": "industrial",
+      "original": "Models/GLB format/building-j.glb",
+      "sourceSha256": "58f135e706662a201bc0c660c2c680ec6bf2997233dd61fe03c28d4965b45bc9",
+      "sha256": "f4d361ec8501e37fd2424a1844934d61ace72a817f92eb1478171f56fc21840e",
+      "bytes": 92836
+    },
+    {
+      "file": "la-industry-water-tower.glb",
+      "author": "Kenney",
+      "pack": "industrial",
+      "original": "Models/GLB format/water-tower.glb",
+      "sourceSha256": "11ac7ae19f32ce889bfe7a9c8e78c8ce8c77b7a76b52fd4ffa439a022ea2ef40",
+      "sha256": "88d90487d732251e0ff2395ab2e0489f9c53315bdcc957a1e6fe198ca485c75b",
+      "bytes": 105876
+    },
+    {
+      "file": "la-industry-shipping-container-a.glb",
+      "author": "Kenney",
+      "pack": "industrial",
+      "original": "Models/GLB format/shipping-container-a.glb",
+      "sourceSha256": "7b2d5ca874c8e659ee6cfd1614f0470b70410b2ddc7620ac83b8954dedeb861d",
+      "sha256": "009e8a26d95e91e6e9f21807a3ee8cc9b1f982f4597adcc0a8998d32fc4df56a",
+      "bytes": 48664
+    }
+  ]
+}

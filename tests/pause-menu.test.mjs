@@ -93,7 +93,7 @@ test('HTML structure: semantic tags, accessibility, and kbd elements', () => {
   // Accessibility attributes
   assert.ok(html.includes('aria-label="Pause menu"'), 'aria-label on pause-hud');
   assert.ok(html.includes('aria-label="Resume game"'), 'aria-label on quick-resume');
-  assert.ok(html.includes('aria-label="Map of expanded Solana Bay"'), 'aria-label on minimap');
+  assert.ok(html.includes('aria-label="Map of expanded Solana Coast"'), 'aria-label on minimap');
   assert.ok(html.includes('aria-pressed="false"'), 'aria-pressed on toggles');
   assert.ok(html.includes('aria-hidden="true"'), 'aria-hidden on brand logo SVG');
 

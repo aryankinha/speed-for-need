@@ -4,9 +4,9 @@
 <button id="pause" aria-label="Pause game" title="Pause · Esc" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 5h3v14H7zm7 0h3v14h-3z"/></svg></button>
 <div id="nitro-hud" hidden role="progressbar" aria-label="Nitro" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><span class="nitro-label">NITRO</span><div class="nitro-track"><div class="nitro-bar"><i class="nitro-fill"></i></div><span class="nitro-tag">FULL</span></div><span class="nitro-pct">0%</span></div>
 <aside id="radar-hud" class="radar-hud" hidden aria-label="Navigation radar"><div class="radar-bezel"><canvas id="radar" width="320" height="320" aria-label="GPS Radar"></canvas><div id="radar-north" class="radar-north" aria-hidden="true">N</div></div><div class="radar-info"><span id="radar-district">OCEAN DRIVE</span><span id="radar-speed">0 <small>KM/H</small></span></div></aside>
-<div id="loader"><div class="ld-art" aria-hidden="true"></div><div class="ld-shade" aria-hidden="true"></div><div class="ld-streaks" aria-hidden="true"><i></i><i></i><i></i></div><div class="ld-sweep" aria-hidden="true"></div><div class="ld-grain" aria-hidden="true"></div><header class="ld-top"><div class="load-brand"><i>S</i>SPEED FOR NEED</div><span class="ld-tag">Solana Bay · Now loading</span></header><section class="ld-hero"><h1 class="ld-title"><span>Speed</span><span>For Need</span></h1><p>THE ROAD IS CALLING.</p></section><footer class="ld-strip"><div class="ld-tip"><span class="ld-kicker">Tip</span><span id="ld-tip">Hold SHIFT for nitro</span></div><div class="ld-prog"><div class="ld-meta"><small id="loadtext">Preparing Solana Bay…</small><span class="ld-status" id="ld-status" aria-hidden="true">Preparing Solana Bay…</span><span class="ld-pct" id="ld-pct" aria-hidden="true">0%</span></div><div class="load-track" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="loadbar"></i><b class="ld-wheel" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 9.4V2.6M9.6 13.4 4.2 16.6M14.4 13.4l5.4 3.2" stroke="currentColor" stroke-width="2.2" fill="none"/></svg></b></div><button id="retry" hidden>Reload game</button></div></footer></div>
+<div id="loader"><div class="ld-art" aria-hidden="true"></div><div class="ld-shade" aria-hidden="true"></div><div class="ld-streaks" aria-hidden="true"><i></i><i></i><i></i></div><div class="ld-sweep" aria-hidden="true"></div><div class="ld-grain" aria-hidden="true"></div><header class="ld-top"><div class="load-brand"><i>S</i>SPEED FOR NEED</div><span class="ld-tag">Solana Coast · Now loading</span></header><section class="ld-hero"><h1 class="ld-title"><span>Speed</span><span>For Need</span></h1><p>THE ROAD IS CALLING.</p></section><footer class="ld-strip"><div class="ld-tip"><span class="ld-kicker">Tip</span><span id="ld-tip">Hold SHIFT for nitro</span></div><div class="ld-prog"><div class="ld-meta"><small id="loadtext">Preparing Solana Coast…</small><span class="ld-status" id="ld-status" aria-hidden="true">Preparing Solana Coast…</span><span class="ld-pct" id="ld-pct" aria-hidden="true">0%</span></div><div class="load-track" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="loadbar"></i><b class="ld-wheel" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 9.4V2.6M9.6 13.4 4.2 16.6M14.4 13.4l5.4 3.2" stroke="currentColor" stroke-width="2.2" fill="none"/></svg></b></div><button id="retry" hidden>Reload game</button></div></footer></div>
 <section id="home" hidden aria-label="Home screen">
-  <div class="home-top"><span class="home-mark">S / SPEED FOR NEED</span><span>SOLANA BAY · FREE ROAM</span></div>
+  <div class="home-top"><span class="home-mark">S / SPEED FOR NEED</span><span>SOLANA COAST · FREE ROAM</span></div>
   <div class="home-bottom"><div class="home-title"><span>THE COAST IS YOURS.</span><h1>SPEED FOR NEED</h1></div><nav class="home-nav" aria-label="Main menu"><button id="home-drive" class="home-play">DRIVE <span>↗</span></button><button id="home-garage">GARAGE</button><button id="home-options">OPTIONS</button></nav><p class="home-hint">WASD TO DRIVE <b>·</b> SHIFT FOR NITRO <b>·</b> ESC TO PAUSE</p></div>
   <div class="showcase-label"><small id="showcase-number">YOUR RIDE / 01</small><strong id="showcase-car">CONCEPT GT</strong></div>
   <section id="garage-panel" class="garage-screen" hidden aria-label="Garage">
@@ -22,7 +22,7 @@
       <div class="pause-brand">
         <svg width="22" height="25" viewBox="0 0 30 33" aria-hidden="true"><path d="M1 31L15 2l14 29H20l-5-12-6 12" fill="currentColor"/></svg>
         <span>SPEED FOR NEED</span>
-        <span class="pause-badge">SOLANA BAY</span>
+        <span class="pause-badge">SOLANA COAST</span>
       </div>
       <button id="quick-resume" class="pause-quick-resume" aria-label="Resume game" title="Resume · Esc">
         <span>RESUME</span>
@@ -113,6 +113,7 @@
           </div>
         </div>
 
+        <label class="pause-pill-field" for="map-destination">Explore the coast<select id="map-destination" class="pause-select"></select></label><button id="map-travel" class="pause-action-btn"><span class="btn-icon">↗</span><span class="btn-text">Drive here</span></button>
         <label class="pause-pill-field" for="stunt-lane">Stunt lane<select id="stunt-lane" class="pause-select"><option value="civic">360 Spin</option><option value="east">Barrel Roll</option><option value="ocean">Long Jump</option><option value="kicker">Kicker</option><option value="mega">Mega Ramp</option></select></label>
         <button id="stunt-tour" class="pause-action-btn"><span class="btn-icon">↗</span><span class="btn-text">Visit Stunt Park</span></button><p id="trick-status" class="pause-race-info">Park lanes: Kicker · Jump · Mega · 360 Spin · Barrel Roll. Boost pads sit on the approach to the Spin and Mega ramps.</p><p id="stunt-status" class="pause-race-info">Yellow triangles mark ramp entries on your radar.</p>
         <p id="race-status" class="pause-race-info">Six checkpoints. No timer covering your view.</p>
@@ -144,10 +145,10 @@
 
     <aside class="pause-map-dock" aria-label="District map">
       <div class="pause-map-card">
-        <canvas id="minimap" width="450" height="260" aria-label="Map of expanded Solana Bay"></canvas>
+        <canvas id="minimap" width="450" height="260" aria-label="Map of expanded Solana Coast"></canvas>
         <div class="map-caption">
           <span>MINIMAP</span>
-          <span>1.31 KM² SOLANA BAY</span>
+          <span>1.31 KM² SOLANA COAST</span>
         </div>
       </div>
     </aside>

@@ -216,3 +216,6 @@ GT alloy and Classic mesh options reuse wheel geometry from the credited Khronos
 
 ## Asphalt surface upgrade
 Asphalt 02 by **Rob Tuytel / Poly Haven**, CC0. Official source: https://polyhaven.com/a/asphalt_02 ; license: https://polyhaven.com/license . Original 1K diffuse and OpenGL normal maps, mapped at the source's 3 m surface scale. Files, checksums and provenance accompany the textures in assets/asphalt-source.json and assets/asphalt-LICENSE.md.
+
+## Solana Coast map districts
+Kenney City Kit (Suburban) 2.0 and City Kit (Industrial) 2.0, **Kenney**, **CC0 1.0**. Official pages: https://kenney.nl/assets/city-kit-suburban and https://kenney.nl/assets/city-kit-industrial . Selected models downloaded from Kenney's own https://opengameart.org/content/city-kit-suburban and https://opengameart.org/content/city-kit-industrial uploads. Six houses, four industrial buildings, water tower and shipping container. Original palette textures embedded into GLBs; runtime scale and placement. Original geometry retained. Original license texts: assets/la-suburban-LICENSE.txt and assets/la-industrial-LICENSE.txt; provenance and hashes: assets/la-city-sources.json. Solana Coast is an original LA-inspired layout and contains no GTA map rip.

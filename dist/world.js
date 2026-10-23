@@ -3,6 +3,7 @@ import {makeBeachGeometry} from './coast.js';
 import {RAMPS,STUNT_AREA,addRampColliders} from './stunts.js';
 import {prepareRampModel} from './ramp-model.js';
 import {BOOST_PADS} from './boost-pads.js';
+import {SUNSET,CITY_MODELS,mapDistrict,clearOfSunset,blockPolygons} from './map-layout.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
 const BATCH_CELL_M=220;
@@ -25,9 +26,14 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
     const casts=mesh.userData.surface!==true;const key=cell+'|'+material.uuid+'|'+casts+'|'+(geo.index?'i':'n')+'|'+Object.keys(geo.attributes).join(',');let bin=batches.get(key);if(!bin)batches.set(key,bin={material,casts,geometries:[]});bin.geometries.push(geo);
   }
   function slab(width,height,length,x,y,z,mat){const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,length),mat);mesh.position.set(x,y,z);mesh.userData.surface=true;mesh.updateMatrixWorld();batchMesh(mesh);mesh.geometry.dispose();}
+  function patch(width,length,x,y,z,mat,clearance){
+    for(const points of blockPolygons(x-width/2,x+width/2,z-length/2,z+length/2,clearance)){
+      const shape=new THREE.Shape(points.map(p=>new THREE.Vector2(p[0]-x,-p[1]+z))),geo=new THREE.ShapeGeometry(shape);geo.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(geo,mat);mesh.position.set(x,y,z);mesh.userData.surface=true;mesh.updateMatrixWorld();batchMesh(mesh);geo.dispose();
+    }
+  }
   function place(template,x,z,rotation=0,scale=1){const clone=template.clone(true);clone.position.set(x,0,z);clone.rotation.y=rotation;clone.scale.multiplyScalar(scale);clone.updateMatrixWorld(true);return clone;}
   function staticBox(root,name,{baseOnly=false}={}){root.updateMatrixWorld(true);let bounds=new THREE.Box3().setFromObject(root,true);const fullBounds=bounds.clone();if(baseOnly){const low=new THREE.Box3();root.traverse(o=>{if(o.isMesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){temp.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(temp.y<.8)low.expandByPoint(temp);}}});if(!low.isEmpty())bounds=low;}const size=bounds.getSize(new THREE.Vector3()),c=bounds.getCenter(new THREE.Vector3());if(size.x>.02&&size.z>.02){const actor=physics.addBox({x:c.x,z:c.z,width:size.x,length:size.z,userData:{kind:name}});actor.minY=fullBounds.min.y;actor.maxY=fullBounds.max.y;obstacles.push({box:bounds.clone(),actor});}return bounds;}
-  function addStatic(root,name,collision=true,baseOnly=false){root.updateMatrixWorld(true);if(collision)staticBox(root,name,{baseOnly});root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;batchMesh(o);}});}
+  function addStatic(root,name,collision=true,baseOnly=false){root.updateMatrixWorld(true);if(collision){const b=new THREE.Box3().setFromObject(root,true);if(!clearOfSunset({minX:b.min.x,maxX:b.max.x,minZ:b.min.z,maxZ:b.max.z}))return;}if(collision)staticBox(root,name,{baseOnly});root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;batchMesh(o);}});}
   // Surface details are layout geometry; all cars, buildings, vegetation and props are sourced GLBs.
   // Preserve the established seeded city layout when replacing its old noise texture.
   for(let i=0;i<128*128;i++)random();
@@ -35,16 +41,25 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   texture.colorSpace=THREE.SRGBColorSpace;
   for(const map of [texture,roadNormal]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.anisotropy=anisotropy;}
   const asphalt=new THREE.MeshStandardMaterial({map:texture,normalMap:roadNormal,normalScale:new THREE.Vector2(.3,.3),color:0x9da3aa,roughness:.93});asphalt.userData.worldTiled=true;
-  slab(980,.4,1340,0,-.2,0,asphalt);slab(24,.16,1340,-478,-.05,0,pavement);slab(24,.16,1340,478,-.05,0,pavement);slab(932,.16,24,0,-.05,-658,pavement);slab(932,.16,24,0,-.05,658,pavement);
+  slab(980,.4,1340,0,-.2,0,material(0x9c947d));
+  for(const x of roadsX)slab(x===0?34:24,.02,1320,x,.005,0,asphalt);
+  for(const z of roadsZ)slab(956,.02,z===-300?34:24,0,.006,z,asphalt);
+  const sunsetRoad=new THREE.Mesh(new THREE.BoxGeometry(SUNSET.width,.02,Math.hypot(SUNSET.bx-SUNSET.ax,SUNSET.bz-SUNSET.az)),asphalt);sunsetRoad.position.set((SUNSET.ax+SUNSET.bx)/2,.008,(SUNSET.az+SUNSET.bz)/2);sunsetRoad.rotation.y=Math.atan2(SUNSET.bx-SUNSET.ax,SUNSET.bz-SUNSET.az);sunsetRoad.userData.surface=true;sunsetRoad.updateMatrixWorld();batchMesh(sunsetRoad);sunsetRoad.geometry.dispose();slab(24,.16,1340,-478,-.05,0,pavement);slab(24,.16,1340,478,-.05,0,pavement);slab(932,.16,24,0,-.05,-658,pavement);slab(932,.16,24,0,-.05,658,pavement);
   const markings=[];const line=(x,z,w,l,material)=>{if(!inStuntArea(x,z))markings.push({x,z,w,l,material});};
-  for(const x of roadsX)for(let z=top+29;z<bottom-29;z+=10){if(roadsZ.every(r=>Math.abs(z-r)>16)){line(x-.2,z,.13,5,yellow);line(x+.2,z,.13,5,yellow);line(x-9.5,z,.1,10,white);line(x+9.5,z,.1,10,white);}}
-  for(const z of roadsZ)for(let x=left+29;x<right-29;x+=10){if(roadsX.every(r=>Math.abs(x-r)>16)){line(x,z-.2,5,.13,yellow);line(x,z+.2,5,.13,yellow);line(x,z-9.5,10,.1,white);line(x,z+9.5,10,.1,white);}}
+  for(const x of roadsX)for(let z=top+29;z<bottom-29;z+=10){if(roadsZ.every(r=>Math.abs(z-r)>16)){line(x-.2,z,.13,5,yellow);line(x+.2,z,.13,5,yellow);line(x-(x===0?15:9.5),z,.1,10,white);line(x+(x===0?15:9.5),z,.1,10,white);if(x===0){line(x-8,z,.12,5,white);line(x+8,z,.12,5,white);}}}
+  for(const z of roadsZ)for(let x=left+29;x<right-29;x+=10){if(roadsX.every(r=>Math.abs(x-r)>16)){line(x,z-.2,5,.13,yellow);line(x,z+.2,5,.13,yellow);line(x,z-(z===-300?15:9.5),10,.1,white);line(x,z+(z===-300?15:9.5),10,.1,white);if(z===-300){line(x,z-8,5,.12,white);line(x,z+8,5,.12,white);}}}
   for(const x of roadsX)for(const z of roadsZ)for(const side of [-1,1])for(let i=-4;i<=4;i++){line(x+i*1.8,z+side*14,1,3,white);line(x+side*14,z+i*1.8,3,1,white);}
   for(const m of [white,yellow]){const items=markings.filter(x=>x.material===m);const instanced=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.015,1),m,items.length),dummy=new THREE.Object3D();items.forEach((a,i)=>{dummy.position.set(a.x,.012,a.z);dummy.scale.set(a.w,1,a.l);dummy.updateMatrix();instanced.setMatrixAt(i,dummy.matrix);});instanced.receiveShadow=true;scene.add(instanced);}
+  const diagonalLength=Math.hypot(SUNSET.bx-SUNSET.ax,SUNSET.bz-SUNSET.az),diagonalAngle=Math.atan2(SUNSET.bx-SUNSET.ax,SUNSET.bz-SUNSET.az);
+  for(let d=18;d<diagonalLength-18;d+=12){const t=d/diagonalLength,x=SUNSET.ax+(SUNSET.bx-SUNSET.ax)*t,z=SUNSET.az+(SUNSET.bz-SUNSET.az)*t;if(roadsX.some(r=>Math.abs(r-x)<20)||roadsZ.some(r=>Math.abs(r-z)<20))continue;for(const side of [-1,1]){const stripe=new THREE.Mesh(new THREE.BoxGeometry(.13,.015,7),yellow);stripe.position.set(x+side*.22,.034,z+side*.22);stripe.rotation.y=diagonalAngle;stripe.userData.surface=true;stripe.updateMatrixWorld();batchMesh(stripe);stripe.geometry.dispose();}}
   const buildingNames=Object.keys(models).filter(n=>n.startsWith('building-'));
   models[buildingNames[0]].traverse(o=>{if(o.isMesh&&!cityMaterial){cityMaterial=o.material.clone();cityMaterial.color.set(0xffffff);cityMaterial.vertexColors=true;}});
-  const templates=buildingNames.map((name,i)=>{const root=models[name];const t=normalize(root,name.includes('skyscraper')?48+random()*30:14+random()*17,'y');const b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());const fit=Math.min(1,46/b.x,46/b.z);t.scale.multiplyScalar(fit);root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.cityAtlas=true;o.material.color.multiply(new THREE.Color([0xcbd0c6,0xcabfac,0xc3c9ce,0xd8cec0,0xb5c2b7][i%5]));}});return {template:t,tall:name.includes('skyscraper')};});
-  let buildingCount=0,propCount=0;
+  const templates=buildingNames.map((name,i)=>{const root=models[name];const t=normalize(root,name.includes('skyscraper')?75+random()*50:12+random()*12,'y');const b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());const fit=Math.min(1,46/b.x,46/b.z);t.scale.multiplyScalar(fit);root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.cityAtlas=true;o.material.color.multiply(new THREE.Color([0xcbd0c6,0xcabfac,0xc3c9ce,0xd8cec0,0xb5c2b7][i%5]));}});return {template:t,tall:name.includes('skyscraper')};});
+  // Preserve each authored palette, but share it within a kit for spatial batching.
+  const paletteMaterials=new Map();const extraTemplates={};
+  for(const name of CITY_MODELS){const root=models[name];if(!root)throw new Error(`Missing map asset ${name}`);const pack=name.startsWith('la-house')?'house':'industry';root.traverse(o=>{if(o.isMesh){const key=pack+'|'+o.material.name;if(!paletteMaterials.has(key))paletteMaterials.set(key,o.material);o.material=paletteMaterials.get(key);}});const target=name.includes('water-tower')?18:name.includes('container')?8:pack==='house'?21:42;const t=normalize(root,target,name.includes('water-tower')?'y':'x'),size=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());t.scale.multiplyScalar(Math.min(1,46/size.x,46/size.z));extraTemplates[name]=t;}
+  const houses=CITY_MODELS.filter(n=>n.startsWith('la-house')).map(n=>extraTemplates[n]),warehouses=CITY_MODELS.filter(n=>/^la-industry-[a-z]$/.test(n)).map(n=>extraTemplates[n]);
+  let buildingCount=0,propCount=0;const districtBuildings={};
   // Two adjacent blocks and the unused internal street form one continuous lot.
   slab(STUNT_AREA.right-STUNT_AREA.left,.02,STUNT_AREA.bottom-STUNT_AREA.top,(STUNT_AREA.left+STUNT_AREA.right)/2,.015,(STUNT_AREA.top+STUNT_AREA.bottom)/2,asphalt);
   for(const x of [STUNT_AREA.left+2,STUNT_AREA.right-2])slab(.3,.015,STUNT_AREA.bottom-STUNT_AREA.top-4,x,.034,(STUNT_AREA.top+STUNT_AREA.bottom)/2,yellow);
@@ -61,19 +76,34 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
       }
       continue;
     }
-    slab(126,.16,126,bx,-.02,bz,pavement);slab(114,.04,114,bx,.08,bz,grass);
+    const district=mapDistrict(bx,bz),commercial=district==='Downtown Solana',industrial=district==='Arts & Warehouse',residential=district==='Palm Gardens';
+    const blockWidth=i===2||i===3?116:126,blockLength=j===1||j===2?116:126;
+    patch(blockWidth,blockLength,bx,.06,bz,pavement);patch(blockWidth-10,114,bx,.08,bz,industrial?asphalt:grass,SUNSET.width/2+SUNSET.sidewalk);
+    // Parking courts and short internal drives break up the former identical grass lots.
+    if(industrial||commercial){patch(blockWidth-18,12,bx,.10,bz,asphalt,SUNSET.width/2+SUNSET.sidewalk);patch(12,106,bx,.10,bz,asphalt,SUNSET.width/2+SUNSET.sidewalk);}
     const park=(i===1&&j===4)||(i===4&&j===2)||(i===2&&j===6);
     if(park){slab(7,.02,116,bx,.115,bz,pavement);slab(116,.02,7,bx,.116,bz,pavement);for(const dx of [-28,28])for(const dz of [-30,30]){addStatic(place(palmT,bx+dx,bz+dz,random()*6), 'tree',true,true);addStatic(place(bench,bx+dx+4,bz+dz,Math.PI/2),'bench');propCount+=2;}continue;}
-    for(const dx of [-33,33])for(const dz of [-33,33]){const tall=i>2&&j>1&&j<7&&random()>.35;const options=templates.filter(t=>t.tall===tall),template=options[Math.floor(random()*options.length)].template;const m=place(template,bx+dx,bz+dz,Math.floor(random()*4)*Math.PI/2,.8+random()*.2);const bounds=staticBox(m,'building');buildingLots.push({minX:bx+dx-25,maxX:bx+dx+25,minZ:bz+dz-25,maxZ:bz+dz+25,bounds});m.traverse(o=>{if(o.isMesh)batchMesh(o);});buildingCount++;}
+    for(const dx of [-32,32])for(const dz of [-33,33]){
+      const lot={minX:bx+dx-24,maxX:bx+dx+24,minZ:bz+dz-24,maxZ:bz+dz+24};if(!clearOfSunset(lot,1))continue;
+      const tall=commercial||(district==='Sunset Mile'&&dx>0&&random()>.65),options=templates.filter(t=>t.tall===tall);
+      const template=residential?houses[Math.floor(random()*houses.length)]:industrial?warehouses[Math.floor(random()*warehouses.length)]:options[Math.floor(random()*options.length)].template;
+      const m=place(template,bx+dx,bz+dz,Math.floor(random()*4)*Math.PI/2,residential?.85+random()*.12:.82+random()*.15);
+      const bounds=staticBox(m,'building');buildingLots.push({...lot,bounds,district});m.traverse(o=>{if(o.isMesh)batchMesh(o);});buildingCount++;districtBuildings[district]=(districtBuildings[district]||0)+1;
+      if(residential)patch(5,17,bx+dx,.11,bz+dz+20,asphalt,SUNSET.width/2+SUNSET.sidewalk);
+    }
+    if(industrial){addStatic(place(extraTemplates['la-industry-water-tower'],bx,bz,0,.9),'water-tower');for(const dz of [-18,18])addStatic(place(extraTemplates['la-industry-shipping-container-a'],bx,bz+dz,Math.PI/2),'shipping-container');}
+
     for(const side of [-1,1]){addStatic(place(planter,bx+side*58,bz,Math.PI/2),'planter');addStatic(place(bench,bx,bz+side*58,side>0?Math.PI:0),'bench');propCount+=2;}
     if((i+j)%3===0){addStatic(place(dumpster,bx+55,bz+52,Math.PI/2),'dumpster');propCount++;}
   }
+  // An evenly spaced palm promenade gives the new diagonal its own silhouette.
+  for(let d=40;d<diagonalLength-35;d+=32){const t=d/diagonalLength,cx=SUNSET.ax+(SUNSET.bx-SUNSET.ax)*t,cz=SUNSET.az+(SUNSET.bz-SUNSET.az)*t;for(const side of [-1,1]){const x=cx+side*27/Math.SQRT2,z=cz+side*27/Math.SQRT2;if(roadsX.some(r=>Math.abs(x-r)<22)||roadsZ.some(r=>Math.abs(z-r)<22))continue;addStatic(place(palmT,x,z,random()*6,.9),'sunset-palm',true,true);}}
   for(let z=top+10;z<bottom;z+=30){if(roadsZ.every(r=>Math.abs(z-r)>19)){for(const side of [-1,1]){addStatic(place(palmT,side*478,z,random()*6,.9+random()*.2),'tree',true,true);addStatic(place(lampT,side*462.5,z,side<0?-Math.PI/2:Math.PI/2),'lamp',true,true);if(Math.round(z)%3===0)addStatic(place(bench,side*479,z+5,Math.PI/2),'bench');}}}
-  for(const x of roadsX.slice(1))for(let z=top+20;z<bottom;z+=65){if(roadsZ.every(r=>Math.abs(z-r)>20)){for(const side of [-1,1]){if(x+side*15.2>STUNT_AREA.left&&x+side*15.2<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom)continue;addStatic(place(palmT,x+side*15.2,z,random()*6,.7),'tree',true,true);addStatic(place(lampT,x+side*12.5,z+9,side<0?-Math.PI/2:Math.PI/2),'lamp',true,true);}}}
-  for(const x of roadsX)for(const z of roadsZ)for(const sx of [-1,1])for(const sz of [-1,1]){if(inStuntArea(x+sx*13,z+sz*13))continue;addStatic(place(signalT,x+sx*13,z+sz*13,sx>0?Math.PI:0),'signal',true,true);addStatic(place(signalT,x+sx*13,z+sz*13.9,sz>0?Math.PI/2:-Math.PI/2),'signal',false);}
+  for(const x of roadsX.slice(1))for(let z=top+20;z<bottom;z+=65){if(roadsZ.every(r=>Math.abs(z-r)>20)){for(const side of [-1,1]){if(x+side*15.2>STUNT_AREA.left&&x+side*15.2<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom)continue;addStatic(place(palmT,x+side*(x===0?21.2:15.2),z,random()*6,.7),'tree',true,true);addStatic(place(lampT,x+side*(x===0?19.5:12.5),z+9,side<0?-Math.PI/2:Math.PI/2),'lamp',true,true);}}}
+  for(const x of roadsX)for(const z of roadsZ)for(const sx of [-1,1])for(const sz of [-1,1]){if(inStuntArea(x+sx*13,z+sz*13))continue;addStatic(place(signalT,x+sx*(x===0?20:13),z+sz*(z===-300?20:13),sx>0?Math.PI:0),'signal',true,true);addStatic(place(signalT,x+sx*(x===0?20:13),z+sz*(z===-300?20.9:13.9),sz>0?Math.PI/2:-Math.PI/2),'signal',false);}
   for(let z=top;z<bottom;z+=24)addStatic(place(rock,-502-random()*4,z,random()*6,.7+random()*1.2),'coastal-rock',false);
   for(let i=0;i<5;i++){addStatic(place(cone,165+i*3,166.5),'cone');propCount++;}for(let i=0;i<3;i++){addStatic(place(barrier,172+i*3,163.8,Math.PI/2),'barrier');propCount++;}
-  const stopT=normalize(models['road-sign-stop'],2.8,'y');for(const x of roadsX.slice(1))for(const z of roadsZ.filter((_,i)=>i%2===0))addStatic(place(stopT,x+12.5,z+19,Math.PI),'stop-sign',true,true);const highway=normalize(models['sign-highway-detailed'],5,'y');addStatic(place(highway,-429,-135,Math.PI/2),'highway-sign',true,true);
+  const stopT=normalize(models['road-sign-stop'],2.8,'y');for(const x of roadsX.slice(1))for(const z of roadsZ.filter((_,i)=>i%2===0))addStatic(place(stopT,x+(x===0?20.5:12.5),z+(z===-300?25:19),Math.PI),'stop-sign',true,true);const highway=normalize(models['sign-highway-detailed'],5,'y');addStatic(place(highway,-429,-135,Math.PI/2),'highway-sign',true,true);
   // One small text atlas marks the three lanes; flush paint adds no collision bodies.
   const labels=document.createElement('canvas');labels.width=512;labels.height=128*RAMPS.length;const labelContext=labels.getContext('2d');labelContext.fillStyle='#f8bd4a';labelContext.textAlign='center';labelContext.textBaseline='middle';labelContext.font='bold 58px sans-serif';
   for(let i=0;i<RAMPS.length;i++)labelContext.fillText(RAMPS[i].label,256,i*128+64,490);
@@ -114,10 +144,10 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   for(let z=top+20;z<bottom;z+=80){addStatic(place(rock,right+25+random()*5,z,random()*6,.8+random()*.5),'coast-rock',false);}
   for(const z of [top,bottom])for(let x=left+25;x<right;x+=75){addStatic(place(palmT,x,z+(z<0?12:-12),random()*6,.8),'coast-tree',false);addStatic(place(rock,x,z+(z<0?-26:26),random()*6,.8+random()*.5),'coast-rock',false);const nearRoad=d=>roadsX.some(r=>Math.abs(x+d-r)<13);if(x+37.5<440&&!nearRoad(37.5))addStatic(place(lampT,x+37.5,z+(z<0?27:-27),z<0?Math.PI:0),'lamp',true,true);if(x+20<440&&!nearRoad(20))addStatic(place(bench,x+20,z+(z<0?12:-12)),'bench',true);}
   // Merge each cell/material bin exactly once, after every static piece (including shoreline props) has been added.
-  for(const bin of batches.values())if(bin.geometries.length){const geo=mergeGeometries(bin.geometries,false);if(!geo)throw new Error('Static geometry batching failed');const m=new THREE.Mesh(geo,bin.material);m.castShadow=bin.casts;m.receiveShadow=true;scene.add(m);for(const g of bin.geometries)g.dispose();bin.geometries=[];}
+  for(const bin of batches.values())if(bin.geometries.length){const geo=mergeGeometries(bin.geometries,false);if(!geo)throw new Error('Static geometry batching failed');const m=new THREE.Mesh(geo,bin.material);m.castShadow=bin.casts;m.receiveShadow=true;m.updateMatrix();m.matrixAutoUpdate=false;scene.add(m);for(const g of bin.geometries)g.dispose();bin.geometries=[];}
   const normal=await new THREE.TextureLoader().loadAsync('assets/sea-normal.jpg');normal.wrapS=normal.wrapT=THREE.RepeatWrapping;
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(5000,5400),new THREE.ShaderMaterial({uniforms:{time:{value:0},normalMap:{value:normal}},vertexShader:`varying vec3 worldP;void main(){worldP=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(worldP,1.);}`,fragmentShader:`varying vec3 worldP;uniform float time;uniform sampler2D normalMap;void main(){vec2 p=worldP.xz;vec3 n1=texture2D(normalMap,p*.018+vec2(time*.012,time*.007)).rgb;vec3 n2=texture2D(normalMap,p*.032-vec2(time*.008,time*.011)).rgb;float ripple=(n1.x+n2.y-1.);float edge=max(abs(p.x)-490.,abs(p.y)-670.);float shallow=1.-smoothstep(25.,100.,edge);vec3 c=mix(vec3(.10,.25,.30),vec3(.30,.52,.49),shallow*.7+ripple*.12);float wave=sin(edge*.65-time*1.5+n1.x*1.2);float foam=(1.-smoothstep(31.,42.,abs(edge-36.)))*pow(max(0.,wave),12.)*.38;c=mix(c,vec3(.83,.84,.73),foam);float gleam=pow(max(0.,ripple*.7+.2),8.)*2.;c+=vec3(.7,.44,.22)*gleam;float haze=1.-exp(-length(p-cameraPosition.xz)*.0006);gl_FragColor=vec4(mix(c,vec3(.64,.61,.59),haze),1.);}`}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-.30,0);scene.add(sea);
   const placementErrors=buildingLots.filter(l=>l.bounds.min.x<l.minX||l.bounds.max.x>l.maxX||l.bounds.min.z<l.minZ||l.bounds.max.z>l.maxZ).length;
   if(placementErrors)throw new Error(`${placementErrors} buildings escaped their allocated lots`);
-  return {obstacles,sea,buildingLots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
+  return {obstacles,sea,buildingLots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{map:'Solana Coast',districtBuildings,buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
 }
