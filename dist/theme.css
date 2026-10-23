@@ -247,3 +247,6 @@ kbd{background:rgba(14,16,19,.08);border:1px solid rgba(14,16,19,.28);border-rad
 .showcase-label small{font-size:9px;letter-spacing:2px}
 kbd{font-size:10px}
 .radar-info{width:auto;min-width:144px;gap:8px}
+
+/* Desktop-only controls stay hidden outside Electron. */
+[data-desktop-only][hidden]{display:none!important}

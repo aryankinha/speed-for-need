@@ -311,7 +311,7 @@ test('Polish verification: paused hotkeys R, C, Enter enabled in game.js', () =>
     'Enter while paused should immediately launch sprint and unpause'
   );
   assert.ok(
-    js.includes("if(paused&&!inShowroom){updateCamera(0.1);renderer.render(scene,camera);}"),
+    js.includes("if(paused&&!inShowroom){updateCamera(0.1);graphics.render(0);}"),
     'Camera and reset actions while paused should re-render scene immediately for visual feedback'
   );
 });

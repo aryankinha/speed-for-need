@@ -41,7 +41,8 @@ export function initElectron(game, doc = document) {
   const exportRun = async () => {
     const button = doc.getElementById('export-run');
     const label = button?.querySelector('.btn-text');
-    const result = await api.saveRun(buildRunExport(game.getStats()));
+    // A rejected IPC call (dialog closed with the window, handler error) reports "Save failed" instead of an unhandled rejection.
+    const result = await api.saveRun(buildRunExport(game.getStats())).catch(() => ({ ok: false }));
     if (label) {
       const idle = label.dataset.idle || (label.dataset.idle = label.textContent);
       label.textContent = result?.ok ? 'Saved ✓' : result?.canceled ? idle : 'Save failed';

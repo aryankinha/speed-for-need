@@ -18,7 +18,7 @@ export class CarShowroom {
     // A low three-quarter camera from the beach: the real city fills the horizon.
     const portrait=this.camera.aspect<1;
     this.camera.position.set(this.position.x-(portrait?10.5:9.3),portrait?4.2:3.4,this.position.z+(portrait?8.8:7.6));
-    const target=new THREE.Vector3(this.position.x+(portrait?0:-1.8),1.1,this.position.z+(portrait?0:1.2));this.camera.lookAt(target);this.camera.fov=portrait?52:48;this.camera.updateProjectionMatrix();
+    const target=(this.target??=new THREE.Vector3()).set(this.position.x+(portrait?0:-1.8),1.1,this.position.z+(portrait?0:1.2));this.camera.lookAt(target);this.camera.fov=portrait?52:48;this.camera.updateProjectionMatrix();
   }
   update(dt){if(!this.root.visible)return;if(!this.reduced)this.angle+=Math.min(dt,.05)*.18;this.turntable.rotation.y=this.angle;this.frame();}
 }

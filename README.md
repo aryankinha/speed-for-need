@@ -16,8 +16,20 @@ Run `npm run dev` and open http://127.0.0.1:4173. No installation or build neede
 
 The pause button, radar and nitro meter appear while driving. Sprint time/results appear in the pause menu; green physical gates show the route.
 
+## Graphics
+Rendering runs through `dist/graphics.js`: pmndrs/postprocessing + N8AO (vendored in `dist/vendor/`), with ambient occlusion, mipmap bloom, SMAA, ACES tone mapping and a light colour grade. Lighting is a Poly Haven midday pure-sky HDR, aligned with the shadow-casting sun, plus clear-coated car paint and tinted glass. Pause → Settings or Options → Graphics offers Auto / Low / Medium / High / Ultra. Auto reads the GPU name (`graphics-presets.js`) and picks Medium on integrated laptop GPUs. While driving, the pixel ratio adapts within the preset's range. If frames still miss budget at the lowest ratio, AO is halved, then switched off, then bloom is switched off.
+
+`npm run dev` serves `dist/` with `Cache-Control: no-store`, so edits always show on reload.
+
+## Living city
+- **Pedestrians** (`pedestrians.js`, `pedestrian-sim.js`): Quaternius CC0 characters wearing shader-painted outfits. They walk the sidewalks and the beach, sit on the sea wall, dodge fast cars and get knocked down (which raises your wanted level). The crowd size follows the graphics preset (12/28/44/60).
+- **Traffic** (`street-cars.js`): about 200 shovable parked cars per Solana map and 58 traffic cars across 11 Kenney models.
+- **Street props** (`street-props.js`): about 1,100 knockable hydrants (with water spray), bins, news boxes, bags, chairs and construction gear. Power poles are solid.
+- **Activities** (`activities.js`, `wanted.js`, `open-world.js`): speed traps, drift zones, 25 hidden packages, and a 0–3 star wanted level with police chases (Pause → Settings → Police chases).
+- **Ambient** (`ambient.js`): seagull flocks over the shore, beach umbrellas and towels.
+
 ## Validation
-`npm test` runs 260 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
+`npm test` runs 347 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
 
 [Research and root causes](dist/RESEARCH.md) · [Asset credits](dist/CREDITS.md)
 

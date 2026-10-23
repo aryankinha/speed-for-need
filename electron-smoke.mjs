@@ -21,13 +21,17 @@ export function runSmoke(win) {
   const errors = [];
   win.webContents.on('console-message', (event) => { if (event.level === 'error') errors.push(event.message); });
   win.webContents.on('did-fail-load', (_e, code, desc) => errors.push(`did-fail-load ${code} ${desc}`));
-  win.webContents.once('did-finish-load', () => setTimeout(async () => {
+  // Poll for the loader to clear (asset loading time varies by machine) instead of a fixed delay, then run the checks.
+  const LOADED = `(() => { const l = document.getElementById('loader'); return !l || l.hidden || getComputedStyle(l).display === 'none' || getComputedStyle(l).opacity === '0'; })()`;
+  const waitForLoad = async (started) => { while (Date.now() - started < 60000) { if (await win.webContents.executeJavaScript(LOADED).catch(() => false)) return Date.now() - started; await new Promise((r) => setTimeout(r, 500)); } return null; };
+  win.webContents.once('did-finish-load', async () => {
+    const loadMs = await waitForLoad(Date.now());
     let result = {};
     try { result = JSON.parse(await win.webContents.executeJavaScript(CHECKS)); } catch (e) { errors.push(String(e)); }
     const failed = Object.entries(result).filter(([k, v]) => k !== 'api' && v !== true).map(([k]) => k);
     const needed = ['notify', 'saveRun', 'openExternal', 'toggleFullscreen', 'quit', 'onMenuCommand'];
     for (const name of needed) if (!result.api?.includes(name)) failed.push(`api.${name}`);
-    console.log('SMOKE', JSON.stringify({ errors, failed, result }));
+    console.log('SMOKE', JSON.stringify({ errors, failed, loadMs, result }));
     app.exit(errors.length || failed.length ? 1 : 0);
-  }, 12000));
+  });
 }
