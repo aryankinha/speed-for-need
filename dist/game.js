@@ -25,6 +25,7 @@ import {VehicleAppearance,PAINTS,WHEEL_STYLES} from './customization.js';
 import {RAMP_SHAPE} from './ramp-model.js';
 import {FrameMetrics,GpuTimer} from './render-metrics.js';
 import {batchStaticMeshes} from './mesh-batching.js';
+import {initElectron} from './electron-bridge.js';
 
 const $=s=>document.querySelector(s),clamp=THREE.MathUtils.clamp,lerp=THREE.MathUtils.lerp;
 const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xb4a39d,210,1060);
@@ -347,4 +348,5 @@ function animate(now){
   }
   if(ready&&paused&&!inShowroom&&!renderInvalid)return;renderInvalid=false;gpuTimer.poll();gpuTimer.begin();renderer.render(scene,camera);gpuTimer.end();if(ready&&!paused&&!document.hidden)frameMetrics.record(interval,performance.now()-workStart,gpuTimer.value);
 }requestAnimationFrame(animate);init();
+initElectron({getStats:()=>({map:'coast',car:chosen,raceBest:best,jumpBest:stunts.best,jumpLast:stunts.lastDistance,landings:stunts.landings,distanceM:distance}),getState:()=>({ready,paused,home:inShowroom}),setPause,reset});
 addEventListener('resize',()=>{renderInvalid=true;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,quality.ratio));if(inShowroom&&showroom){if(garageOpen)garageScene.frame();else showroom.frame();}});
