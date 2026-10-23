@@ -70,3 +70,21 @@ test('records notify only when beaten', () => {
   assert.equal(detectRecords({ raceBest: 70, jumpBest: 10 }, { raceBest: 75, jumpBest: 10 }).length, 0);
   assert.equal(detectRecords({ raceBest: 70, jumpBest: 10 }, { raceBest: 65, jumpBest: 12 }).length, 2);
 });
+
+import path from 'node:path';
+import { isPermissionAllowed, isReadMethod, resolveAppFile } from '../electron-security.mjs';
+
+test('app:// paths cannot escape the dist root', () => {
+  const root = path.resolve('/srv/app/dist');
+  assert.equal(resolveAppFile(root, '/'), path.join(root, 'index.html'));
+  assert.equal(resolveAppFile(root, '/assets/car.glb'), path.join(root, 'assets', 'car.glb'));
+  for (const bad of ['/../secret', '/%2e%2e/secret', '/assets/../../secret', '/a%00b', '/..%5csecret', '/%E0%A4%A', '//etc/passwd/../../..'])
+    assert.equal(resolveAppFile(root, bad), null, bad);
+  assert.equal(resolveAppFile(root, '/etc/passwd'), path.join(root, 'etc', 'passwd')); // stays inside root
+});
+
+test('permissions are denied and only read methods are served', () => {
+  assert.equal(isPermissionAllowed('media'), false);
+  assert.ok(isReadMethod('GET') && isReadMethod('HEAD'));
+  assert.equal(isReadMethod('POST'), false);
+});

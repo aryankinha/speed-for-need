@@ -34,6 +34,25 @@ The map now has Pacific Boardwalk, Sunset Mile, Palm Gardens, Downtown Solana an
 
 ## Desktop (Electron)
 
-- `npm run electron` runs the game as a desktop app; `npm run electron:smoke` loads it headlessly and checks for errors.
-- `npm run pack` builds an unpacked app into `release/`; `npm run dist:app` builds installers (dmg/zip, nsis/zip, AppImage).
-- Architecture: main process `electron-main.mjs` (menu, IPC, notifications, save dialog, window state, single instance, CSP), sandboxed `preload.cjs` (exposes `window.electronAPI` via `contextBridge`), renderer `dist/` (`dist/electron-bridge.js` is a no-op in a normal browser).
+Run: `npm start` (or `npm run electron`). Checks: `npm run electron:smoke` boots the real window headlessly and verifies sandboxing, CSP, IPC validation and that the game started (exit code 0 = pass). Build: `npm run pack` (unpacked app in `release/`), `npm run dist:app` (installers: dmg/zip, nsis/zip, AppImage). `npm run icon` regenerates `build/icon.png`.
+
+### Architecture (main / preload / renderer)
+
+| File | Role |
+| --- | --- |
+| `electron-main.mjs` | App lifecycle, game window, window-state persistence, single instance, crash/unresponsive recovery, global navigation guards |
+| `electron-protocol.mjs` | Privileged `app://` scheme serving `dist/` read-only with CSP + traversal guard |
+| `electron-menu.mjs` | Native application menu (Game / Edit / View / Window / Help) |
+| `electron-ipc.mjs` | `ipcMain.handle` handlers: native notification, save dialog, open external link, fullscreen, quit |
+| `electron-security.mjs` | Pure validators (URL allowlist, payload limits, path resolution, CSP) with unit tests |
+| `preload.cjs` | Sandboxed preload; exposes the frozen `window.electronAPI` through `contextBridge` |
+| `dist/electron-bridge.js` | Renderer side; no-op in a normal browser, so the web game is unchanged |
+
+### Security checklist (electronjs.org/docs/latest/tutorial/security)
+
+`nodeIntegration` off, `contextIsolation` on, `sandbox` on, `webSecurity` on, no insecure content, no experimental features, CSP on every response, all permission requests denied, `will-navigate` / `will-redirect` / `setWindowOpenHandler` / `will-attach-webview` locked for every web contents, only `https:` links reach `shell.openExternal`, IPC accepted from the game's main frame only and every payload validated in main, DevTools disabled in packaged builds, no remote code, custom scheme instead of `file://`, Electron Fuses flipped at package time (RunAsNode, NODE_OPTIONS, `--inspect` off; cookie encryption, ASAR integrity and only-load-from-ASAR on).
+
+### Known limits
+
+- Builds are ad-hoc signed on macOS and unsigned on Windows. A public release needs a Developer ID / notarisation certificate and a Windows code-signing certificate (set in the `build` block of `package.json`).
+- No auto-update (needs a publish target such as GitHub Releases + `electron-updater`).

@@ -1,5 +1,7 @@
 // Pure helpers for the Electron main process. Kept free of `electron` imports
 // so they can be unit-tested with node --test.
+import path from 'node:path';
+
 export const APP_ORIGIN = 'app://game/';
 export const MAX_EXPORT_BYTES = 64 * 1024;
 export const MENU_COMMANDS = Object.freeze(['pause', 'reset', 'export', 'blur']);
@@ -72,4 +74,24 @@ export function clampWindowState(state, bounds) {
   }
   if (state?.maximized === true) out.maximized = true;
   return out;
+}
+
+// Maps an app:// pathname to a file inside `root`, or null when it escapes the
+// root, contains NUL bytes, is malformed, or is not a plain relative path.
+export function resolveAppFile(root, pathname) {
+  let decoded;
+  try { decoded = decodeURIComponent(pathname === '/' || pathname === '' ? '/index.html' : pathname); } catch { return null; }
+  if (decoded.includes('\0') || decoded.includes('\\')) return null;
+  const file = path.resolve(root, '.' + decoded);
+  return file.startsWith(path.resolve(root) + path.sep) ? file : null;
+}
+
+// Nothing in the game needs camera, mic, geolocation, notifications via the web
+// API (the main process raises native ones) or any other web permission.
+export function isPermissionAllowed() {
+  return false;
+}
+
+export function isReadMethod(method) {
+  return method === 'GET' || method === 'HEAD';
 }
