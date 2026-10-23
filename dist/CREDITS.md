@@ -255,3 +255,10 @@ Poly Haven (CC0): [Grass Bermuda 01](https://polyhaven.com/a/grass_bermuda_01),
 Downloaded authored models; selected variants, optimized geometry and compressed textures.
 Source download checksums, authors and output hashes are recorded in `assets/park/source-manifest.json`.
 Existing Kenney furniture and signals retain the credits above.
+
+## Procedural tower facades (assets/facades/, see assets/facades/SOURCE.md)
+Original generated textures (window grids, spandrel bands, glass / concrete / stone styles, lit storefront), written by `scripts/make-facades.mjs`; no third-party pixels, released CC0 1.0 by the project. Research references reviewed (not shipped): ambientCG Facade 001 (https://ambientcg.com/view?id=Facade001, CC0, 1K JPG 3 MB, https://docs.ambientcg.com/license/).
+Tower geometry is procedural (`dist/facade-towers.js`).
+
+## Coast lot greenery and parking courts
+Coast lot dressing reuses the existing **Kenney Nature Kit** CC0 `tree-palmtall.glb` and `tree-palmshort.glb`, **Kenney Car Kit 3.1** CC0 cars, and the already credited garden/road/industrial props. No new model download or licence was introduced. Palms are scaled and instanced with breakaway trunks; extra parked cars retain the Car Kit paint variants and shoveable physics.

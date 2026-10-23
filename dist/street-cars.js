@@ -126,8 +126,8 @@ function bakeModel(root,def,scale){
  * Builds parked cars for map 'coast' | 'default' | 'la'. Returns {mesh,cars,update(cameraPosition),stats}.
  * Physics: light dynamic Planck boxes (sleep when still) so the player can shove them; static if dynamic=false.
  */
-export function buildStreetCars({scene,physics,models,map,random=Math.random,world,extraAvoid=[],dynamic=true}){
- const layout=kerbLayout(map),plan=planParkedCars({map,random,extraAvoid});
+export function buildStreetCars({scene,physics,models,map,random=Math.random,world,extraAvoid=[],extraCars=[],dynamic=true}){
+ const layout=kerbLayout(map),plan=[...planParkedCars({map,random,extraAvoid}),...extraCars];
  const used=[...new Set(plan.map(c=>c.model))].filter(n=>models[n]);
  const baked=new Map(used.map(name=>[name,bakeModel(models[name],STREET_CAR_MODELS.find(m=>m.name===name),layout.scale)]));
  const cars=plan.filter(c=>baked.has(c.model));
@@ -137,21 +137,21 @@ export function buildStreetCars({scene,physics,models,map,random=Math.random,wor
  const mesh=new THREE.BatchedMesh(cars.length,vertexCount,indexCount,material);mesh.name='ParkedCars';mesh.castShadow=true;mesh.receiveShadow=true;mesh.sortObjects=false;
  const geometryIds=new Map();for(const [name,{geometry}] of baked)geometryIds.set(name,mesh.addGeometry(geometry));
  const matrix=new THREE.Matrix4(),quat=new THREE.Quaternion(),posV=new THREE.Vector3(),one=new THREE.Vector3(1,1,1),yAxis=new THREE.Vector3(0,1,0),color=new THREE.Color();
- const write=(id,x,z,heading)=>{posV.set(x,.02,z);quat.setFromAxisAngle(yAxis,heading);mesh.setMatrixAt(id,matrix.compose(posV,quat,one));};
+ const write=(id,x,z,heading,y=.02)=>{posV.set(x,y,z);quat.setFromAxisAngle(yAxis,heading);mesh.setMatrixAt(id,matrix.compose(posV,quat,one));};
  const obstacles=world?.obstacles;
  for(const car of cars){
-  const id=mesh.addInstance(geometryIds.get(car.model));car.instance=id;write(id,car.x,car.z,car.heading);
+  const id=mesh.addInstance(geometryIds.get(car.model));car.instance=id;write(id,car.x,car.z,car.heading,car.ground??.02);
   if(car.paint==null)color.setRGB(1,1,1);else color.set(car.paint);mesh.setColorAt(id,color);
   triangles+=baked.get(car.model).geometry.index.count/3;
   const actor=physics.addBox({x:car.x,z:car.z,heading:car.heading,width:car.width*.96,length:car.length*.97,friction:.4,restitution:.05,userData:{kind:'parked-car'}});
-  actor.minY=0;actor.maxY=car.height;car.actor=actor;
+  actor.minY=car.ground||0;actor.maxY=car.height+(car.ground||0);car.actor=actor;
   if(dynamic)makeShoveable(actor,car);
   obstacles?.push({box:new THREE.Box3(new THREE.Vector3(car.x-car.length/2,0,car.z-car.length/2),new THREE.Vector3(car.x+car.length/2,car.height,car.z+car.length/2)),actor});
  }
  scene.add(mesh);
  const cull=layout.cullDistance,cull2=cull*cull;let frame=0;const shown=cars.map(()=>true);
  function update(cameraPosition){
-  if(dynamic)for(const car of cars){const body=car.actor.body;if(!body.isAwake())continue;const p=body.getPosition();write(car.instance,p.x,p.y,-body.getAngle());car.moved=true;}
+  if(dynamic)for(const car of cars){const body=car.actor.body;if(!body.isAwake())continue;const p=body.getPosition();const onCourt=car.lot&&world?.lotFill?.courts.some(c=>p.x>=c.minX&&p.x<=c.maxX&&p.y>=c.minZ&&p.y<=c.maxZ),ground=onCourt?.14:.02;write(car.instance,p.x,p.y,-body.getAngle(),ground);car.actor.minY=ground;car.actor.maxY=ground+car.height;car.moved=true;}
   // Distance cull (fog hides them anyway) every 12 frames; BatchedMesh already frustum-culls per instance.
   if(cameraPosition&&cull<Infinity&&++frame%12===0)for(let i=0;i<cars.length;i++){const car=cars[i],p=dynamic&&car.moved?car.actor.body.getPosition():null,x=p?p.x:car.x,z=p?p.y:car.z,vis=(x-cameraPosition.x)**2+(z-cameraPosition.z)**2<cull2;if(vis!==shown[i]){shown[i]=vis;mesh.setVisibleAt(car.instance,vis);}}
  }

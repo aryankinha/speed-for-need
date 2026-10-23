@@ -9,6 +9,8 @@ import {STREET_WORLD} from './street-layout.js';
 const ISLAND={left:-490,right:490,top:-670,bottom:670,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600]};// mirrors world.js / world-default.js WORLD
 // h: target height (m) or len: target length along z; r: knock radius; mass 0..1 drives car slowdown and fling; static: solid collider, never knocked.
 export const PROP_TYPES=Object.freeze({
+  'lot-palm':{asset:'tree-palmtall',h:6.5,r:.22,mass:.7,breakSpeed:11,viewRadius:280},
+  'lot-palm-short':{asset:'tree-palmshort',h:4.5,r:.22,mass:.6,breakSpeed:10,viewRadius:280},
   hydrant:{asset:'props/rusty-fire-hydrant',h:.82,r:.3,mass:.55,spray:true},
   trashcan:{asset:'props/metal-trash-can',h:.95,r:.42,mass:.3},
   newsbox:{asset:'props/utility-box-01',h:1.15,r:.36,mass:.45},
@@ -195,11 +197,11 @@ export class StreetProps{
   writeMatrix(b){const m=this.meshes[b.type],slot=this.slots[b.index];if(!m||slot<0)return;_m.compose(_p.set(b.x,b.y,b.z),b.q,_s.setScalar(b.home.scale||1));for(const part of m.parts){part.setMatrixAt(slot,_m);part.instanceMatrix.needsUpdate=true;}}
   // Rebuilds each type's instance list from props within viewRadius of the car (a few hundred matrices, 4×/s).
   refresh(x,z){
-    const R=PROP_CONFIG.viewRadius,fill={};this.slots.fill(-1);
+    const R=PROP_CONFIG.viewRadius,queryR=Math.max(R,...Object.keys(this.meshes).map(name=>PROP_TYPES[name].viewRadius||R)),fill={};this.slots.fill(-1);
     const take=b=>{const m=this.meshes[b.type];if(!m)return;const n=fill[b.type]||0;if(n>=m.max)return;this.slots[b.index]=n;fill[b.type]=n+1;this.writeMatrix(b);};
     for(const b of this.bodies)if(b.actor&&PROP_TYPES[b.type].slide&&Math.hypot(b.x-x,b.z-z)<R)take(b);
-    for(const b of this.displaced)if(Math.hypot(b.x-x,b.z-z)<R)take(b);
-    this.grid.forNear(x,z,R,i=>{const b=this.bodies[i];if(!PROP_TYPES[b.type].slide&&b.state==='rest'&&Math.abs(b.x-x)<R&&Math.abs(b.z-z)<R)take(b);});
+    for(const b of this.displaced)if(Math.hypot(b.x-x,b.z-z)<(PROP_TYPES[b.type].viewRadius||R))take(b);
+    this.grid.forNear(x,z,queryR,i=>{const b=this.bodies[i],radius=PROP_TYPES[b.type].viewRadius||R;if(!PROP_TYPES[b.type].slide&&b.state==='rest'&&Math.hypot(b.x-x,b.z-z)<radius)take(b);});
     for(const [name,m] of Object.entries(this.meshes))for(const part of m.parts){part.count=fill[name]||0;part.instanceMatrix.needsUpdate=true;}
   }
   // Called before the physics step: remove a breakaway pole's solid base before a high-speed hit.
