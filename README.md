@@ -31,3 +31,9 @@ The three park lanes offer Long Jump, airborne 360 Spin and Barrel Roll. Choose 
 
 ## Solana Coast map
 The map now has Pacific Boardwalk, Sunset Mile, Palm Gardens, Downtown Solana and Arts & Warehouse districts. A diagonal boulevard crosses the northern blocks, while the existing traffic, stunt park and four beach sides remain connected. Pause → Settings & Controls → Explore the coast selects a district arrival. New downloaded Kenney models are bundled locally for browser and Electron; no map API is needed. [Verified map research and validation](dist/LA_MAP_RESEARCH.md).
+
+## Desktop (Electron)
+
+- `npm run electron` runs the game as a desktop app; `npm run electron:smoke` loads it headlessly and checks for errors.
+- `npm run pack` builds an unpacked app into `release/`; `npm run dist:app` builds installers (dmg/zip, nsis/zip, AppImage).
+- Architecture: main process `electron-main.mjs` (menu, IPC, notifications, save dialog, window state, single instance, CSP), sandboxed `preload.cjs` (exposes `window.electronAPI` via `contextBridge`), renderer `dist/` (`dist/electron-bridge.js` is a no-op in a normal browser).

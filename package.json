@@ -5,12 +5,54 @@
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 4173 --directory dist --bind 127.0.0.1",
-    "check": "node --check dist/game.js && node --check dist/world.js && node --check dist/traffic.js && node --check dist/physics.js && node --test tests/*.test.mjs",
+    "check": "node --check dist/game.js && node --check dist/world.js && node --check dist/traffic.js && node --check dist/physics.js && node --check electron-main.mjs && node --check preload.cjs && node --test tests/*.test.mjs",
     "test": "node --test tests/*.test.mjs",
-    "electron": "electron ."
+    "electron": "electron .",
+    "electron:smoke": "ELECTRON_SMOKE=1 electron .",
+    "pack": "electron-builder --dir",
+    "dist:app": "electron-builder"
   },
   "main": "electron-main.mjs",
   "devDependencies": {
-    "electron": "^45.0.0"
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "description": "SPEED FOR NEED \u2014 open-world arcade racer (three.js + Planck.js) for browser and desktop (Electron).",
+  "author": "Aryan Kinha",
+  "license": "UNLICENSED",
+  "build": {
+    "appId": "com.speedforneed.game",
+    "productName": "SPEED FOR NEED",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron-main.mjs",
+      "electron-security.mjs",
+      "preload.cjs",
+      "package.json",
+      "dist/**/*"
+    ],
+    "asar": true,
+    "mac": {
+      "category": "public.app-category.games",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Game"
+    }
   }
 }
