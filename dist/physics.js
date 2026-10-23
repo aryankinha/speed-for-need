@@ -31,6 +31,8 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
   let accumulator=0,simulationTime=0,nextId=1;
   const vehicles=[],objects=[],byRaw=new Map();
   const api={rawWorld,vehicles,objects,lastImpacts:[],fixedStep,simulationTime:0,alpha:0};
+  // Scratch vectors for the 120 Hz control step (planck copies forces), so stepping allocates nothing per vehicle.
+  const forward=Vec2(0,0),right=Vec2(0,0),force=Vec2(0,0);
 
   function register(body,fixture,data,type){
     const actor={id:nextId++,body,fixture,userData:data,type,minY:0,maxY:Infinity};
@@ -63,7 +65,8 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     const actor=register(body,fixture,options.userData,'vehicle');
     Object.assign(actor,{config,width,length,minY:0,maxY:options.height||1.6,elevation:0,isAirborne:false,landGrip:1,controls:{throttle:0,reverse:0,brake:0,steer:0,handbrake:false,boost:false},target:null});
     actor.setControls=(controls={})=>{actor.target=null;Object.assign(actor.controls,controls);};
-    actor.setTarget=target=>{actor.target={...target};};
+    const ownTarget={vx:0,vz:0,heading:0,maxAcceleration:undefined};
+    actor.setTarget=target=>{ownTarget.vx=target.vx;ownTarget.vz=target.vz;ownTarget.heading=target.heading;ownTarget.maxAcceleration=target.maxAcceleration;actor.target=ownTarget;};
     actor.setPose=({x=0,z=0,heading=0,vx=0,vz=0}={})=>{
       body.setTransform(Vec2(x,z),-heading);body.setLinearVelocity(Vec2(vx,vz));body.setAngularVelocity(0);body.setAwake(true);actor.target=null;
       Object.assign(actor.controls,{throttle:0,reverse:0,brake:0,steer:0,handbrake:false,boost:false});
@@ -86,11 +89,15 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
   };
   api.overlaps=(a,b)=>testOverlap(a.fixture.getShape(),0,b.fixture.getShape(),0,a.body.getTransform(),b.body.getTransform());
   api.remove=actor=>{rawWorld.destroyBody(actor.body);byRaw.delete(actor.body);const i=vehicles.indexOf(actor);if(i>=0)vehicles.splice(i,1);objects.splice(objects.indexOf(actor),1);};
+  // Spawn/ride-change safety must test the same vertical intervals as contacts.
+  api.overlapsAtHeight=(a,b)=>{const ay=(a.elevation||0)+(a.groundElevation||0),by=(b.elevation||0)+(b.groundElevation||0);return ay+a.minY<=by+b.maxY+.025&&by+b.minY<=ay+a.maxY+.025&&api.overlaps(a,b);};
   rawWorld.on('pre-solve',contact=>{
     const a=byRaw.get(contact.getFixtureA().getBody()),b=byRaw.get(contact.getFixtureB().getBody());if(!a||!b)return;
     // Only filter this pair. An airborne player must never disable traffic/traffic contacts.
     if((a.rampId&&a.rampId===b.userData?.rampId)||(b.rampId&&b.rampId===a.userData?.rampId)||(a.isAirborne&&a.ignoreRampId&&a.ignoreRampId===b.userData?.rampId)||(b.isAirborne&&b.ignoreRampId&&b.ignoreRampId===a.userData?.rampId)){contact.setEnabled(false);return;}
-    const ay=a.elevation||0,by=b.elevation||0;
+    // Stunts use a relative height. Map support layers add their world height
+    // so a channel vehicle cannot hit street traffic passing over its bridge.
+    const ay=(a.elevation||0)+(a.groundElevation||0),by=(b.elevation||0)+(b.groundElevation||0);
     if(ay+a.minY>b.maxY+by+.025||by+b.minY>a.maxY+ay+.025)contact.setEnabled(false);
   });
   rawWorld.on('post-solve',(contact,impulses)=>{
@@ -103,7 +110,7 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     const {body,config:c,controls:k,target}=actor;
     // A flank exit held on the ground (groundHold) keeps the driver's throttle, brake and steer.
     if(actor.isAirborne&&!actor.groundHold){body.applyTorque(body.getInertia()*clamp(-body.getAngularVelocity()*2,-1.5,1.5),true);return;}
-    const h=-body.getAngle(),sin=Math.sin(h),cos=Math.cos(h),forward=Vec2(-sin,-cos),right=Vec2(cos,-sin);
+    const h=-body.getAngle(),sin=Math.sin(h),cos=Math.cos(h);forward.setNum(-sin,-cos);right.setNum(cos,-sin);
     const velocity=body.getLinearVelocity(),mass=body.getMass();
     if(target){
       // Traffic is a dynamic body. Its route follower supplies a desired velocity,
@@ -111,7 +118,7 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
       const ax=(finite(target.vx,0)-velocity.x)*2.5,az=(finite(target.vz,0)-velocity.y)*2.5;
       const norm=Math.hypot(ax,az),maxA=finite(target.maxAcceleration,4);
       const scale=norm>maxA?maxA/norm:1;
-      body.applyForceToCenter(Vec2(ax*scale*mass,az*scale*mass),true);
+      body.applyForceToCenter(force.setNum(ax*scale*mass,az*scale*mass),true);
       const desired=finite(target.heading,h),error=wrap(desired-h);
       const yaw=clamp(error*3,-1.2,1.2);
       body.applyTorque(body.getInertia()*clamp((-yaw-body.getAngularVelocity())*6,-5,5),true);
@@ -128,7 +135,7 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     acceleration-=Math.sign(vf)*Math.min(.22+vf*vf*.0012,Math.abs(vf)/dt);
     if(k.handbrake&&Math.abs(vf)>.01)acceleration-=Math.sign(vf)*Math.min(6,Math.abs(vf)/dt);
     const lateralAccel=clamp(-vr*(k.handbrake?1.5:14),-(k.handbrake?3.0:c.grip)*(actor.landGrip??1),(k.handbrake?3.0:c.grip)*(actor.landGrip??1));
-    body.applyForceToCenter(Vec2(mass*(forward.x*acceleration+right.x*lateralAccel),mass*(forward.y*acceleration+right.y*lateralAccel)),true);
+    body.applyForceToCenter(force.setNum(mass*(forward.x*acceleration+right.x*lateralAccel),mass*(forward.y*acceleration+right.y*lateralAccel)),true);
     // Kinematic bicycle yaw target with bidirectional low-speed assist and arcade grip authority.
     const steer=clamp(finite(k.steer,0),-1,1);
     const steerAngle=c.steerAngle/(1+Math.abs(vf)/44);

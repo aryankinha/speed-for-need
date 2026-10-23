@@ -5,6 +5,7 @@ import {prepareRampModel} from './ramp-model.js';
 import {BOOST_PADS} from './boost-pads.js';
 import {SUNSET,CITY_MODELS,mapDistrict,clearOfSunset,blockPolygons} from './map-layout.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {surfaceMaterial} from './surface-materials.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
 const BATCH_CELL_M=220;
 export const WORLD={left:-490,right:490,top:-670,bottom:670,shore:-486,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600],spawn:{x:-445.7,z:110,heading:0}};
@@ -16,7 +17,9 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const obstacles=[],buildingLots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
   const material=(color,roughness=.9)=>new THREE.MeshStandardMaterial({color,roughness});
   const inStuntArea=(x,z)=>x>STUNT_AREA.left&&x<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom;
-  const pavement=material(0xb3b3a6),grass=material(0x69765a),sand=material(0xb5a38a),white=new THREE.MeshStandardMaterial({color:0xc9cabb}),yellow=new THREE.MeshStandardMaterial({color:0xc3b474});
+  // CC0 PBR ground surfaces, one shared material each (surface-materials.js): sidewalk concrete slabs, lawn, plaza/stunt concrete, beach sand.
+  const [pavement,grass,plaza,beachSand]=await Promise.all(['sidewalk','lawn','plaza','sand'].map(name=>surfaceMaterial(name,anisotropy)));
+  const sand=material(0xb5a38a),white=new THREE.MeshStandardMaterial({color:0xc9cabb}),yellow=new THREE.MeshStandardMaterial({color:0xc3b474});
   function batchMesh(mesh){
     mesh.updateWorldMatrix(true,false);if(!mesh.geometry)return;
     const cell=`${Math.floor(mesh.matrixWorld.elements[12]/BATCH_CELL_M)},${Math.floor(mesh.matrixWorld.elements[14]/BATCH_CELL_M)}`;
@@ -41,7 +44,7 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   texture.colorSpace=THREE.SRGBColorSpace;
   for(const map of [texture,roadNormal]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.anisotropy=anisotropy;}
   const asphalt=new THREE.MeshStandardMaterial({map:texture,normalMap:roadNormal,normalScale:new THREE.Vector2(.3,.3),color:0x9da3aa,roughness:.93});asphalt.userData.worldTiled=true;
-  slab(980,.4,1340,0,-.2,0,material(0x9c947d));
+  slab(980,.4,1340,0,-.2,0,plaza);
   for(const x of roadsX)slab(x===0?34:24,.02,1320,x,.005,0,asphalt);
   for(const z of roadsZ)slab(956,.02,z===-300?34:24,0,.006,z,asphalt);
   const sunsetRoad=new THREE.Mesh(new THREE.BoxGeometry(SUNSET.width,.02,Math.hypot(SUNSET.bx-SUNSET.ax,SUNSET.bz-SUNSET.az)),asphalt);sunsetRoad.position.set((SUNSET.ax+SUNSET.bx)/2,.008,(SUNSET.az+SUNSET.bz)/2);sunsetRoad.rotation.y=Math.atan2(SUNSET.bx-SUNSET.ax,SUNSET.bz-SUNSET.az);sunsetRoad.userData.surface=true;sunsetRoad.updateMatrixWorld();batchMesh(sunsetRoad);sunsetRoad.geometry.dispose();slab(24,.16,1340,-478,-.05,0,pavement);slab(24,.16,1340,478,-.05,0,pavement);slab(932,.16,24,0,-.05,-658,pavement);slab(932,.16,24,0,-.05,658,pavement);
@@ -55,17 +58,19 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const buildingNames=Object.keys(models).filter(n=>n.startsWith('building-'));
   models[buildingNames[0]].traverse(o=>{if(o.isMesh&&!cityMaterial){cityMaterial=o.material.clone();cityMaterial.color.set(0xffffff);cityMaterial.vertexColors=true;}});
   const templates=buildingNames.map((name,i)=>{const root=models[name];const t=normalize(root,name.includes('skyscraper')?75+random()*50:12+random()*12,'y');const b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());const fit=Math.min(1,46/b.x,46/b.z);t.scale.multiplyScalar(fit);root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.userData.cityAtlas=true;o.material.color.multiply(new THREE.Color([0xcbd0c6,0xcabfac,0xc3c9ce,0xd8cec0,0xb5c2b7][i%5]));}});return {template:t,tall:name.includes('skyscraper')};});
+  // Tiko's photo-textured towers (CC BY 4.0) replace Kenney skyscrapers when loaded; 0.3-0.42 m per source unit keeps window floors near real storey heights.
+  for(const name of Object.keys(models).filter(n=>n.startsWith('la-real/la-tower-'))){const root=models[name],h=new THREE.Box3().setFromObject(root,true).getSize(new THREE.Vector3()).y,t=normalize(root,h*(.3+random()*.12),'y'),b=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());t.scale.multiplyScalar(Math.min(1,46/b.x,46/b.z));root.traverse(o=>{if(o.isMesh)for(const m of [o.material.map,o.material.normalMap])if(m)m.anisotropy=anisotropy;});templates.push({template:t,tall:true});}
   // Preserve each authored palette, but share it within a kit for spatial batching.
   const paletteMaterials=new Map();const extraTemplates={};
   for(const name of CITY_MODELS){const root=models[name];if(!root)throw new Error(`Missing map asset ${name}`);const pack=name.startsWith('la-house')?'house':'industry';root.traverse(o=>{if(o.isMesh){const key=pack+'|'+o.material.name;if(!paletteMaterials.has(key))paletteMaterials.set(key,o.material);o.material=paletteMaterials.get(key);}});const target=name.includes('water-tower')?18:name.includes('container')?8:pack==='house'?21:42;const t=normalize(root,target,name.includes('water-tower')?'y':'x'),size=new THREE.Box3().setFromObject(t,true).getSize(new THREE.Vector3());t.scale.multiplyScalar(Math.min(1,46/size.x,46/size.z));extraTemplates[name]=t;}
   const houses=CITY_MODELS.filter(n=>n.startsWith('la-house')).map(n=>extraTemplates[n]),warehouses=CITY_MODELS.filter(n=>/^la-industry-[a-z]$/.test(n)).map(n=>extraTemplates[n]);
   let buildingCount=0,propCount=0;const districtBuildings={};
   // Two adjacent blocks and the unused internal street form one continuous lot.
-  slab(STUNT_AREA.right-STUNT_AREA.left,.02,STUNT_AREA.bottom-STUNT_AREA.top,(STUNT_AREA.left+STUNT_AREA.right)/2,.015,(STUNT_AREA.top+STUNT_AREA.bottom)/2,asphalt);
+  slab(STUNT_AREA.right-STUNT_AREA.left,.02,STUNT_AREA.bottom-STUNT_AREA.top,(STUNT_AREA.left+STUNT_AREA.right)/2,.015,(STUNT_AREA.top+STUNT_AREA.bottom)/2,plaza);
   for(const x of [STUNT_AREA.left+2,STUNT_AREA.right-2])slab(.3,.015,STUNT_AREA.bottom-STUNT_AREA.top-4,x,.034,(STUNT_AREA.top+STUNT_AREA.bottom)/2,yellow);
   for(const z of [STUNT_AREA.top+2,STUNT_AREA.bottom-2])slab(STUNT_AREA.right-STUNT_AREA.left-4,.015,.3,(STUNT_AREA.left+STUNT_AREA.right)/2,.034,z,yellow);
   const bench=normalize(models.bench,2,'x'),planter=normalize(models.planter,2,'x'),dumpster=normalize(models.dumpster,1.8,'z'),cone=normalize(models['construction-cone'],.75,'y'),barrier=normalize(models['construction-barrier'],2.4,'z'),rock=normalize(models['rock-largea'],3,'z');
-  const palm=models['tree-palmdetailedtall'];palm.traverse(o=>{if(o.isMesh){o.material.metalness=0;if(o.material.name.startsWith('leaf'))o.material.color.set(0x4d6b50);}});const palmT=normalize(palm,10.5,'y'),lampT=normalize(models['light-curved'],7,'y'),signalT=normalize(models['traffic-light'],4.8,'y');
+  const palm=models['la-real/la-palm-coconut']||models['tree-palmdetailedtall'];palm.traverse(o=>{if(o.isMesh){o.material.metalness=0;if(o.material.name==='palm'){o.material.emissiveMap=o.material.map;o.material.emissive.setScalar(.12);}if(o.material.name.startsWith('leaf'))o.material.color.set(0x4d6b50);}});const palmT=normalize(palm,10.5,'y'),lampT=normalize(models['light-curved'],7,'y'),signalT=normalize(models['traffic-light'],4.8,'y');
   for(let i=0;i<roadsX.length-1;i++)for(let j=0;j<roadsZ.length-1;j++){
     const bx=(roadsX[i]+roadsX[i+1])/2,bz=(roadsZ[j]+roadsZ[j+1])/2;
     if(bx>STUNT_AREA.left&&bx<STUNT_AREA.right&&bz>STUNT_AREA.top&&bz<STUNT_AREA.bottom){
@@ -82,7 +87,7 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
     // Parking courts and short internal drives break up the former identical grass lots.
     if(industrial||commercial){patch(blockWidth-18,12,bx,.10,bz,asphalt,SUNSET.width/2+SUNSET.sidewalk);patch(12,106,bx,.10,bz,asphalt,SUNSET.width/2+SUNSET.sidewalk);}
     const park=(i===1&&j===4)||(i===4&&j===2)||(i===2&&j===6);
-    if(park){slab(7,.02,116,bx,.115,bz,pavement);slab(116,.02,7,bx,.116,bz,pavement);for(const dx of [-28,28])for(const dz of [-30,30]){addStatic(place(palmT,bx+dx,bz+dz,random()*6), 'tree',true,true);addStatic(place(bench,bx+dx+4,bz+dz,Math.PI/2),'bench');propCount+=2;}continue;}
+    if(park){slab(7,.02,116,bx,.115,bz,plaza);slab(116,.02,7,bx,.116,bz,plaza);for(const dx of [-28,28])for(const dz of [-30,30]){addStatic(place(palmT,bx+dx,bz+dz,random()*6), 'tree',true,true);addStatic(place(bench,bx+dx+4,bz+dz,Math.PI/2),'bench');propCount+=2;}continue;}
     for(const dx of [-32,32])for(const dz of [-33,33]){
       const lot={minX:bx+dx-24,maxX:bx+dx+24,minZ:bz+dz-24,maxZ:bz+dz+24};if(!clearOfSunset(lot,1))continue;
       const tall=commercial||(district==='Sunset Mile'&&dx>0&&random()>.65),options=templates.filter(t=>t.tall===tall);
@@ -137,9 +142,8 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   // Four continuous beach sides and one ocean surface beneath the island.
   // Normal sampling follows the layered scrolling approach in Three.js Water.
   // Reflection uses the existing HDR environment, avoiding an extra full-scene mirror pass.
-  const sandTexture=await new THREE.TextureLoader().loadAsync('assets/beach-sand.jpg');sandTexture.colorSpace=THREE.SRGBColorSpace;sandTexture.wrapS=sandTexture.wrapT=THREE.RepeatWrapping;sandTexture.anisotropy=4;
   const beachGeometry=makeBeachGeometry(WORLD);
-  const beach=new THREE.Mesh(beachGeometry,new THREE.MeshStandardMaterial({map:sandTexture,color:0xd8c39d,roughness:1,side:THREE.DoubleSide}));beach.receiveShadow=true;scene.add(beach);
+  const beach=new THREE.Mesh(beachGeometry,beachSand);beach.receiveShadow=true;scene.add(beach);
   // Palms and sourced rocks finish the north, south and east promenades too.
   for(let z=top+20;z<bottom;z+=80){addStatic(place(rock,right+25+random()*5,z,random()*6,.8+random()*.5),'coast-rock',false);}
   for(const z of [top,bottom])for(let x=left+25;x<right;x+=75){addStatic(place(palmT,x,z+(z<0?12:-12),random()*6,.8),'coast-tree',false);addStatic(place(rock,x,z+(z<0?-26:26),random()*6,.8+random()*.5),'coast-rock',false);const nearRoad=d=>roadsX.some(r=>Math.abs(x+d-r)<13);if(x+37.5<440&&!nearRoad(37.5))addStatic(place(lampT,x+37.5,z+(z<0?27:-27),z<0?Math.PI:0),'lamp',true,true);if(x+20<440&&!nearRoad(20))addStatic(place(bench,x+20,z+(z<0?12:-12)),'bench',true);}
