@@ -31,9 +31,9 @@ Steering follows the smoothed gameplay steering input, not the keyboard directly
 
 ## Home and garage
 
-Home now displays all five sourced cars side by side, with no platform and no automatic rotation. Only the equipped car advances 1.35 m toward the camera. Selection changes ease between positions; reduced-motion mode switches immediately. The camera fits the complete lineup using the viewport aspect ratio.
+Home now displays all five sourced cars side by side, with no platform and no automatic rotation. The equipped car occupies the centre slot and advances 1.35 m toward the camera. Selection changes ease between positions; reduced-motion mode switches immediately. The camera fits the complete lineup using the viewport aspect ratio.
 
-The existing circular stage styling is now inside the downloaded garage. The selected garage car sits on it and rotates; browsing a car remains a preview until the user equips/drives it. Existing saved paint/wheel choices are preserved across both presentations.
+The existing circular stage styling is now inside the downloaded garage. The selected garage car sits on it and rotates; browsing a car remains a preview until the user equips/drives it. Saved paint choices are preserved across both presentations.
 
 ## Verification
 
@@ -43,3 +43,19 @@ The existing circular stage styling is now inside the downloaded garage. The sel
 - Browser runtime checks exercised cockpit mode and nonzero steering in every car: Concept ~+3.34 rad, Roadster ~-3.32 rad, BMW ~+3.26 rad, NSX ~+3.17 rad, Porsche ~+3.11 rad during held inputs. These are test samples, not fixed steering angles.
 - Development inspection confirmed the five-car home lineup. Further screenshot capture was blocked under the user's earlier restriction; no screenshot was used to claim cockpit appearance. Source-geometry projection/raycast checks and runtime state checks supplied the cockpit verification instead.
 - Final automated checks passed all **439 tests**. Electron smoke startup passed with no reported errors or failed requests (about 17.8 seconds on this Mac). No GitHub push, live deployment or CrazyGames replacement is included.
+
+## Cockpit / garage refinement — 24 October
+
+Verified causes: source cabin blacks have linear reflectance as low as 0–0.0037, the cabin had no fill light, and the sourced NSX wheel was the low-detail OBJ converted with flat face normals. Downloaded the same author’s CC0 `high.obj` (1,404 vertices / 2,816 triangles), preserving source smoothing group 1 with indexed area-weighted normals. GLB is 51,576 bytes. Other vehicles retain their distinct authored steering geometry.
+
+[Three.js PBR material documentation](https://threejs.org/docs/pages/MeshStandardMaterial.html) informed the dielectric leather finish, restrained charcoal reflectance floor and reduced ambient-occlusion strength. Cabin fill is a single short-range, non-shadow-casting point light, enabled only in cockpit view. No additional world render pass. This improves shading; it does not add dashboard details missing from the source assets.
+
+[Three.js OrbitControls](https://threejs.org/docs/pages/OrbitControls.html) documents the familiar mouse / one-finger rotation convention. The garage uses a smaller turntable-only pointer controller: captured horizontal dragging, cancellation/release handling, keyboard arrows and a focusable labelled control. Manual input stops automatic rotation and remains available with reduced motion. Touch-action is disabled only on the display interaction region, leaving the collection’s horizontal scrolling intact.
+
+Wheel root cause: upgrade options used fixed Concept GT / NSX donors across every car. Replaced this with native, per-wheel finish variants (Factory / Satin alloy / Graphite). Original geometry, tyre materials and front/rear fitment survive; saved paint and wheel option IDs remain valid. These are now explicitly finish options rather than misleading wheel-model names.
+
+Validation: all 443 tests passed; Electron smoke passed with no errors. Brave pointer and keyboard rotation verified; 390×844 layout hit-testing and dragging passed, then viewport restored. No screenshots captured. Visual quality still depends on the supplied car interiors; no GTA/NFS assets were copied.
+
+## Subsequent driver-eye implementation
+
+The generic hub-relative eye and shared cockpit FOV described above have been superseded by per-car seating, dashboard instrumentation and bounded head movement. See [DRIVER_EYE_RESEARCH.md](DRIVER_EYE_RESEARCH.md) for current evidence, references, implementation and validation.
