@@ -25,8 +25,8 @@ export class OpenWorldActivities{
     Object.assign(this,{scene,physics,world,bounds,map,audio,storage,normalize});
     this.layout=layoutFor(map);this.store=new ActivityStore(map,storage);
     this.traps=new SpeedTraps(this.layout.traps,this.store);this.zones=new DriftZones(this.layout.zones,this.store);this.packages=new Collectibles(placePackages(this.layout.packages,this.blockedAt.bind(this)),this.store);
-    // City Street Study is one 220 m loop: a 250 m escape radius cannot exist there, so no chases.
-    this.policeAllowed=map!=='la';this.policeOn=readPoliceSetting(storage);
+    // This system is only instantiated for the Coast.
+    this.policeAllowed=map==='coast';this.policeOn=readPoliceSetting(storage);
     this.wanted=new WantedSystem({enabled:this.policeAllowed&&this.policeOn});setActiveWanted(this.wanted);
     this.cops=[];this.copPool=[];this.copStates=[];this.copTarget={vx:0,vz:0,heading:0,maxAcceleration:10,wx:0,wz:0,mode:''};this.playerState={x:0,z:0,vx:0,vz:0,heading:0,speed:0};
     this.spawnClock=0;this.flash=0;this.time=0;this.heatClock=0;this.lastX=NaN;this.lastZ=NaN;this.toastUntil=0;this.toastText='';this.toastKind='';this.liveClock=0;this.liveText='';this.trapFlash=new Float32Array(this.layout.traps.length);

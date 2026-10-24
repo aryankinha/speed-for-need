@@ -4,9 +4,9 @@ import {existsSync,statSync} from 'node:fs';
 import {PROP_TYPES,PROP_CONFIG,layoutStreetProps,roadClearance,PropGrid,carOverlapsProp,makeBody,knockBody,stepBody,maybeRespawn,seeded} from '../dist/street-props.js';
 import {createDrivingWorld} from '../dist/physics.js';
 
-for(const map of ['default','coast','la'])test(`${map}: props sit on sidewalks, clear of asphalt and of each other`,()=>{
+for(const map of ['coast'])test(`${map}: props sit on sidewalks, clear of asphalt and of each other`,()=>{
   const items=layoutStreetProps(map);
-  assert.ok(items.length>(map==='la'?20:500),`only ${items.length} props`);
+  assert.ok(items.length>500,`only ${items.length} props`);
   for(const it of items){
     const r=PROP_TYPES[it.type].r;
     assert.ok(roadClearance(map,it.x,it.z)>=r,`${it.type} at ${it.x.toFixed(1)},${it.z.toFixed(1)} is on the road`);
@@ -15,13 +15,13 @@ for(const map of ['default','coast','la'])test(`${map}: props sit on sidewalks, 
   const grid=new PropGrid(items,8);
   items.forEach((a,i)=>grid.forNear(a.x,a.z,8,j=>{if(j<=i)return;const b=items[j];assert.ok(Math.hypot(a.x-b.x,a.z-b.z)>=PROP_TYPES[a.type].r+PROP_TYPES[b.type].r,`${a.type} overlaps ${b.type}`);}));
   for(const type of ['hydrant','trashcan','cone','fence'])assert.ok(items.some(i=>i.type===type),`${map} has ${type}`);
-  if(map!=='la')assert.ok(items.some(i=>i.type==='pole'),'suburban edges get power poles');
+  assert.ok(items.some(i=>i.type==='pole'),'suburban edges get power poles');
 });
 
 test('layout is deterministic and honours the world blocker',()=>{
   assert.deepEqual(layoutStreetProps('coast'),layoutStreetProps('coast'));
   const blocked=(x,z)=>x>0;// pretend the whole east half is full of buildings
-  assert.ok(layoutStreetProps('default',{blocked}).every(i=>i.x<=0));
+  assert.ok(layoutStreetProps('coast',{blocked}).every(i=>i.x<=0));
 });
 
 test('every prop asset ships in dist/assets and the new ones stay small',()=>{

@@ -7,31 +7,31 @@ import {STUNT_AREA} from '../dist/stunts.js';
 import {clearOfSunset} from '../dist/map-layout.js';
 
 const lane=(path,i)=>({x:path.x[i],z:path.z[i]});
-// Building footprints as world.js / world-default.js place them: lots at block centre ±32/33, buildings fitted to ≤46 m at ≤0.97 scale.
+// Building footprints as world.js place them: lots at block centre ±32/33, buildings fitted to ≤46 m at ≤0.97 scale.
 function buildingFootprints(map){
   const xs=[-450,-300,-150,0,150,300,450],zs=[-600,-450,-300,-150,0,150,300,450,600],out=[],d=map==='coast'?32:33;
   for(let i=0;i<6;i++)for(let j=0;j<8;j++){const bx=(xs[i]+xs[i+1])/2,bz=(zs[j]+zs[j+1])/2;for(const dx of [-d,d])for(const dz of [-d,d])if(map!=='coast'||clearOfSunset({minX:bx+dx-24,maxX:bx+dx+24,minZ:bz+dz-24,maxZ:bz+dz+24},1))out.push({minX:bx+dx-22.4,maxX:bx+dx+22.4,minZ:bz+dz-22.4,maxZ:bz+dz+22.4});}
   return out;
 }
 
-for(const map of ['default','coast','la'])test(`${map}: sidewalk lanes stay off asphalt, out of buildings and the stunt park`,()=>{
-  const {paths}=sidewalkPaths(map),blocks=map==='la'?[{minX:15,maxX:55,minZ:-99,maxZ:99},{minX:-51,maxX:-15,minZ:-99,maxZ:99},{minX:85,maxX:121,minZ:-99,maxZ:99}]:buildingFootprints(map);
-  assert.ok(paths.filter(p=>p.kind==='street').length>=(map==='la'?3:40));
+for(const map of ['coast'])test(`${map}: sidewalk lanes stay off asphalt, out of buildings and the stunt park`,()=>{
+  const {paths}=sidewalkPaths(map),blocks=buildingFootprints(map);
+  assert.ok(paths.filter(p=>p.kind==='street').length>=40);
   for(const p of paths){if(p.kind!=='street')continue;
     for(let i=0;i<p.len.length;i++){const {x,z}=lane(p,i);
       for(const lat of [p.latMin,0,p.latMax]){const px=x+p.nx[i]*lat,pz=z+p.nz[i]*lat;
         assert.ok(roadGap(map,px,pz)>=-.05,`${map} lane point ${px.toFixed(1)},${pz.toFixed(1)} (lat ${lat}) is on the road`);
         assert.ok(!blocks.some(b=>px>b.minX&&px<b.maxX&&pz>b.minZ&&pz<b.maxZ),`${map} lane point ${px.toFixed(1)},${pz.toFixed(1)} is inside a building`);}
-      if(map!=='la')assert.ok(!(x>STUNT_AREA.left&&x<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom),'lane inside the stunt park');}}
-  if(map!=='la'){assert.ok(paths.some(p=>p.kind==='beach'),'beach strollers');assert.ok(sidewalkPaths(map).seats.length>100,'sea-wall seats');}
+      assert.ok(!(x>STUNT_AREA.left&&x<STUNT_AREA.right&&z>STUNT_AREA.top&&z<STUNT_AREA.bottom),'lane inside the stunt park');}}
+  {assert.ok(paths.some(p=>p.kind==='beach'),'beach strollers');assert.ok(sidewalkPaths(map).seats.length>100,'sea-wall seats');}
 });
 
 // Positions are checked after the spawn frame's first walking step, hence 0.2 m / 0.5 m slack.
 test('spawns land on sidewalks 40–120 m away and never inside the camera view up close',()=>{
-  for(const map of ['coast','default','la']){
-    const view={x:map==='la'?11:-436,z:map==='la'?40:-60,inFrustum:(x,y,z)=>z<view.z&&Math.abs(x-view.x)<(view.z-z)};// looking toward -z, 90° cone
+  for(const map of ['coast']){
+    const view={x:-436,z:-60,inFrustum:(x,y,z)=>z<view.z&&Math.abs(x-view.x)<(view.z-z)};// looking toward -z, 90° cone
     const sim=new CrowdSim(map,{random:seeded(7)});sim.setCount(60);sim.step(1/60,null,view);// fresh fill (nothing on screen yet)
-    assert.ok(sim.active>=(map==='la'?30:50),`${map} filled ${sim.active}`);
+    assert.ok(sim.active>=50,`${map} filled ${sim.active}`);
     sim.reset();sim.fresh=false;sim.lastX=view.x;sim.lastZ=view.z;
     for(let f=0;f<120;f++){const before=new Set(sim.peds.filter(p=>p.active));sim.step(1/60,null,view);
       for(const p of sim.peds){if(!p.active||before.has(p))continue;const d=Math.hypot(p.x-view.x,p.z-view.z),seen=p.z<view.z-.5&&Math.abs(p.x-view.x)<(view.z-p.z)-.5;
@@ -78,7 +78,7 @@ test('knock state machine: flee, dive, hit at speed, tumble, land, recycle out o
 });
 
 test('CrowdSim knocks a walker once, reports it and recycles it after it leaves view',()=>{
-  const sim=new CrowdSim('default',{random:seeded(11)});let knocked=0;sim.onKnock=()=>knocked++;sim.setCount(1);
+  const sim=new CrowdSim('coast',{random:seeded(11)});let knocked=0;sim.onKnock=()=>knocked++;sim.setCount(1);
   let seen=true;const view={x:-436,z:-60,inFrustum:()=>seen};sim.step(1/60,null,view);const p=sim.peds[0];assert.ok(p.active);
   const path=sim.layout.paths[p.p],j=(p.s+1)%path.n,tx=(path.x[j]-path.x[p.s])/path.len[p.s],tz=(path.z[j]-path.z[p.s])/path.len[p.s];
   const car={x:p.x-tx*1.5,z:p.z-tz*1.5,heading:Math.atan2(-tx,-tz),vx:tx*20,vz:tz*20,width:1.9,length:4.5};

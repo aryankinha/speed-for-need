@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import * as THREE from '../dist/vendor/three.module.js';
 import {addBuildingColliders} from '../dist/building-colliders.js';
 import {createDrivingWorld} from '../dist/physics.js';
-import {PhysicsCells} from '../dist/physics-cells.js';
 import {loadVehicleGeometry} from './helpers/vehicle-glb.mjs';
 const material=new THREE.MeshStandardMaterial();
 function box(root,w,h,l,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,l),material);m.position.set(x,y,z);root.add(m);return m;}
@@ -45,15 +44,14 @@ test('thin visible walls stop fast cars in both directions without filling adjac
  for(const direction of [-1,1]){const root=new THREE.Group();box(root,10,6,.12,0,3,0);const {physics}=setup(root),car=drive(physics,0,-direction*15,direction*65,.6);assert.ok(direction*car.z<-1.8,`wall tunnel at ${car.z}`);}
 });
 
-test('compound activation indexes every fixture; height-aware overlap checks do not reject open clearance',()=>{
+test('compound height-aware overlap checks do not reject open clearance',()=>{
  const physics=createDrivingWorld(),actor=physics.addCompound({parts:[{x:0,z:0,width:2,length:2,minY:4,maxY:5},{x:1000,z:0,width:2,length:2,minY:0,maxY:5}],userData:{kind:'building'}}),car=physics.addVehicle({x:1000});
- const cells=new PhysicsCells(physics.objects);cells.update([car]);assert.ok(actor.body.isActive(),'far fixture must keep building enabled');
  assert.ok(physics.overlapsAtHeight(car,actor));car.setPose({x:0});assert.ok(physics.overlaps(car,actor));assert.equal(physics.overlapsAtHeight(car,actor),false);
  car.elevation=4;assert.ok(physics.overlapsAtHeight(car,actor));
 });
 
 test('downloaded architecture compiles to cached surface fixtures, not one envelope',async t=>{
- for(const name of ['building-a','building-skyscraper-a','la-real/la-building-small','la-real/la-building-medium']){
+ for(const name of ['building-a','building-g','la-real/la-tower-a','la-real/la-tower-b']){
   const root=await loadVehicleGeometry(name),size=new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
   if(size.y>150)root.scale.setScalar(30/size.y);
   const start=performance.now(),{physics,obstacles,bounds}=setup(root),ms=performance.now()-start;
@@ -73,21 +71,4 @@ test('car slides along a compound wall and can reverse away after an impact',()=
  for(let i=0;i<100;i++)physics.step(1/120,()=>car.setControls({throttle:1}));const stoppedX=car.x;
  for(let i=0;i<180;i++)physics.step(1/120,()=>car.setControls({throttle:0,reverse:1}));
  assert.ok(car.x>stoppedX+3,'car must be able to reverse out of a wall contact');
-});
-
-test('City Street Study uses authored building surfaces instead of three filled city blocks',async()=>{
- const {registerHooks}=await import('node:module');
- const hooks=registerHooks({resolve(specifier,context,next){if(specifier==='three')return {url:new URL('../dist/vendor/three.module.js',import.meta.url).href,shortCircuit:true};if(specifier==='three/addons/utils/BufferGeometryUtils.js')return {url:new URL('../dist/vendor/utils/BufferGeometryUtils.js',import.meta.url).href,shortCircuit:true};return next(specifier,context);}});
- let buildStreetWorld;try{({buildStreetWorld}=await import('../dist/world-street.js'));}finally{hooks.deregister();}
- const {STREET_MODELS,STREET_DESTINATIONS}=await import('../dist/street-layout.js');
- const models=Object.fromEntries(await Promise.all(STREET_MODELS.map(async n=>[n,await loadVehicleGeometry(n)])));
- const original=THREE.TextureLoader.prototype.loadAsync;THREE.TextureLoader.prototype.loadAsync=async()=>new THREE.Texture();
- try{
-  const physics=createDrivingWorld(),world=await buildStreetWorld({scene:new THREE.Scene(),physics,models});
-  const buildings=physics.objects.filter(a=>a.userData?.kind==='building');assert.ok(buildings.length>3);assert.ok(buildings.every(a=>a.fixtures?.length>0));
-  for(const dest of STREET_DESTINATIONS){const probe=physics.addVehicle(dest);assert.ok(buildings.every(a=>!physics.overlapsAtHeight(probe,a)),'street arrival must stay clear');physics.remove(probe);}
-  const probe=physics.addVehicle({width:.1,length:.1});let gaps=0;
-  for(const [x,w]of [[-33,36],[35,40],[103,36]])for(let xx=x-w/2+2;xx<x+w/2;xx+=3)for(let z=-95;z<99;z+=8){probe.setPose({x:xx,z});if(buildings.every(a=>!physics.overlapsAtHeight(probe,a)))gaps++;}
-  assert.ok(gaps>50,'authored gaps must no longer collide with the former block envelopes');
- }finally{THREE.TextureLoader.prototype.loadAsync=original;}
 });

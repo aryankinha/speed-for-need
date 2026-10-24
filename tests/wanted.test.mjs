@@ -2,10 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {WantedSystem,WANTED_DEFAULTS,HEAT,starsForHeat,copSeesPlayer,pursuitTarget,spawnCandidates,addHeat,setActiveWanted,readPoliceSetting,writePoliceSetting,POLICE_KEY} from '../dist/wanted.js';
-import {readFileSync as readSource} from 'node:fs';
-// world.js imports three; read its WORLD literal instead of importing it.
-const WORLD=Function('return '+readSource(new URL('../dist/world.js',import.meta.url),'utf8').match(/export const WORLD=(\{.*?\}\});/)[1])();
 
+import {WORLD} from '../dist/coast-config.js';
 const roads={roadsX:WORLD.roadsX,roadsZ:WORLD.roadsZ};
 const out=()=>({vx:0,vz:0,heading:0,maxAcceleration:0,wx:0,wz:0,mode:''});
 const player=(x,z,speed=20)=>({x,z,vx:0,vz:-speed,speed,heading:0});
@@ -101,7 +99,7 @@ test('pursuers chase a moving player through the Planck driving world',async()=>
 
 test('game wiring: open-world glue is hooked into game.js and respects pause by living in update()',()=>{
   const src=readFileSync(new URL('../dist/game.js',import.meta.url),'utf8');
-  assert.match(src,/import \{OpenWorldActivities\} from '\.\/open-world\.js'/);
+  assert.match(src,/import\('\.\/open-world\.js'\)/);
   assert.match(src,/openWorld\?\.update\(dt,playerActor,physics\.lastImpacts/);
   const update=src.slice(src.indexOf('function update(dt)'),src.indexOf('function animate('));assert.ok(update.includes('openWorld?.update('),'only runs from the unpaused driving update');
   assert.match(src,/openWorld\?\.drawRadar\(radarCtx,zoom\)/);

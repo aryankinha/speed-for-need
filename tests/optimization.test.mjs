@@ -78,31 +78,3 @@ test('P1 Optimization: chase-camera building clamp pre-filters far boxes without
   assert.equal(clampDistance(0, 1.2, 0, 0, 0, 1, 10, 6, [wall]), 6, 'minimum distance respected');
 });
 
-test('P1 Optimization: Dummy 2K textures in roadster.glb downscaled to 256x256 saving 66 MB VRAM', () => {
-  const glbPath = path.resolve(__dirname, '../dist/assets/roadster.glb');
-  const buf = fs.readFileSync(glbPath);
-  const jsonLen = buf.readUInt32LE(12);
-  const binDataOffset = 20 + jsonLen + 8;
-  const gltf = JSON.parse(buf.subarray(20, 20 + jsonLen).toString('utf8'));
-
-  assert.equal(gltf.images.length, 5, 'Must contain 5 textures');
-  
-  // Verify images 1, 2, 4 are downscaled to 256x256
-  for (const idx of [1, 2, 4]) {
-    const bv = gltf.bufferViews[gltf.images[idx].bufferView];
-    const imgBuf = buf.subarray(binDataOffset + bv.byteOffset, binDataOffset + bv.byteOffset + bv.byteLength);
-    const width = imgBuf.readUInt32BE(16);
-    const height = imgBuf.readUInt32BE(20);
-    assert.equal(width, 256, `Image ${idx} width must be 256`);
-    assert.equal(height, 256, `Image ${idx} height must be 256`);
-  }
-
-  // Verify bufferViews integrity
-  const totalBin = gltf.buffers[0].byteLength;
-  for (let i = 0; i < gltf.bufferViews.length; i++) {
-    const bv = gltf.bufferViews[i];
-    assert.ok(bv.byteOffset >= 0);
-    assert.ok(bv.byteOffset + bv.byteLength <= totalBin);
-  }
-});
-

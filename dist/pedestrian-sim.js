@@ -1,12 +1,11 @@
 // GTA-style sidewalk crowd: pure simulation (no three.js, no DOM) so node tests cover it. pedestrians.js renders it.
-// Sidewalk lanes are derived from the same layout constants world.js / world-default.js / world-street.js build from:
+// Sidewalk lanes are derived from the same layout constants world.js build from:
 // every city block gets a lane ring 1.85 m inside its kerb, split wherever it would touch asphalt (Sunset Mile, stunt park).
 // Peds walk the lanes with lateral avoidance, stop to idle, sprint or dive away from a fast car and get knocked about by it.
 import {SUNSET,sunsetDistance} from './map-layout.js';
-import {STREET_WORLD} from './street-layout.js';
 import {STUNT_AREA} from './stunts.js';
 
-const ISLAND={left:-490,right:490,top:-670,bottom:670,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600]};// mirrors world.js / world-default.js WORLD
+const ISLAND={left:-490,right:490,top:-670,bottom:670,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600]};// mirrors world.js WORLD
 export const CROWD_SIZES=Object.freeze({low:12,medium:28,high:44,ultra:60});
 export const PED=Object.freeze({
   inset:1.85,step:2,sampleStep:6,cell:30,
@@ -26,8 +25,7 @@ export function seeded(seed=1){let s=seed>>>0;return()=>{s=(s+0x6D2B79F5)>>>0;le
 
 /** Roads as bands: {axis:'x'|'z', c, half, from, to}. */
 export function pedRoads(map){
-  if(map==='la')return STREET_WORLD.roadsX.map(c=>({axis:'x',c,half:8,from:-118,to:118})).concat(STREET_WORLD.roadsZ.map(c=>({axis:'z',c,half:8,from:-8,to:78})));
-  const wide=map==='coast';
+  if(map!=='coast')return [];const wide=true;
   return ISLAND.roadsX.map(c=>({axis:'x',c,half:wide&&c===0?17:12,from:ISLAND.top+10,to:ISLAND.bottom-10})).concat(ISLAND.roadsZ.map(c=>({axis:'z',c,half:wide&&c===-300?17:12,from:ISLAND.left+12,to:ISLAND.right-12})));
 }
 /** Distance from (x,z) to the nearest asphalt edge; negative on the road. */
@@ -44,7 +42,7 @@ const inStunt=(x,z,m=3)=>x>STUNT_AREA.left-m&&x<STUNT_AREA.right+m&&z>STUNT_AREA
  * nx/nz is the unit normal pointing away from traffic, lat offsets are along it. Also returns seats (sea-wall sitting spots).
  */
 export function sidewalkPaths(map){
-  const roads=pedRoads(map),paths=[],seats=[];
+  const roads=pedRoads(map),paths=[],seats=[];if(map!=='coast')return {paths,seats};
   const add=(corners,{closed=false,y=.06,kind='street',toward=null,away=null,latMin=-.9,latMax=2,valid=()=>true})=>{
     // Resample the polyline every PED.step metres, then split it wherever a point is invalid (asphalt, stunt park, sea).
     const px=[],pz=[];const m=corners.length,edges=closed?m:m-1;
@@ -62,14 +60,6 @@ export function sidewalkPaths(map){
         let s=1;if(toward)s=(toward[0]-mx)*ux+(toward[1]-mz)*uz>=0?1:-1;else if(away)s=typeof away==='function'?away(mx,mz,ux,uz):((mx-away[0])*ux+(mz-away[1])*uz>=0?1:-1);nx[i]=ux*s;nz[i]=uz*s;}
       paths.push({x,z,n,closed:run.closed,nx,nz,len,y,kind,latMin,latMax});}
   };
-  if(map==='la'){
-    // City Street Study: kerbs at |x - road| = 8, facades from 13 m; lanes 3.5 m off the kerb, cross-walks at the block ends.
-    const valid=(x,z)=>roadGap(map,x,z,roads)>=1;
-    add([[11.5,-100.5],[58.5,-100.5],[58.5,100.5],[11.5,100.5]],{closed:true,y:-.035,toward:[35,0],latMin:-1.2,latMax:1,valid});
-    add([[-11.5,-100.5],[-11.5,100.5]],{y:-.035,away:[0,0],latMin:-1.5,latMax:1.1,valid});
-    add([[81.5,-100.5],[81.5,100.5]],{y:-.035,away:[70,0],latMin:-1.5,latMax:1.1,valid});
-    return {paths,seats};
-  }
   const coast=map==='coast',half=c=>roads.find(r=>r.c===c&&r.axis==='x').half,halfZ=c=>roads.find(r=>r.c===c&&r.axis==='z').half;
   const ok=(x,z,gap=1)=>roadGap(map,x,z,roads)>=gap&&!inStunt(x,z)&&x>ISLAND.left+1&&x<ISLAND.right-1&&z>ISLAND.top+1&&z<ISLAND.bottom-1;
   const blockValid=(x,z)=>ok(x,z)&&(!coast||sunsetDistance(x,z)>=SUNSET.width/2+2.6);

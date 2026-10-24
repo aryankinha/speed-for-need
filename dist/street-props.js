@@ -2,11 +2,10 @@ import * as THREE from './vendor/three.module.js';
 import {STUNT_AREA} from './stunts.js';
 import {SUNSET,sunsetDistance,mapDistrict} from './map-layout.js';
 import {PropObstacles} from './prop-obstacles.js';
-import {STREET_WORLD} from './street-layout.js';
 // GTA-style knockable street furniture: hydrants, bins, news boxes, bags, chairs, cones, barriers, works fences, warning signs, plus static power poles.
 // Layout and knock physics are pure (tested in node); rendering is one InstancedMesh per prop part holding only the props near the car.
 // Props are cheap arcade bodies, never Planck bodies: the car sweeps a spatial grid each frame and only loose props are integrated.
-const ISLAND={left:-490,right:490,top:-670,bottom:670,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600]};// mirrors world.js / world-default.js WORLD
+const ISLAND={left:-490,right:490,top:-670,bottom:670,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600]};// mirrors world.js WORLD
 // h: target height (m) or len: target length along z; r: knock radius; mass 0..1 drives car slowdown and fling; static: solid collider, never knocked.
 export const PROP_TYPES=Object.freeze({
   'lot-palm':{asset:'tree-palmtall',h:6.5,r:.22,mass:.7,breakSpeed:11,viewRadius:280},
@@ -25,7 +24,6 @@ export const PROP_TYPES=Object.freeze({
   bench:{asset:'park/bench',native:true,r:.6,mass:.65,slide:true,kg:90},
   dumpster:{asset:'dumpster',len:1.8,r:.8,mass:.95,slide:true,kg:350},
   signal:{asset:'traffic-light',h:4.8,r:.23,mass:.75,breakSpeed:8},
-  'street-lamp':{asset:'la-real/la-street-lamp-lod',h:3.8706,r:.2,mass:.75,breakSpeed:10},
   lamp:{asset:'light-curved',h:7,r:.23,mass:.85,breakSpeed:12},
   'stop-sign':{asset:'road-sign-stop',h:2.8,r:.18,mass:.4,breakSpeed:5},
   picnic:{asset:'park/picnic',native:true,r:1.4,mass:.8,slide:true,kg:180},
@@ -36,8 +34,7 @@ const HEAVY=.4;// at or above this mass the car loses speed on impact
 export const PROP_CONFIG=Object.freeze({gravity:-19,restitution:.32,groundFriction:5.5,spinDamping:3,settleSpeed:.35,minLoose:3,maxLoose:6,respawnDelay:30,respawnDistance:70,knockSpeed:1.2,rehitCooldown:.35,cell:20,viewRadius:120,maxActive:40,sprayTime:10,sprayParticles:300});
 /** Roads as infinite bands: {axis:'x'|'z', c: centre coordinate, half: half width, from,to: extent along the road}. */
 export function mapRoads(map){
-  if(map==='la')return STREET_WORLD.roadsX.map(c=>({axis:'x',c,half:8,from:-118,to:118})).concat(STREET_WORLD.roadsZ.map(c=>({axis:'z',c,half:8,from:-8,to:78})));
-  const wide=map==='coast';
+  if(map!=='coast')return [];const wide=true;
   return ISLAND.roadsX.map(c=>({axis:'x',c,half:wide&&c===0?17:12,from:ISLAND.top,to:ISLAND.bottom})).concat(ISLAND.roadsZ.map(c=>({axis:'z',c,half:wide&&c===-300?17:12,from:ISLAND.left,to:ISLAND.right})));
 }
 /** Distance from a point to the nearest drivable asphalt edge (negative = on the road). */
@@ -55,7 +52,7 @@ const inStunt=(x,z,m=4)=>x>STUNT_AREA.left-m&&x<STUNT_AREA.right+m&&z>STUNT_AREA
 export function layoutStreetProps(map,{random=seeded(9157),blocked=()=>false}={}){
   const roads=mapRoads(map),items=[],grid=new Map(),G=8;
   const key=(x,z)=>`${Math.floor(x/G)},${Math.floor(z/G)}`;
-  const fits=(type,x,z)=>{const r=PROP_TYPES[type].r;if(roadClearance(map,x,z,roads)<r+.35)return false;if(map!=='la'&&(inStunt(x,z)||x<ISLAND.left+3||x>ISLAND.right-3||z<ISLAND.top+3||z>ISLAND.bottom-3))return false;if(map==='coast'&&sunsetDistance(x,z)<SUNSET.width/2+SUNSET.sidewalk+r)return false;
+  const fits=(type,x,z)=>{const r=PROP_TYPES[type].r;if(roadClearance(map,x,z,roads)<r+.35)return false;if((inStunt(x,z)||x<ISLAND.left+3||x>ISLAND.right-3||z<ISLAND.top+3||z>ISLAND.bottom-3))return false;if(map==='coast'&&sunsetDistance(x,z)<SUNSET.width/2+SUNSET.sidewalk+r)return false;
     const gx=Math.floor(x/G),gz=Math.floor(z/G);for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(const o of grid.get(`${gx+i},${gz+j}`)||[])if(Math.hypot(o.x-x,o.z-z)<r+PROP_TYPES[o.type].r+.25)return false;
     return !blocked(x,z,r+.2);};
   const add=(type,x,z,rot)=>{if(!fits(type,x,z))return false;const item={type,x,z,rot};items.push(item);const k=key(x,z);if(!grid.has(k))grid.set(k,[]);grid.get(k).push(item);return true;};
@@ -64,24 +61,24 @@ export function layoutStreetProps(map,{random=seeded(9157),blocked=()=>false}={}
   const yawFacing=(r,side)=>r.axis==='x'?(side>0?Math.PI/2:-Math.PI/2):(side>0?0:Math.PI);
   const cross=roads.filter(r=>r.axis==='x'),cross2=roads.filter(r=>r.axis==='z');
   const stops=r=>(r.axis==='x'?cross2:cross).map(o=>({c:o.c,half:o.half})).sort((a,b)=>a.c-b.c);
-  const district=(x,z)=>map==='la'?'City':mapDistrict(x,z);
-  const LA=map==='la',runs=[];
-  for(const r of roads){if(LA&&r.axis==='z')continue;const s=stops(r),edges=[r.from,...s.flatMap(o=>[o.c-o.half,o.c+o.half]),r.to];for(let i=0;i<edges.length;i+=2){const a=edges[i],b=edges[i+1];if(b-a>30)runs.push({r,a,b});}}
+  const district=mapDistrict;
+  const runs=[];
+  for(const r of roads){const s=stops(r),edges=[r.from,...s.flatMap(o=>[o.c-o.half,o.c+o.half]),r.to];for(let i=0;i<edges.length;i+=2){const a=edges[i],b=edges[i+1];if(b-a>30)runs.push({r,a,b});}}
   // Hydrants: one per corner on alternating sides, just past the crosswalk.
-  for(const {r,a,b} of runs)for(const side of [-1,1]){if(random()<.45)continue;const along=random()<.5?a+(LA?6:9):b-(LA?6:9),[x,z]=at(r,along,side,LA?1.2:1.5);add('hydrant',x,z,random()*6.28);}
+  for(const {r,a,b} of runs)for(const side of [-1,1]){if(random()<.45)continue;const along=random()<.5?a+(9):b-(9),[x,z]=at(r,along,side,1.5);add('hydrant',x,z,random()*6.28);}
   // Furniture clusters every ~26 m: bins, news boxes, bag piles, café chairs.
   for(const {r,a,b} of runs)for(const side of [-1,1])for(let t=a+18+random()*8;t<b-18;t+=22+random()*10){
-    const [x,z]=at(r,t,side,LA?1.4:2.1),d=district(x,z),u=random(),yaw=yawFacing(r,side);
+    const [x,z]=at(r,t,side,2.1),d=district(x,z),u=random(),yaw=yawFacing(r,side);
     if(u<.3)add('trashcan',x,z,random()*6.28);
-    else if(u<.48&&d!=='Palm Gardens'){add('newsbox',x,z,yaw);const [x2,z2]=at(r,t+.85,side,LA?1.4:2.1);add('newsbox',x2,z2,yaw);}
-    else if(u<.62){for(let k=0;k<3;k++){const [bx,bz]=at(r,t+(k-1)*.62,side,(LA?1.6:2.5)+(k%2)*.45);add('trashbag',bx,bz,random()*6.28);}add('trashcan',...at(r,t+1.5,side,LA?1.4:2.1),0);}
-    else if(u<.72&&(d==='Downtown Solana'||d==='Sunset Mile'||d==='Pacific Boardwalk'||LA)){for(let k=0;k<2;k++)add('chair',...at(r,t+k*1.1,side,LA?2.4:3.2),yaw+Math.PI+(random()-.5)*.6);}
+    else if(u<.48&&d!=='Palm Gardens'){add('newsbox',x,z,yaw);const [x2,z2]=at(r,t+.85,side,2.1);add('newsbox',x2,z2,yaw);}
+    else if(u<.62){for(let k=0;k<3;k++){const [bx,bz]=at(r,t+(k-1)*.62,side,(2.5)+(k%2)*.45);add('trashbag',bx,bz,random()*6.28);}add('trashcan',...at(r,t+1.5,side,2.1),0);}
+    else if(u<.72&&(d==='Downtown Solana'||d==='Sunset Mile'||d==='Pacific Boardwalk')){for(let k=0;k<2;k++)add('chair',...at(r,t+k*1.1,side,3.2),yaw+Math.PI+(random()-.5)*.6);}
   }
   // Construction spots: a sidewalk works pit fenced off, cones and a barrier along the curb, a work light and a warning sign.
-  const spots=LA?2:9;for(let n=0,tries=0;n<spots&&tries<80;tries++){const {r,a,b}=runs[Math.floor(random()*runs.length)];if(b-a<60)continue;const t=a+20+random()*(b-a-55),side=random()<.5?-1:1;if(!fits('fence',...at(r,t,side,3))||!fits('fence',...at(r,t+20,side,3)))continue;const yaw=r.axis==='x'?0:Math.PI/2;
-    let placed=0;for(let k=0;k<4;k++)placed+=add('fence',...at(r,t+2+k*2.4,side,LA?3.2:3.6),yaw);for(let k=0;k<6;k++)placed+=add('cone',...at(r,t+k*2.3,side,.75),0);placed+=add('barrier',...at(r,t+14.5,side,1.05),yaw);placed+=add('worklight',...at(r,t+12.2,side,1.6),0);placed+=add('warning',...at(r,t-2.4,side,1.2),yawFacing(r,side)+Math.PI/2);if(placed>6)n++;}
+  const spots=map==='coast'?9:0;for(let n=0,tries=0;n<spots&&tries<80;tries++){const {r,a,b}=runs[Math.floor(random()*runs.length)];if(b-a<60)continue;const t=a+20+random()*(b-a-55),side=random()<.5?-1:1;if(!fits('fence',...at(r,t,side,3))||!fits('fence',...at(r,t+20,side,3)))continue;const yaw=r.axis==='x'?0:Math.PI/2;
+    let placed=0;for(let k=0;k<4;k++)placed+=add('fence',...at(r,t+2+k*2.4,side,3.6),yaw);for(let k=0;k<6;k++)placed+=add('cone',...at(r,t+k*2.3,side,.75),0);placed+=add('barrier',...at(r,t+14.5,side,1.05),yaw);placed+=add('worklight',...at(r,t+12.2,side,1.6),0);placed+=add('warning',...at(r,t-2.4,side,1.2),yawFacing(r,side)+Math.PI/2);if(placed>6)n++;}
   // Power poles: suburban/outer edges only (Palm Gardens, outer boulevards). Solid colliders; never knocked.
-  if(!LA)for(const r of roads){const outer=r.c===ISLAND.roadsX[0]||r.c===ISLAND.roadsX[6]||r.c===ISLAND.roadsZ[0]||r.c===ISLAND.roadsZ[8];const suburb=map==='coast'&&r.axis==='z'&&r.c<-300;if(!outer&&!suburb)continue;const side=outer?(r.c<0?-1:1):1;
+  for(const r of roads){const outer=r.c===ISLAND.roadsX[0]||r.c===ISLAND.roadsX[6]||r.c===ISLAND.roadsZ[0]||r.c===ISLAND.roadsZ[8];const suburb=map==='coast'&&r.axis==='z'&&r.c<-300;if(!outer&&!suburb)continue;const side=outer?(r.c<0?-1:1):1;
     for(let t=r.from+40;t<r.to-40;t+=38){const [x,z]=at(r,t,side,map==='coast'&&!outer?2.6:4.2);if(roadClearance(map,x,z,roads)<3)continue;add('pole',x,z,r.axis==='x'?Math.PI/2:0);}}
   return items;
 }

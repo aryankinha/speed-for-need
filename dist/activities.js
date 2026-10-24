@@ -33,17 +33,7 @@ export const ACTIVITY_LAYOUTS=Object.freeze({
     // The diagonal Sunset Mile only exists on the Coast map.
     packages:Object.freeze([...GRID_PACKAGES,pkg(-200,-250),pkg(50,-500)]),
   }),
-  default:Object.freeze({
-    traps:Object.freeze([...GRID_TRAPS,trap('midtown','Midtown Cross',225,0,1,0)]),
-    zones:Object.freeze(GRID_ZONES),
-    packages:Object.freeze([...GRID_PACKAGES,pkg(-75,-589),pkg(75,-461)]),
-  }),
-  // City Street Study: one 70 x 220 m loop. Two straights for cameras, one zone on the north hairpins.
-  la:Object.freeze({
-    traps:Object.freeze([trap('street-west','West Street',0,0,0,-1),trap('street-east','East Street',70,0,0,1)]),
-    zones:Object.freeze([zone('north','North Hairpins',-16,86,-126,-78)]),
-    packages:Object.freeze([pkg(-9,-60),pkg(9,40),pkg(79,-40),pkg(61,60),pkg(35,-119),pkg(35,119),pkg(-9,100),pkg(79,95),pkg(-9,-15),pkg(61,-95)]),
-  }),
+
 });
 export function layoutFor(map){return ACTIVITY_LAYOUTS[map]||ACTIVITY_LAYOUTS.coast;}
 export function trapStars(kmh){let s=0;for(const t of TRAP_STARS)if(kmh>=t)s++;return s;}

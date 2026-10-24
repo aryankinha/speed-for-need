@@ -8,38 +8,30 @@ import {BOOST_PADS} from './boost-pads.js';
 
 // size = authored Kenney units [width,height,length]. paint = [uv cell column,row (8x4 colormap swatches), mean linear luminance].
 export const STREET_CAR_MODELS=Object.freeze([
- {name:'cars/sedan-sports',size:[1.3,1.1,2.55],paint:[6,1,.230],weight:3,la:true,traffic:true},
- {name:'cars/hatchback-sports',size:[1.3,1.1,2.85],paint:[3,1,.388],weight:3,la:true,traffic:true},
- {name:'cars/suv-luxury',size:[1.5,1.3,2.85],paint:[4,1,.571],weight:3,la:true,traffic:true},
- {name:'cars/van',size:[1.5,1.35,2.75],paint:[7,1,.244],weight:2,la:true,traffic:true},
+ {name:'cars/sedan-sports',size:[1.3,1.1,2.55],paint:[6,1,.230],weight:3,traffic:true},
+ {name:'cars/hatchback-sports',size:[1.3,1.1,2.85],paint:[3,1,.388],weight:3,traffic:true},
+ {name:'cars/suv-luxury',size:[1.5,1.3,2.85],paint:[4,1,.571],weight:3,traffic:true},
+ {name:'cars/van',size:[1.5,1.35,2.75],paint:[7,1,.244],weight:2,traffic:true},
  {name:'cars/truck',size:[1.5,1.3,2.95],paint:[3,1,.388],weight:2,traffic:true},
  {name:'cars/delivery',size:[1.5,1.65,3.25],paint:[3,1,.388],weight:1.2,traffic:true},
- {name:'cars/police',size:[1.5,1.3,3.1],paint:null,weight:.5,la:true,traffic:true},
+ {name:'cars/police',size:[1.5,1.3,3.1],paint:null,weight:.5,traffic:true},
  {name:'cars/ambulance',size:[1.5,1.8,3.25],paint:null,weight:.3,traffic:true},
  {name:'cars/garbage-truck',size:[1.6,1.6,3.45],paint:null,weight:.4},
 ]);
 export const STREET_CAR_ASSETS=STREET_CAR_MODELS.map(m=>m.name);
 // Same 1.65 game-metres per Kenney unit as the existing sedan/suv/taxi traffic (4.4 m / 2.55 units ≈ 1.7).
 export const TRAFFIC_EXTRA=STREET_CAR_MODELS.filter(m=>m.traffic).map(m=>[m.name,+(m.size[2]*1.65).toFixed(2)]);
-/** Traffic cars per route: ~1.5x the original 9/6/4 on the big maps, 5 per loop on City Street Study. */
-export const trafficPerRoute=(isLA,r)=>isLA?5:r<2?14:r<4?9:6;
-// GTA-style LA street palette (sRGB). null keeps the authored Kenney paint.
+/** Traffic cars per route: ~1.5x the original 9/6/4 on the Coast. */
+export const trafficPerRoute=r=>r<2?14:r<4?9:6;
+// Coastal street palette (sRGB). null keeps the authored Kenney paint.
 export const PAINTS=Object.freeze([null,null,null,0xe9e9e4,0xe9e9e4,0xa8acb2,0xa8acb2,0x1c1e21,0x1c1e21,0x4a4e55,0x9e1f1b,0x203658,0x6b96c0,0xc6b28d,0x2e4a3b,0x5a1a25,0xd5ae3a]);
 
 const GRID={roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600]};
-const GATES={la:[[3.5,-90],[65,-110],[73.5,90],[5,110]],grid:[[-450,-450],[-300,-600],[0,-450],[450,-150],[300,450],[-450,450]]};
+const GATES={grid:[[-450,-450],[-300,-600],[0,-450],[450,-150],[300,450],[-450,450]]};
 
 /** Kerb stretches (road edge segments clear of intersections/crosswalks), avoid zones and per-map tuning. */
 export function kerbLayout(map){
  const kerbs=[],avoid=[];
- if(map==='la'){
-  // City Street Study: 16 m roads at x 0/70 and z ±110; crosswalks at the junction mouths (±8.5 m).
-  for(const c of [0,70])for(const side of [-1,1])kerbs.push({axis:'z',c,side,half:8,from:-88,to:88});
-  for(const c of [-110,110])for(const side of [-1,1])kerbs.push({axis:'x',c,side,half:8,from:22,to:48});
-  avoid.push({x:3.5,z:84,r:26,why:'spawn'},{x:3,z:90,r:26,why:'showroom'},{x:73.5,z:-80,r:20,why:'destination'});
-  for(const [x,z] of GATES.la)avoid.push({x,z,r:16,why:'gate'});
-  return {map,kerbs,avoid,rects:[],scale:1.25,inset:.12,occupancy:1,maxCars:60,gap:[10,16],cullDistance:Infinity};
- }
  const coast=map==='coast',{roadsX,roadsZ}=GRID;
  const halfX=x=>coast&&x===0?17:12,halfZ=z=>coast&&z===-300?17:12,CLEAR=12;
  for(const x of roadsX)for(let j=0;j<roadsZ.length-1;j++)for(const side of [-1,1]){
@@ -62,7 +54,7 @@ function pickModel(models,random){let total=0;for(const m of models)total+=m.wei
 
 /** Pure placement. Returns [{x,z,heading,width,length,height,model,paint}] in world metres (heading 0 faces -z). */
 export function planParkedCars({map='coast',random=Math.random,extraAvoid=[]}={}){
- const layout=kerbLayout(map),models=STREET_CAR_MODELS.filter(m=>map!=='la'||m.la),cars=[];
+ if(map!=='coast')return [];const layout=kerbLayout(map),models=STREET_CAR_MODELS,cars=[];
  const avoid=[...layout.avoid,...extraAvoid];
  const blocked=(x,z,l)=>avoid.some(a=>Math.hypot(x-a.x,z-a.z)<a.r+l/2)||layout.rects.some(r=>x>r.minX-l/2&&x<r.maxX+l/2&&z>r.minZ-l/2&&z<r.maxZ+l/2)||(layout.sunset&&sunsetDistance(x,z)<SUNSET.width/2+SUNSET.sidewalk+8+l/2);
  for(const k of layout.kerbs){
@@ -123,7 +115,7 @@ function bakeModel(root,def,scale){
 }
 
 /**
- * Builds parked cars for map 'coast' | 'default' | 'la'. Returns {mesh,cars,update(cameraPosition),stats}.
+ * Builds parked cars for Solana Coast. Returns {mesh,cars,update(cameraPosition),stats}.
  * Physics: light dynamic Planck boxes (sleep when still) so the player can shove them; static if dynamic=false.
  */
 export function buildStreetCars({scene,physics,models,map,random=Math.random,world,extraAvoid=[],extraCars=[],dynamic=true}){

@@ -3,19 +3,18 @@ import fs from 'node:fs';
 import {planParkedCars,kerbLayout,STREET_CAR_MODELS,STREET_CAR_ASSETS,TRAFFIC_EXTRA,trafficPerRoute} from '../dist/street-cars.js';
 import {STUNT_AREA} from '../dist/stunts.js';
 import {DESTINATIONS,sunsetDistance,SUNSET} from '../dist/map-layout.js';
-import {STREET_WORLD} from '../dist/street-layout.js';
 
 const seeded=s=>()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};
-const roads={grid:{x:[-450,-300,-150,0,150,300,450],z:[-600,-450,-300,-150,0,150,300,450,600]},la:{x:[0,70],z:[-110,110]}};
+const roads={grid:{x:[-450,-300,-150,0,150,300,450],z:[-600,-450,-300,-150,0,150,300,450,600]}};
 // Oriented-rectangle overlap via separating axis test (cars are boxes in the ground plane).
 function corners(c){const s=Math.sin(c.heading),k=Math.cos(c.heading),f=[-s,-k],r=[k,-s];return [[1,1],[1,-1],[-1,-1],[-1,1]].map(([a,b])=>[c.x+f[0]*a*c.length/2+r[0]*b*c.width/2,c.z+f[1]*a*c.length/2+r[1]*b*c.width/2]);}
 function overlap(a,b){const A=corners(a),B=corners(b);for(const poly of [A,B])for(let i=0;i<4;i++){const p=poly[i],q=poly[(i+1)%4],n=[q[1]-p[1],p[0]-q[0]];const pa=A.map(v=>v[0]*n[0]+v[1]*n[1]),pb=B.map(v=>v[0]*n[0]+v[1]*n[1]);if(Math.max(...pa)<=Math.min(...pb)||Math.max(...pb)<=Math.min(...pa))return false;}return true;}
 
-for(const map of ['coast','default','la'])test(`${map}: parked cars stay on kerbs, clear of intersections, spawns, gates, stunt park and each other`,()=>{
- const grid=map==='la'?roads.la:roads.grid,layout=kerbLayout(map);
+for(const map of ['coast'])test(`${map}: parked cars stay on kerbs, clear of intersections, spawns, gates, stunt park and each other`,()=>{
+ const grid=roads.grid,layout=kerbLayout(map);
  for(let seed=1;seed<=25;seed++){
   const cars=planParkedCars({map,random:seeded(seed*7919)});
-  if(map==='la')assert.ok(cars.length>=15&&cars.length<=60,`la count ${cars.length}`);else assert.ok(cars.length>=120&&cars.length<=250,`${map} count ${cars.length}`);
+  assert.ok(cars.length>=120&&cars.length<=250,`${map} count ${cars.length}`);
   for(const c of cars){
    assert.ok(Number.isFinite(c.x)&&Number.isFinite(c.z)&&Number.isFinite(c.heading));
    const k=c.kerb,lateral=(k.axis==='z'?c.x:c.z)-k.c,along=k.axis==='z'?c.z:c.x;
@@ -23,10 +22,9 @@ for(const map of ['coast','default','la'])test(`${map}: parked cars stay on kerb
    assert.ok(Math.abs(lateral)+c.width/2<=k.half+1e-9,'not on the sidewalk');assert.ok(Math.abs(lateral)-c.width/2>=4.3+1.3,'clear of the traffic lane');
    assert.ok(along-c.length/2>=k.from-1e-9&&along+c.length/2<=k.to+1e-9,'inside its kerb stretch');
    // No intersection box (crossing road half-width + crosswalk band).
-   for(const x of grid.x)for(const z of grid.z){const hx=map==='coast'&&x===0?17:map==='la'?8:12,hz=map==='coast'&&z===-300?17:map==='la'?8:12;assert.ok(!(Math.abs(c.x-x)<hx+10&&Math.abs(c.z-z)<hz+10),`car at ${c.x.toFixed(1)},${c.z.toFixed(1)} inside intersection ${x},${z}`);}
+   for(const x of grid.x)for(const z of grid.z){const hx=map==='coast'&&x===0?17:12,hz=map==='coast'&&z===-300?17:12;assert.ok(!(Math.abs(c.x-x)<hx+10&&Math.abs(c.z-z)<hz+10),`car at ${c.x.toFixed(1)},${c.z.toFixed(1)} inside intersection ${x},${z}`);}
    for(const a of layout.avoid)assert.ok(Math.hypot(c.x-a.x,c.z-a.z)>=a.r,`${a.why} too close`);
-   if(map!=='la'){assert.ok(!(c.x>STUNT_AREA.left-4&&c.x<STUNT_AREA.right+4&&c.z>STUNT_AREA.top-4&&c.z<STUNT_AREA.bottom+4),'stunt park');for(const d of DESTINATIONS)assert.ok(Math.hypot(c.x-d.x,c.z-d.z)>=30,'spawn point');}
-   else assert.ok(Math.hypot(c.x-STREET_WORLD.spawn.x,c.z-STREET_WORLD.spawn.z)>=26,'la spawn');
+   {assert.ok(!(c.x>STUNT_AREA.left-4&&c.x<STUNT_AREA.right+4&&c.z>STUNT_AREA.top-4&&c.z<STUNT_AREA.bottom+4),'stunt park');for(const d of DESTINATIONS)assert.ok(Math.hypot(c.x-d.x,c.z-d.z)>=30,'spawn point');}
    if(map==='coast')assert.ok(sunsetDistance(c.x,c.z)>SUNSET.width/2+SUNSET.sidewalk,'sunset diagonal');
   }
   const bins=new Map();for(const c of cars){const key=Math.floor(c.x/20)+','+Math.floor(c.z/20);(bins.get(key)||bins.set(key,[]).get(key)).push(c);}
@@ -35,7 +33,7 @@ for(const map of ['coast','default','la'])test(`${map}: parked cars stay on kerb
 });
 
 test('the game seed places 150-250 parked cars on the big maps and is deterministic',()=>{
- for(const map of ['coast','default']){const a=planParkedCars({map,random:seeded(5279)}),b=planParkedCars({map,random:seeded(5279)});assert.ok(a.length>=150&&a.length<=250,`${map}: ${a.length}`);assert.deepEqual(a.map(c=>[c.x,c.z,c.model]),b.map(c=>[c.x,c.z,c.model]));}
+ for(const map of ['coast']){const a=planParkedCars({map,random:seeded(5279)}),b=planParkedCars({map,random:seeded(5279)});assert.ok(a.length>=150&&a.length<=250,`${map}: ${a.length}`);assert.deepEqual(a.map(c=>[c.x,c.z,c.model]),b.map(c=>[c.x,c.z,c.model]));}
 });
 
 test('parked cars face along the road (right-hand kerbside)',()=>{
@@ -47,8 +45,8 @@ test('car kit assets ship with provenance; traffic density rises ~1.5x',()=>{
  for(const name of STREET_CAR_ASSETS){const file=name.replace('cars/','')+'.glb';assert.ok(fs.existsSync(new URL(`../dist/assets/${name}.glb`,import.meta.url)),file);assert.ok(source.assets.some(a=>a.file===file),`${file} recorded`);}
  assert.ok(fs.existsSync(new URL('../dist/assets/cars/Textures/colormap.png',import.meta.url)),'shared colormap present');
  assert.ok(STREET_CAR_MODELS.length>=8&&TRAFFIC_EXTRA.every(([,l])=>l>=4&&l<=5.6));
- const before=2*9+2*6+2*4,after=[0,1,2,3,4,5].reduce((s,r)=>s+trafficPerRoute(false,r),0);assert.ok(after/before>=1.4&&after/before<=1.6);assert.ok(trafficPerRoute(true,0)>=4&&trafficPerRoute(true,0)<=6);
- assert.ok(1+after<=96&&1+2*trafficPerRoute(true,0)<=96,'render-state slots');
+ const before=2*9+2*6+2*4,after=[0,1,2,3,4,5].reduce((s,r)=>s+trafficPerRoute(r),0);assert.ok(after/before>=1.4&&after/before<=1.6);
+ assert.ok(1+after+4<=96,'render-state slots');
 });
 
 test('a parked car is a light dynamic body: asleep at rest, shoved by the player, settles again',async()=>{

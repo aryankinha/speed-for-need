@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 // Procedural downtown towers: stepped podium + curtain-wall shaft + setbacks + rooftop plant, built from boxes so the facade UVs
-// are exact (metres / tile size). The tower pool is shared by the coast and default maps (world.js, world-default.js).
+// are exact (metres / tile size). The tower pool is used by Solana Coast (world.js).
 //
 // Draw-call design: one shared material per facade style (4), one for the lit storefront podium and one flat trim material, so
 // the static batcher (mergeGeometries per cell and material) merges every tower of a style into the same buffer. Variety comes from

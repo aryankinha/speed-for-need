@@ -20,7 +20,6 @@ const output=fileURLToPath(new URL('../dist/assets/park/',import.meta.url));awai
 const downloads=JSON.parse(await readFile(join(input,'download-manifest.json'),'utf8'));
 const report={license:'CC0-1.0',licenseUrl:'https://polyhaven.com/license',sources:[]};
 for(const [id,file,selected] of [
- ['grass_bermuda_01','grass','grass_bermuda_01_medium_a'],
  ['shrub_01','shrub','shrub_01_a'],
  ['potted_plant_01','pot',null],
  ['painted_wooden_bench','bench',null],
@@ -41,7 +40,7 @@ for(const [id,file,selected] of [
  const nativeBounds=getBounds(root.listScenes()[0]);
  const tris=()=>root.listMeshes().reduce((s,m)=>s+m.listPrimitives().reduce((t,p)=>t+(p.getIndices()?.getCount()||p.getAttribute('POSITION').getCount())/3,0),0);
  const nativeTriangles=tris();
- if(file!=='grass'&&nativeTriangles>1500){await doc.transform(simplify({simplifier:MeshoptSimplifier,ratio:1450/nativeTriangles,error:.05,lockBorder:false}));}
+ if(nativeTriangles>1500){await doc.transform(simplify({simplifier:MeshoptSimplifier,ratio:1450/nativeTriangles,error:.05,lockBorder:false}));}
  // Center the authored model without changing its real-world scale. Bake the
  // offset into positions so instanced copies can bend or topple around the base.
  const bounds=getBounds(root.listScenes()[0]);const offset=[-(bounds.min[0]+bounds.max[0])/2,-bounds.min[1],-(bounds.min[2]+bounds.max[2])/2];
@@ -56,7 +55,7 @@ for(const [id,file,selected] of [
  doc.createExtension(EXTTextureWebP).setRequired(true);
  await doc.transform(prune(),dedup());
  const data=await io.writeBinary(doc);await writeFile(join(output,file+'.glb'),data);
- report.sources.push({asset:id,page:'https://polyhaven.com/a/'+id,file:file+'.glb',selectedNodes,selectionNote:file==='shrub'?'Rightmost isolated shrub in the single-node display row, triangles wholly x > -0.15m; checked no crossing triangles.':file==='grass'?'One medium_a variant; display-grid translation removed.':file==='pot'?'One complete plant assembly including pot, stem, pebbles and leaves.':'Complete authored furniture assembly.',nativeBounds,nativeTriangles,outputBounds:getBounds(root.listScenes()[0]),triangles:tris(),bytes:data.length,sha256:createHash('sha256').update(data).digest('hex'),downloads:downloads.filter(d=>d.asset===id)});
+ report.sources.push({asset:id,page:'https://polyhaven.com/a/'+id,file:file+'.glb',selectedNodes,selectionNote:file==='shrub'?'Rightmost isolated shrub in the single-node display row, triangles wholly x > -0.15m; checked no crossing triangles.':file==='pot'?'One complete plant assembly including pot, stem, pebbles and leaves.':'Complete authored furniture assembly.',nativeBounds,nativeTriangles,outputBounds:getBounds(root.listScenes()[0]),triangles:tris(),bytes:data.length,sha256:createHash('sha256').update(data).digest('hex'),downloads:downloads.filter(d=>d.asset===id)});
  console.log(file,JSON.stringify(report.sources.at(-1),null,2));
 }
 await writeFile(join(output,'source-manifest.json'),JSON.stringify(report,null,2)+'\n');

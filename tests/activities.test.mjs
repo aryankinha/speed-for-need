@@ -2,9 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {placePackages,ACTIVITY_LAYOUTS,layoutFor,ActivityStore,SpeedTraps,DriftZones,Collectibles,trapStars,describeEvent,inZone,driftAngle,TRAP_STARS,PICKUP_RADIUS} from '../dist/activities.js';
 import {readFileSync as readSource} from 'node:fs';
-// world.js imports three; read its WORLD literal instead of importing it.
-const WORLD=Function('return '+readSource(new URL('../dist/world.js',import.meta.url),'utf8').match(/export const WORLD=(\{.*?\}\});/)[1])();
-import {STREET_WORLD} from '../dist/street-layout.js';
+import {WORLD} from '../dist/coast-config.js';
 import {STUNT_AREA} from '../dist/stunts.js';
 
 const memory=()=>{const m=new Map();return {getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),m};};
@@ -14,15 +12,14 @@ function driveThrough(traps,t,speed,{lateral=0,from=-30,to=30,step=1}={}){
   let hit=null;for(let s=from;step>0?s<=to:s>=to;s+=step){const e=traps.update(t.x+t.dx*s+t.dz*lateral,t.z+t.dz*s-t.dx*lateral,speed);if(e)hit={...e};}return hit;
 }
 
-test('layouts: coast and default have 6 traps, 3 drift zones and 25 packages; LA fits its loop',()=>{
-  for(const map of ['coast','default']){const l=ACTIVITY_LAYOUTS[map];assert.equal(l.traps.length,6,map);assert.equal(l.zones.length,3,map);assert.equal(l.packages.length,25,map);}
-  assert.ok(ACTIVITY_LAYOUTS.la.traps.length>=1&&ACTIVITY_LAYOUTS.la.packages.length>=5);
+test('Coast retains its six traps, three drift zones and 25 packages',()=>{
+  for(const map of ['coast']){const l=ACTIVITY_LAYOUTS[map];assert.equal(l.traps.length,6,map);assert.equal(l.zones.length,3,map);assert.equal(l.packages.length,25,map);}
   assert.equal(layoutFor('unknown'),ACTIVITY_LAYOUTS.coast);
 });
 
 test('layouts: every point lies inside its map bounds, trap axes are unit vectors and ids are unique',()=>{
   for(const [map,l] of Object.entries(ACTIVITY_LAYOUTS)){
-    const b=map==='la'?STREET_WORLD:WORLD;
+    const b=WORLD;
     for(const p of [...l.traps,...l.packages])assert.ok(p.x>b.left&&p.x<b.right&&p.z>b.top&&p.z<b.bottom,`${map} ${p.x},${p.z}`);
     for(const z of l.zones)assert.ok(z.minX<z.maxX&&z.minZ<z.maxZ&&z.minX>=b.left-20&&z.maxX<=b.right+20,`${map} zone ${z.id}`);
     for(const t of l.traps)assert.ok(Math.abs(Math.hypot(t.dx,t.dz)-1)<1e-9,t.id);
@@ -33,7 +30,7 @@ test('layouts: every point lies inside its map bounds, trap axes are unit vector
 });
 
 test('layouts: grid-map traps sit on a road and drift zones do not overlap the stunt park',()=>{
-  for(const t of ACTIVITY_LAYOUTS.default.traps)assert.ok(WORLD.roadsX.some(x=>Math.abs(t.x-x)<1&&t.dx===0)||WORLD.roadsZ.some(z=>Math.abs(t.z-z)<1&&t.dz===0),t.id);
+  for(const t of ACTIVITY_LAYOUTS.coast.traps.filter(t=>t.id!=='sunset'))assert.ok(WORLD.roadsX.some(x=>Math.abs(t.x-x)<1&&t.dx===0)||WORLD.roadsZ.some(z=>Math.abs(t.z-z)<1&&t.dz===0),t.id);
   for(const z of ACTIVITY_LAYOUTS.coast.zones)assert.ok(z.maxX<STUNT_AREA.left||z.minX>STUNT_AREA.right||z.maxZ<STUNT_AREA.top||z.minZ>STUNT_AREA.bottom,z.id);
 });
 

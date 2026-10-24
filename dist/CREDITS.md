@@ -4,12 +4,6 @@
 Nitro bottle geometry is procedural (LatheGeometry, CylinderGeometry), written in dist/nitro.js. No third-party model is used.
 Glow sprite: Kenney Particle Pack, light_01.png (dist/assets/nitro-light.png), CC0 — https://kenney.nl/assets/particle-pack
 
-## Player vehicle
-Tesla Roadster 2.0 (Will be enchanced soon), by Michael / gmmichaelonearth.
-Source: https://sketchfab.com/3d-models/tesla-roadster-20-will-be-enchanced-soon-8d5da3904e434fc3830edf558cb9014d
-License: Creative Commons Attribution 4.0 — https://creativecommons.org/licenses/by/4.0/
-Supplied by the user. Rescaled, oriented and Draco-compressed for gameplay; original geometry and textures retained.
-
 ## City and nature models
 Kenney City Kit (Commercial), City Kit (Roads), Nature Kit, Car Kit.
 https://kenney.nl/assets/city-kit-commercial
@@ -18,18 +12,13 @@ https://kenney.nl/assets/nature-kit
 https://kenney.nl/assets/car-kit
 License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
 GLB distribution: https://github.com/Hidencod/tge-assets
-Models arranged and scaled to build the Solana Bay environment.
-
-## Photographic sky and reflections
-Belfast Sunset (Pure Sky), by Dimitrios Savva, Greg Zaal and Jarod Guest, Poly Haven.
-https://polyhaven.com/a/belfast_sunset_puresky
-License: CC0 — https://polyhaven.com/license
+Models arranged and scaled to build the Solana Coast environment.
 
 ## Technology
 Three.js r170, MIT License — https://github.com/mrdoob/three.js/blob/r170/LICENSE
 DM Sans and Barlow Condensed, Google Fonts, SIL Open Font License.
 
-AFTERLIGHT / Solana Bay is an original browser game prototype. No GTA or Need for Speed assets are included.
+AFTERLIGHT / SPEED FOR NEED is an original browser game prototype. No GTA or Need for Speed assets are included.
 
 Draco geometry decoder, Apache License 2.0 — https://github.com/google/draco
 
@@ -220,7 +209,7 @@ Asphalt 02 by **Rob Tuytel / Poly Haven**, CC0. Official source: https://polyhav
 ## Solana Coast map districts
 Kenney City Kit (Suburban) 2.0 and City Kit (Industrial) 2.0, **Kenney**, **CC0 1.0**. Official pages: https://kenney.nl/assets/city-kit-suburban and https://kenney.nl/assets/city-kit-industrial . Selected models downloaded from Kenney's own https://opengameart.org/content/city-kit-suburban and https://opengameart.org/content/city-kit-industrial uploads. Six houses, four industrial buildings, water tower and shipping container. Original palette textures embedded into GLBs; runtime scale and placement. Original geometry retained. Original license texts: assets/la-suburban-LICENSE.txt and assets/la-industrial-LICENSE.txt; provenance and hashes: assets/la-city-sources.json. Solana Coast is an original LA-inspired layout and contains no GTA map rip.
 
-## Realistic towers and palms (Solana Coast and default maps)
+## Realistic towers and palms (Solana Coast)
 City Buildings - BlackThornProd Video by **Tiko** (https://sketchfab.com/tikoavp): https://sketchfab.com/3d-models/city-buildings-blackthornprod-video-24e68bfc7c63479d8dc6b19570073b51 — **Creative Commons Attribution 4.0** (https://creativecommons.org/licenses/by/4.0/). Shipped as assets/la-real/la-tower-a … la-tower-g.glb. Changes: split into one GLB per building, night emissive and specular maps removed, textures downscaled and re-encoded as WebP; runtime scale, rotation and lot placement. No endorsement implied. Records: assets/la-real/la-tower-source.json and la-tower-LICENSE.md.
 
 Free palm treeZ v3 (palm_straight) by **Nobiax / Yughues**: https://opengameart.org/content/free-palm-treez-v3 — **CC0 1.0** (https://creativecommons.org/publicdomain/zero/1.0/). Shipped as assets/la-real/la-palm-coconut.glb. Changes: OBJ to glTF, base pivot and 10.5 m scale, diffuse brightened and re-encoded as WebP, alpha-tested leaves. Record: assets/la-real/la-palm-coconut-source.json.
@@ -266,3 +255,7 @@ Coast lot dressing reuses the existing **Kenney Nature Kit** CC0 `tree-palmtall.
 ## NSX cockpit steering accessory
 
 **Steering wheel**, Savino — [OpenGameArt source](https://opengameart.org/content/steering-wheel), **CC0 1.0**. Original OBJ bundled with the converted GLB in `assets/cockpit/`. This is a sourced cockpit accessory, not a manufacturer-authentic NSX steering wheel. Other cars retain their own authored steering geometry from the credited vehicle models.
+
+## Drift Race Track — Nicholas-3D
+
+[Drift Race Track Free](https://sketchfab.com/3d-models/drift-race-track-free-b4108132c93f4736957d97e274fbd11e), by [Nicholas-3D](https://sketchfab.com/Nicholas01). The downloaded GLB declares [CC BY-ND 4.0](https://creativecommons.org/licenses/by-nd/4.0/). Original master retained outside the game in `source-assets/drift-track/`; runtime copy uses Meshopt and full-resolution WebP, retaining all 314,141 triangles and the authored PBR materials. Collision contours, timing route and integration are separate game data. Local integration only; this is not a clearance statement for publishing an adapted asset. File hashes and processing settings: `assets/drift-track/source-manifest.json`.

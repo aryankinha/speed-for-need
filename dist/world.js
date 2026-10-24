@@ -11,10 +11,9 @@ import {surfaceMaterial} from './surface-materials.js';
 import {facadeTowerTemplates} from './facade-towers.js';
 // Static meshes are merged per material within square spatial cells of this size (metres) so frustum culling still works.
 const BATCH_CELL_M=220;
-export const WORLD={left:-490,right:490,top:-670,bottom:670,shore:-486,roadsX:[-450,-300,-150,0,150,300,450],roadsZ:[-600,-450,-300,-150,0,150,300,450,600],spawn:{x:-445.7,z:110,heading:0}};
-export function normalize(root,length,axis='z'){
-  root.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(root,true);const dimensions=b.getSize(new THREE.Vector3());const group=new THREE.Group();group.add(root);root.scale.multiplyScalar(length/dimensions[axis]);root.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(root,true);const center=b.getCenter(new THREE.Vector3());root.position.x-=center.x;root.position.z-=center.z;root.position.y-=b.min.y;group.updateMatrixWorld(true);return group;
-}
+import {WORLD} from './coast-config.js';
+import {normalize} from './model-utils.js';
+export {WORLD,normalize};
 export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const {left,right,top,bottom,roadsX,roadsZ}=WORLD;
   const obstacles=[],buildingLots=[],lots=[],interactiveProps=[],interactiveTemplates={},parkPlots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;

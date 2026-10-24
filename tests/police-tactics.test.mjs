@@ -4,8 +4,7 @@ import {readFileSync} from 'node:fs';
 import {TACTICS,pitEnabled,flankEnabled,blockEnabled,pitCandidate,pitYawImpulse,pitAim,flankSide,flankPoint,roadMargin,onRoad,roadblockPoint,blockTarget,DriftSighting} from '../dist/police-tactics.js';
 import {WantedSystem,HEAT} from '../dist/wanted.js';
 import {createDrivingWorld} from '../dist/physics.js';
-// world.js imports three; read its WORLD literal instead of importing it (same approach as wanted.test.mjs).
-const WORLD=Function('return '+readFileSync(new URL('../dist/world.js',import.meta.url),'utf8').match(/export const WORLD=(\{.*?\}\});/)[1])();
+import {WORLD} from '../dist/coast-config.js';
 const roads={roadsX:WORLD.roadsX,roadsZ:WORLD.roadsZ};
 
 // Player heading 0 faces -z; right is +x. "behind" is +z.
