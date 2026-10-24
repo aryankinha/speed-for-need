@@ -55,3 +55,12 @@ test('same-route traffic keeps a safe following distance through corners',()=>{
  for(let i=0;i<7200;i++){world.step(1/120,dt=>followTraffic(cars,player,dt));minGap=Math.min(minGap,separation(cars[0].actor.state,cars[1].actor.state));}
  assert.ok(minGap>5.5,`Following gap ${minGap}m`);
 });
+
+for(const clockwise of [true,false])test(`analytic nearest matches a dense local oracle on lines, arcs and seam (${clockwise})`,()=>{
+ const r=roundedRoute({...options,clockwise});
+ for(let i=-20;i<250;i++){const around=i*r.length/250,p=r.sample(around+1.37),x=p.x+Math.sin(i)*1.5,z=p.z+Math.cos(i)*1.5;
+  const found=r.nearest(x,z,around),point=r.sample(found),d=separation(point,{x,z});let oracle=Infinity;
+  for(let s=around-18;s<=around+18;s+=.03)oracle=Math.min(oracle,separation(r.sample(s),{x,z}));
+  assert.ok(d<=oracle+.0001,`${i}: ${d} > ${oracle}`);assert.ok(Math.abs(found-around)<=18.000001);
+ }
+});

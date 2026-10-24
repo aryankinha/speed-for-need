@@ -58,3 +58,6 @@ test('game renders through the post-processing pipeline and the import map serve
   for(const file of ['postprocessing.module.js','n8ao.module.js','postprocessing/Pass.js'])assert.ok(fs.existsSync(new URL('../dist/vendor/'+file,import.meta.url)),file);
   assert.equal((html.match(/class="pause-select graphics-select"/g)||[]).length,2,'graphics select in options and pause menu');
 });
+
+test('adaptive quality requires substantial headroom to increase resolution at a sustained 30 FPS',()=>{const q=new RenderQuality(1.5,1);q.ratio=1;for(let i=0;i<1500;i++)q.update(33.3,1/30,8);assert.equal(q.ratio,1);});
+test('adaptive quality responds when measured work exceeds headroom and frames miss 60 Hz',()=>{const q=new RenderQuality(1.5,1);for(let i=0;i<100;i++)q.update(33.3,1/30,15);assert.equal(q.ratio,1.25);const idle=new RenderQuality(1.5,1);for(let i=0;i<100;i++)idle.update(33.3,1/30,3);assert.equal(idle.ratio,1.5,'cheap throttled work must not trigger degradation');});

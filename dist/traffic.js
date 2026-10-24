@@ -2,13 +2,24 @@
 // Arc length s=r*theta: https://mathworld.wolfram.com/ArcLength.html
 export function roundedRoute({left,right,top,bottom,radius=11,clockwise=true,lane=4.3}){
   const offset=clockwise?lane:-lane,L=left+offset,R=right-offset,T=top+offset,B=bottom-offset,r=radius;
-  const segments=[];let length=0;
-  function line(x,z,dx,dz,len){segments.push({start:length,len,sample(s,target){const out=target||{};out.x=x+dx*s;out.z=z+dz*s;out.dx=dx;out.dz=dz;out.curvature=0;return out;}});length+=len;}
-  function arc(cx,cz,start){const len=Math.PI*r/2;segments.push({start:length,len,sample(s,target){const a=start+s/r;const out=target||{};out.x=cx+r*Math.cos(a);out.z=cz+r*Math.sin(a);out.dx=-Math.sin(a);out.dz=Math.cos(a);out.curvature=1/r;return out;}});length+=len;}
+  const segments=[];let length=0;const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function line(x,z,dx,dz,len){segments.push({start:length,len,project(px,pz){return clamp((px-x)*dx+(pz-z)*dz,0,len);},sample(s,target){const out=target||{};out.x=x+dx*s;out.z=z+dz*s;out.dx=dx;out.dz=dz;out.curvature=0;return out;}});length+=len;}
+  function arc(cx,cz,start){const len=Math.PI*r/2;segments.push({start:length,len,project(x,z){const angle=((Math.atan2(z-cz,x-cx)-start)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);if(angle<=Math.PI/2)return angle*r;const ax=cx+r*Math.cos(start),az=cz+r*Math.sin(start),bx=cx+r*Math.cos(start+Math.PI/2),bz=cz+r*Math.sin(start+Math.PI/2);return (x-ax)**2+(z-az)**2<(x-bx)**2+(z-bz)**2?0:len;},sample(s,target){const a=start+s/r;const out=target||{};out.x=cx+r*Math.cos(a);out.z=cz+r*Math.sin(a);out.dx=-Math.sin(a);out.dz=Math.cos(a);out.curvature=1/r;return out;}});length+=len;}
   line(L,B-r,0,-1,B-T-2*r);arc(L+r,T+r,Math.PI);line(L+r,T,1,0,R-L-2*r);arc(R-r,T+r,-Math.PI/2);line(R,T+r,0,1,B-T-2*r);arc(R-r,B-r,0);line(R-r,B,-1,0,R-L-2*r);arc(L+r,B-r,Math.PI/2);
-  const _sampleA={x:0,z:0,dx:0,dz:0,curvature:0,heading:0},_sampleB={x:0,z:0,dx:0,dz:0,curvature:0,heading:0};
-  return {length,clockwise,sample(distance,target){let d=((clockwise?distance:-distance)%length+length)%length;let seg=segments[segments.length-1];for(let i=0;i<segments.length;i++){const s=segments[i];if(d<s.start+s.len){seg=s;break;}}const p=seg.sample(d-seg.start,target);if(!clockwise){p.dx*=-1;p.dz*=-1;p.curvature*=-1;}p.heading=Math.atan2(-p.dx,-p.dz);return p;},nearest(x,z,around){let best=around,dist=Infinity;for(let d=-16;d<=16;d+=2){const s=around+d,p=this.sample(s,_sampleA),dd=(p.x-x)**2+(p.z-z)**2;if(dd<dist){dist=dd;best=s;}}// Refine the coarse local minimum via ternary search without object allocations.
-    let lo=best-2,hi=best+2;for(let i=0;i<15;i++){const a=lo+(hi-lo)/3,b=hi-(hi-lo)/3,pa=this.sample(a,_sampleA),pb=this.sample(b,_sampleB);if((pa.x-x)**2+(pa.z-z)**2<(pb.x-x)**2+(pb.z-z)**2)hi=b;else lo=a;}return(lo+hi)/2;}};
+  const _sampleA={x:0,z:0,dx:0,dz:0,curvature:0,heading:0};
+  return {length,clockwise,sample(distance,target){let d=((clockwise?distance:-distance)%length+length)%length;let seg=segments[segments.length-1];for(let i=0;i<segments.length;i++){const s=segments[i];if(d<s.start+s.len){seg=s;break;}}const p=seg.sample(d-seg.start,target);if(!clockwise){p.dx*=-1;p.dz*=-1;p.curvature*=-1;}p.heading=Math.atan2(-p.dx,-p.dz);return p;},nearest(x,z,around){
+    // Exact projection onto line/quarter-circle segments replaces 47 repeated
+    // route samples. Keep the old local search window so a crash cannot snap a
+    // traffic car to a different stretch of its route (including the loop seam).
+    let best=around,dist=Infinity;
+    for(let offset=-18;offset<=18;offset+=18){const p=this.sample(around+offset,_sampleA),d=(p.x-x)**2+(p.z-z)**2;if(d<dist){dist=d;best=around+offset;}}
+    for(const segment of segments){const raw=segment.start+segment.project(x,z),candidate=clockwise?raw:-raw;
+      const delta=((candidate-around+length/2)%length+length)%length-length/2;
+      if(Math.abs(delta)>18)continue;const progress=around+delta,p=this.sample(progress,_sampleA),d=(p.x-x)**2+(p.z-z)**2;
+      if(d<dist){dist=d;best=progress;}
+    }
+    return best;
+  }};
 }
 
 const _near={x:0,z:0,dx:0,dz:0,curvature:0,heading:0};

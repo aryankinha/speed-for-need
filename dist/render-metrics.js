@@ -11,3 +11,11 @@ export class GpuTimer{
   begin(){if(!this.ext||this.pending||++this.frames%15)return;const gl=this.gl;this.active=gl.createQuery();gl.beginQuery(this.ext.TIME_ELAPSED_EXT,this.active);}
   end(){if(!this.active)return;this.gl.endQuery(this.ext.TIME_ELAPSED_EXT);this.pending=this.active;this.active=null;}
 }
+
+// EffectComposer renders several passes. Three's default autoReset leaves only
+// the final fullscreen triangle in renderer.info, hiding the city's real cost.
+export function measureRenderFrame(renderer,render){
+  const info=renderer.info;if(!info){render();return;}
+  const previous=info.autoReset;info.autoReset=false;info.reset();
+  try{render();}finally{info.autoReset=previous;}
+}

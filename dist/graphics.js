@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {measureRenderFrame} from './render-metrics.js';
 import {EffectComposer,RenderPass,EffectPass,Effect,EffectAttribute,SMAAEffect,BloomEffect,ToneMappingEffect,ToneMappingMode,HueSaturationEffect} from 'postprocessing';
 import {N8AOPostPass} from 'n8ao';
 import {GRAPHICS_PRESETS} from './graphics-presets.js';
@@ -22,7 +23,7 @@ void mainImage(const in vec4 inputColor,const in vec2 uv,out vec4 outputColor){
 // Post-processing pipeline built on pmndrs/postprocessing + N8AO. Falls back to a direct render if the composer fails.
 export class GraphicsPipeline{
   constructor(renderer,scene,camera){
-    this.renderer=renderer;this.scene=scene;this.camera=camera;this.preset=null;this.composer=null;this.ao=null;this.bloom=null;this.failed=false;this.degraded=0;
+    this.renderer=renderer;this.scene=scene;this.camera=camera;this.preset=null;this.composer=null;this.ao=null;this.bloom=null;this.failed=false;this.degraded=0;this.renderPasses=()=>{if(this.composer)this.composer.render(this.renderDelta);else this.renderer.render(this.scene,this.camera);};
   }
   apply(name){
     const preset=GRAPHICS_PRESETS[name]||GRAPHICS_PRESETS.medium;this.name=GRAPHICS_PRESETS[name]?name:'medium';this.preset=preset;this.degraded=0;
@@ -56,6 +57,6 @@ export class GraphicsPipeline{
     return false;
   }
   setSize(width,height){this.composer?.setSize(width,height,false);}
-  render(delta){if(this.composer)this.composer.render(delta);else this.renderer.render(this.scene,this.camera);}
+  render(delta){this.renderDelta=delta;measureRenderFrame(this.renderer,this.renderPasses);}
   dispose(){this.composer?.dispose();this.composer=null;this.ao=null;this.bloom=null;}
 }
