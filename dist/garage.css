@@ -11,3 +11,5 @@
 @media(max-width:380px){.garage-customize{padding:10px}.finish-control,.wheel-control{gap:8px}.customize-label{min-width:42px;font-size:6px}.customize-label span{font-size:6px}.paint-swatch{width:22px;height:22px}.paint-options{gap:5px}.wheel-option{padding:0 7px;font-size:7px}.wheel-options{gap:4px}}
 
 .garage-tuning{display:none}
+
+.garage-spin{position:absolute;left:28%;right:3%;top:12%;bottom:40%;pointer-events:auto;touch-action:none;cursor:grab;outline:none}.garage-spin:active{cursor:grabbing}.garage-spin:focus-visible{outline:1px solid var(--amber);outline-offset:-5px}.garage-spin span{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;color:#d0d8df;text-shadow:0 1px 5px #000;white-space:nowrap}@media(max-width:760px){.garage-spin{left:3%;right:3%;top:24%;bottom:43%}.garage-spin span{font-size:7px;bottom:0}}

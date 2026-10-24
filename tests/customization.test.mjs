@@ -15,7 +15,7 @@ function models(){
     const wheels=[];for(const [i,[x,z]]of [[.9,-1.3],[-.9,-1.3],[.9,1.3],[-.9,1.3]].entries()){
       const node=new THREE.Group();node.name=`wheel_${i}`;node.position.set(x,.35,z);const tyre=new THREE.Mesh(new THREE.BoxGeometry(.3,.7,.7),black);node.add(tyre);
       // Different source assemblies make style swaps measurable independently of colour.
-      const count=id==='nsx'?2:1;for(let n=0;n<count;n++){const rim=new THREE.Mesh(new THREE.BoxGeometry(.32,.4-n*.1,.4-n*.1),new THREE.MeshStandardMaterial({color:0xaaaaaa}));node.add(rim);}
+      const count=id==='nsx'?2:1;for(let n=0;n<count;n++){const rim=new THREE.Mesh(new THREE.BoxGeometry(.32,.4-n*.1,.4-n*.1),new THREE.MeshStandardMaterial({color:0xaaaaaa,metalness:.8}));node.add(rim);}
       group.add(node);wheels.push({node,front:i<2,base:node.quaternion.clone()});
     }
     rides[id]={group,wheels,paintMaterialNames:['Body paint']};
@@ -42,7 +42,7 @@ test('paint changes the selected body, shares across its views, and preserves ty
   assert.ok(rides.nsx.group.children[0].material.color.equals(factory));
   manager.apply('bmw',{paint:'stock'});assert.ok(rides.bmw.group.children[0].material.color.equals(factory));
 });
-test('fixture wheel assemblies swap on all views while fitting original bounds and preserving stock parts',()=>{
+test('native wheel finishes preserve geometry, rubber, fit and all preview views',()=>{
   const {rides}=models(),manager=new VehicleAppearance(rides,storage());const id='roadster',ride=rides[id];const preview=ride.group.clone(true);manager.registerRoot(id,preview);
   const stockBounds=ride.wheels.map(w=>new THREE.Box3().setFromObject(w.node,true));
   for(const style of WHEEL_STYLES){manager.apply(id,{wheels:style.id});
@@ -57,7 +57,7 @@ test('fixture wheel assemblies swap on all views while fitting original bounds a
     }
   }
   manager.apply(id,{wheels:'touring'});const touring=manager.cache[id].touring[0].children.length;
-  manager.apply(id,{wheels:'mesh'});assert.notEqual(manager.cache[id].mesh[0].children.length,touring);
+  manager.apply(id,{wheels:'mesh'});assert.equal(manager.cache[id].mesh[0].children.length,touring,'finishes retain the car’s own assembly');assert.notEqual(manager.cache[id].mesh[0].children[1].material.color.getHexString(),manager.cache[id].touring[0].children[1].material.color.getHexString());
   const cached=manager.cache[id].mesh;manager.apply(id,{wheels:'stock'});manager.apply(id,{wheels:'mesh'});assert.equal(manager.cache[id].mesh,cached);
 });
 
@@ -80,4 +80,11 @@ test('all five shipped GLBs support body-only paint and bounded authored wheel s
       const cloned=view.getObjectByName(pivot.name);assert.ok(cloned.children.filter(c=>c.visible).every(c=>c.userData.wheelStyle===style));
     }}manager.apply(id,{wheels:'stock',paint:'stock'});
   }
+});
+
+test('finish variants retain each individual wheel’s geometry and never import a donor assembly',()=>{
+ const {rides,black}=models(),manager=new VehicleAppearance(rides,storage());
+ for(const [id,ride]of Object.entries(rides))for(const style of ['touring','mesh']){
+  manager.apply(id,{wheels:style});ride.wheels.forEach((wheel,i)=>{const original=wheel.node.children.filter(c=>c.userData.wheelStyle==='stock'),variant=manager.cache[id][style][i];assert.equal(variant.children.length,original.length);variant.children.forEach((mesh,j)=>assert.equal(mesh.geometry,original[j].geometry));assert.equal(variant.children[0].material,black,'rubber preserved');});
+ }
 });

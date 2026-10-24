@@ -15,7 +15,7 @@ export class GarageScene {
     scene.add(this.root);
     this.selected=null;
     this.count=Object.keys(rides).length;
-    this.angle=.8;
+    this.angle=.8;this.manual=false;this.drag=null;
     this.reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
     this.target=new THREE.Vector3();
 
@@ -76,7 +76,17 @@ export class GarageScene {
     return true;
   }
 
-  hide(){this.root.visible=false;}
+  hide(){this.root.visible=false;this.endDrag();}
+
+  bindInteraction(surface){
+    this.surface=surface;
+    surface.addEventListener('pointerdown',event=>{if(!this.root.visible||event.button!==0||this.drag)return;this.manual=true;this.drag={id:event.pointerId,x:event.clientX};surface.setPointerCapture(event.pointerId);});
+    surface.addEventListener('pointermove',event=>{if(this.drag?.id!==event.pointerId)return;this.angle+=(event.clientX-this.drag.x)*.009;this.drag.x=event.clientX;this.turntable.rotation.y=this.angle;});
+    for(const type of ['pointerup','pointercancel','lostpointercapture'])surface.addEventListener(type,event=>{if(this.drag?.id===event.pointerId)this.endDrag();});
+    surface.addEventListener('keydown',event=>{if(!this.root.visible||!['ArrowLeft','ArrowRight'].includes(event.key))return;event.preventDefault();event.stopPropagation();this.manual=true;this.angle+=event.key==='ArrowLeft'?-.15:.15;this.turntable.rotation.y=this.angle;});
+  }
+
+  endDrag(){const id=this.drag?.id;this.drag=null;if(id!==undefined&&this.surface?.hasPointerCapture(id))this.surface.releasePointerCapture(id);}
 
   frame(){
     const portrait=this.camera.aspect<1;
@@ -90,8 +100,9 @@ export class GarageScene {
 
   update(dt){
     if(!this.root.visible)return;
-    if(!this.reduced&&Number.isFinite(dt)&&dt>0)this.angle=(this.angle+Math.min(dt,.05)*.08)%(Math.PI*2);
+    if(!this.manual&&!this.reduced&&Number.isFinite(dt)&&dt>0)this.angle=(this.angle+Math.min(dt,.05)*.08)%(Math.PI*2);
     this.turntable.rotation.y=this.angle;
+    this.surface?.setAttribute('aria-valuenow',String(Math.round(((this.angle*180/Math.PI)%360+360)%360)));
     this.frame();
   }
 }

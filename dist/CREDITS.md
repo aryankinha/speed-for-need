@@ -210,9 +210,9 @@ Porsche 911 (930) Turbo 1975 by Lexyc16: https://sketchfab.com/3d-models/porsche
 
 Tesla Roadster 2020 by metarex.4d: https://sketchfab.com/3d-models/tesla-roadster-2020-1fbf29e297bd4a17ac39a00a378441d8
 
-Both Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/ . Optimized licensed redistributions from https://github.com/pedrosoandre/carros (weld, simplification, prune, Meshopt compression). Adaptations: game scale/orientation, rebased authored wheel geometry, body paint choices, and wheel substitutions. The original supplied Roadster remains in the source archive; the active Roadster now uses the authored model above for independent wheels and body paint. No car or wheel model was generated.
+Both Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/ . Optimized licensed redistributions from https://github.com/pedrosoandre/carros (weld, simplification, prune, Meshopt compression). Adaptations: game scale/orientation, rebased authored wheel geometry, body paint choices, and native wheel finishes. The original supplied Roadster remains in the source archive; the active Roadster now uses the authored model above for independent wheels and body paint. No car or wheel model was generated.
 
-GT alloy and Classic mesh options reuse wheel geometry from the credited Khronos Concept GT and Lexyc16 Honda NSX, respectively. Per-source attribution and primary verification records accompany the GLBs. All branding identifies subjects and does not imply endorsement.
+Factory, Satin alloy and Graphite wheel options now retain each credited vehicle’s own wheel geometry and tyre rubber; the latter two change rim finish only. Older saved GT alloy/Classic mesh choices retain their saved option IDs but use these native finishes. Per-source attribution and primary verification records accompany the GLBs. All branding identifies subjects and does not imply endorsement.
 
 ## Asphalt surface upgrade
 Asphalt 02 by **Rob Tuytel / Poly Haven**, CC0. Official source: https://polyhaven.com/a/asphalt_02 ; license: https://polyhaven.com/license . Original 1K diffuse and OpenGL normal maps, mapped at the source's 3 m surface scale. Files, checksums and provenance accompany the textures in assets/asphalt-source.json and assets/asphalt-LICENSE.md.

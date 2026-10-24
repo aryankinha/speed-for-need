@@ -188,3 +188,17 @@ test('shipped NSX steers the leading axle and leaves rear wheel steering fixed',
   for(const wheel of prepared.wheels)if(wheel.front)wheel.node.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(wheel.steerAxis,.3));
   prepared.wheels.forEach((wheel,i)=>assert.equal(wheel.node.quaternion.angleTo(before[i])>.1,wheel.front));
 });
+
+test('garage manual rotation supports pointer capture, cancellation, keyboard and reduced motion',()=>{
+ const {garage}=makeGarage(),listeners={},attrs={};let capture=null;
+ const surface={addEventListener:(type,fn)=>listeners[type]=fn,setPointerCapture:id=>capture=id,hasPointerCapture:id=>capture===id,releasePointerCapture:()=>capture=null,setAttribute:(k,v)=>attrs[k]=v};
+ garage.bindInteraction(surface);garage.show('bmw');garage.reduced=true;
+ listeners.pointerdown({button:0,pointerId:3,clientX:100});assert.equal(capture,3);
+ listeners.pointermove({pointerId:4,clientX:200});assert.equal(garage.angle,.8);
+ listeners.pointermove({pointerId:3,clientX:200});assert.ok(garage.angle>1.6);
+ listeners.pointerup({pointerId:3});assert.equal(capture,null);const angle=garage.angle;
+ garage.reduced=false;garage.update(.05);assert.equal(garage.angle,angle,'manual pose stays put');assert.ok(+attrs['aria-valuenow']>=0);
+ let prevented=false,stopped=false;listeners.keydown({key:'ArrowLeft',preventDefault:()=>prevented=true,stopPropagation:()=>stopped=true});assert.ok(prevented&&stopped);assert.ok(garage.angle<angle);
+ listeners.pointerdown({button:0,pointerId:5,clientX:0});garage.hide();assert.equal(capture,null);assert.equal(garage.drag,null);
+ listeners.pointerdown({button:0,pointerId:6,clientX:0});assert.equal(garage.drag,null);
+});
