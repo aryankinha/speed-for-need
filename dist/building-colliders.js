@@ -9,6 +9,19 @@ import * as THREE from './vendor/three.module.js';
 const CELL=.2,SKIN=.012,cache=new Map();
 const levels=[.18,.7,1.2,1.7,2.2,3,5,9,17,33,65,129,257,513];
 const p=new THREE.Vector3();
+const geometryKeys=new WeakMap();
+const PROFILE_SCHEMA='surface-slices:'+CELL+':'+SKIN+':'+levels.join(',');
+export const buildingProfileStats={compiled:0,cacheHits:0};
+export function seedBuildingProfiles(data){if(data?.version!==1||data.schema!==PROFILE_SCHEMA||!data.profiles)return;for(const [key,parts]of Object.entries(data.profiles))cache.set(key,parts);}
+export function exportBuildingProfiles(){return {version:1,schema:PROFILE_SCHEMA,profiles:Object.fromEntries(cache)};}
+function geometryKey(g){
+ let key=geometryKeys.get(g);if(key)return key;
+ const pos=g.attributes.position,values=new Float32Array(pos.count*3),indices=new Uint32Array(g.index?.count||0);
+ for(let i=0;i<pos.count;i++){values[i*3]=pos.getX(i);values[i*3+1]=pos.getY(i);values[i*3+2]=pos.getZ(i);}for(let i=0;i<indices.length;i++)indices[i]=g.index.getX(i);
+ let hash=2166136261;for(const array of [values,indices]){const bytes=new Uint8Array(array.buffer);for(let i=0;i<bytes.length;i++)hash=Math.imul(hash^bytes[i],16777619);}
+ key=pos.count+':'+indices.length+':'+(hash>>>0).toString(16)+':'+g.drawRange.start+':'+g.drawRange.count+':'+JSON.stringify(g.groups);geometryKeys.set(g,key);return key;
+}
+
 function clip(poly,axis,bound,greater){
  const out=[];if(!poly.length)return out;
  let a=poly[poly.length-1],insideA=greater?a[axis]>=bound:a[axis]<=bound;
@@ -26,8 +39,8 @@ function profile(root){
   const matrix=inverse.clone().multiply(m.matrixWorld);
   meshes.push({m,materials,matrix});
  });
- const key=meshes.map(({m,materials,matrix})=>m.geometry.uuid+':'+materials.map(v=>`${v?.visible!==false}:${!!v?.transparent}:${v?.opacity??1}`).join(',')+':'+matrix.elements.map(n=>n.toFixed(6)).join(',')).join('|');
- if(cache.has(key))return cache.get(key);
+ const key=meshes.map(({m,materials,matrix})=>geometryKey(m.geometry)+':'+materials.map(v=>`${v?.visible!==false}:${!!v?.transparent}:${v?.opacity??1}`).join(',')+':'+matrix.elements.map(n=>n.toFixed(6)).join(',')).join('|');
+ if(cache.has(key)){buildingProfileStats.cacheHits++;return cache.get(key);}buildingProfileStats.compiled++;
  const bands=levels.slice(1).map(()=>new Map());
  for(const {m,materials,matrix} of meshes){
   const geometry=m.geometry,position=geometry.attributes.position,index=geometry.index,count=index?.count??position.count;

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {planLotFill} from './lot-fill.js';
-import {addBuildingColliders} from './building-colliders.js';
+import {addBuildingColliders,seedBuildingProfiles,buildingProfileStats} from './building-colliders.js';
 import {makeBeachGeometry} from './coast.js';
 import {RAMPS,STUNT_AREA,addRampColliders} from './stunts.js';
 import {prepareRampModel} from './ramp-model.js';
@@ -14,7 +14,8 @@ const BATCH_CELL_M=220;
 import {WORLD} from './coast-config.js';
 import {normalize} from './model-utils.js';
 export {WORLD,normalize};
-export async function buildWorld({scene,physics,models,random,anisotropy=4}){
+export async function buildWorld({scene,physics,models,random,anisotropy=4,colliderProfiles=null}){
+  seedBuildingProfiles(colliderProfiles);
   const {left,right,top,bottom,roadsX,roadsZ}=WORLD;
   const obstacles=[],buildingLots=[],lots=[],interactiveProps=[],interactiveTemplates={},parkPlots=[],batches=new Map();const temp=new THREE.Vector3();let cityMaterial;
   const material=(color,roughness=.9)=>new THREE.MeshStandardMaterial({color,roughness});
@@ -165,5 +166,5 @@ export async function buildWorld({scene,physics,models,random,anisotropy=4}){
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(5000,5400),new THREE.ShaderMaterial({uniforms:{time:{value:0},normalMap:{value:normal}},vertexShader:`varying vec3 worldP;void main(){worldP=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(worldP,1.);}`,fragmentShader:`varying vec3 worldP;uniform float time;uniform sampler2D normalMap;void main(){vec2 p=worldP.xz;vec3 n1=texture2D(normalMap,p*.018+vec2(time*.012,time*.007)).rgb;vec3 n2=texture2D(normalMap,p*.032-vec2(time*.008,time*.011)).rgb;float ripple=(n1.x+n2.y-1.);float edge=max(abs(p.x)-490.,abs(p.y)-670.);float shallow=1.-smoothstep(25.,100.,edge);vec3 c=mix(vec3(.10,.25,.30),vec3(.30,.52,.49),shallow*.7+ripple*.12);float wave=sin(edge*.65-time*1.5+n1.x*1.2);float foam=(1.-smoothstep(31.,42.,abs(edge-36.)))*pow(max(0.,wave),12.)*.38;c=mix(c,vec3(.83,.84,.73),foam);float gleam=pow(max(0.,ripple*.7+.2),8.)*2.;c+=vec3(.7,.44,.22)*gleam;float haze=1.-exp(-length(p-cameraPosition.xz)*.0006);gl_FragColor=vec4(mix(c,vec3(.64,.61,.59),haze),1.);}`}));sea.rotation.x=-Math.PI/2;sea.position.set(0,-.30,0);scene.add(sea);
   const placementErrors=buildingLots.filter(l=>l.bounds.min.x<l.minX||l.bounds.max.x>l.maxX||l.bounds.min.z<l.minZ||l.bounds.max.z>l.maxZ).length;
   if(placementErrors)throw new Error(`${placementErrors} buildings escaped their allocated lots`);
-  return {obstacles,sea,buildingLots,lots,lotFill,interactiveProps,interactiveTemplates,parkPlots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{map:'Solana Coast',districtBuildings,buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
+  return {obstacles,sea,buildingLots,lots,lotFill,interactiveProps,interactiveTemplates,parkPlots,ramps:RAMPS,stuntArea:STUNT_AREA,stats:{colliderProfiles:buildingProfileStats,map:'Solana Coast',districtBuildings,buildings:buildingCount,props:propCount,colliders:physics.objects.length,areaKm2:((right-left)*(bottom-top)/1e6).toFixed(2),placementErrors}};
 }

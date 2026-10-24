@@ -83,7 +83,7 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     const config={...BASE,...options};
     const {width,length,mass}=config;
     if(!(width>0&&length>0&&mass>0))throw new RangeError('Vehicle dimensions and mass must be positive.');
-    const body=rawWorld.createDynamicBody({position:Vec2(options.x||0,options.z||0),angle:-(options.heading||0),bullet:true,allowSleep:false,angularDamping:.65});
+    const body=rawWorld.createDynamicBody({position:Vec2(options.x||0,options.z||0),angle:-(options.heading||0),bullet:options.bullet??options.userData?.kind!=='traffic',allowSleep:options.allowSleep??false,angularDamping:.65});
     const fixture=body.createFixture(Box(width/2,length/2),{density:mass/(width*length),friction:.22,restitution:.07});
     const actor=register(body,fixture,options.userData,'vehicle');
     Object.assign(actor,{config,width,length,minY:0,maxY:options.height||1.6,elevation:0,isAirborne:false,landGrip:1,controls:{throttle:0,reverse:0,brake:0,steer:0,handbrake:false,boost:false},target:null});
