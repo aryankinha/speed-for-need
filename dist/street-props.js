@@ -85,8 +85,9 @@ export function layoutStreetProps(map,{random=seeded(9157),blocked=()=>false}={}
 export function seeded(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 /** Uniform grid of item indices keyed by home position. query() visits the 3×3 cells around a point. */
 export class PropGrid{
-  constructor(items,cell=PROP_CONFIG.cell){this.cell=cell;this.cells=new Map();items.forEach((it,i)=>{const k=this.key(Math.floor(it.x/cell),Math.floor(it.z/cell));let list=this.cells.get(k);if(!list)this.cells.set(k,list=[]);list.push(i);});}
+  constructor(items,cell=PROP_CONFIG.cell){this.cell=cell;this.cells=new Map();this.locations=new Int32Array(items.length);items.forEach((it,i)=>{const k=this.key(Math.floor(it.x/cell),Math.floor(it.z/cell));this.locations[i]=k;let list=this.cells.get(k);if(!list)this.cells.set(k,list=[]);list.push(i);});}
   key(i,j){return i*73856093^j*19349663;}
+  move(index,x,z){const key=this.key(Math.floor(x/this.cell),Math.floor(z/this.cell)),old=this.locations[index];if(key===old)return;const previous=this.cells.get(old),at=previous?.indexOf(index)??-1;if(at>=0)previous.splice(at,1);let list=this.cells.get(key);if(!list)this.cells.set(key,list=[]);list.push(index);this.locations[index]=key;}
   forNear(x,z,radius,fn){const c=this.cell,n=Math.ceil(radius/c),gi=Math.floor(x/c),gj=Math.floor(z/c);for(let i=-n;i<=n;i++)for(let j=-n;j<=n;j++){const list=this.cells.get(this.key(gi+i,gj+j));if(list)for(const k of list)fn(k);}}
 }
 /** Small curated garden clusters leave the two 7 m park paths and entrances open. */
@@ -159,7 +160,7 @@ class WaterSpray{
 /** Scene + physics glue. Construct after the world is built; await load(loader) before driving; call update() once per frame. */
 export class StreetProps{
   constructor({scene,physics,world,map,blocked}){
-    this.scene=scene;this.physics=physics;this.world=world;this.templates=world?.interactiveTemplates||{};this.map=map;this.time=0;this.knocks=0;this.ready=false;this.previous=null;this.before=null;
+    this.scene=scene;this.physics=physics;this.world=world;this.templates=world?.interactiveTemplates||{};this.map=map;this.time=0;this.knocks=0;this.ready=false;this.previous=null;this.before=null;this.activeSlides=new Set();this.beforePose={x:0,z:0,heading:0};this.previousPose={x:0,z:0,heading:0};this.predicted={x:0,z:0,heading:0,width:0,length:0,vx:0,vz:0};
     const obstacles=world?.obstacles||[],near=(x,z,r)=>obstacles.some(o=>x+r>o.box.min.x&&x-r<o.box.max.x&&z+r>o.box.min.z&&z-r<o.box.max.z);
     const placed=world?.interactiveProps||[],garden=layoutParkProps(world?.parkPlots||[],blocked||near);
     this.obstacleGrid=new PropObstacles(obstacles);
@@ -169,6 +170,10 @@ export class StreetProps{
     this.bodies=this.items.map(it=>makeBody(it));this.bodies.forEach((b,i)=>b.index=i);
     this.grid=new PropGrid(this.items);this.displaced=new Set();this.loose=new Set();this.counts={};for(const it of this.items)this.counts[it.type]=(this.counts[it.type]||0)+1;
     this.meshes={};this.frustum=new THREE.Frustum();this.projView=new THREE.Matrix4();this.refreshClock=1;this.slots=new Int32Array(this.items.length).fill(-1);
+    this.visitNear=i=>{const b=this.bodies[i],t=PROP_TYPES[b.type],car=this.queryCar;if(!b.actor)return;
+      if(t.slide){if((b.x-car.x)**2+(b.z-car.z)**2<85*85){if(!b.actor.body.isActive())b.actor.body.setActive(true);this.activeSlides.add(b);}}
+      if(t.breakSpeed&&Math.hypot(b.x-car.x,b.z-car.z)<car.length+car.speed*this.queryDt+2&&b.state==='rest'&&car.speed>=t.breakSpeed&&!car.isAirborne&&(car.groundElevation||0)<1&&sweptCarOverlapsProp(this.predicted,this.before,b.x,b.z,b.r)){b.actor.body.setActive(false);this.launch(b,this.predicted);}
+    };
     this.spray=typeof document!=='undefined'?new WaterSpray(scene,PROP_CONFIG.sprayParticles):null;
     if(typeof window!=='undefined')window.streetPropsDebug=this;
   }
@@ -184,7 +189,7 @@ export class StreetProps{
     // slim: horizontal-only factor for stylised kit parts that are too chunky at real height (Kenney pole is ~1.5 m thick at 9.5 m).
     const xz=scale*(t.slim||1),bake=new THREE.Matrix4().makeScale(xz,scale,xz).multiply(new THREE.Matrix4().makeTranslation(-center.x,-(box.min.y+size.y/2),-center.z));
     const parts=[],max=this.counts[name];
-    root.traverse(o=>{if(!o.isMesh)return;const geometry=o.geometry.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(bake,o.matrixWorld));let material=o.material;if(t.tint){material=material.clone();material.color.setHex(t.tint);}const mesh=new THREE.InstancedMesh(geometry,material,max);mesh.count=0;mesh.frustumCulled=false;mesh.castShadow=height>.9;mesh.receiveShadow=true;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.name='street-prop-'+name;this.scene.add(mesh);parts.push(mesh);});
+    root.traverse(o=>{if(!o.isMesh)return;const geometry=o.geometry.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(bake,o.matrixWorld));let material=o.material;if(t.tint){material=material.clone();material.color.setHex(t.tint);}const mesh=new THREE.InstancedMesh(geometry,material,max);mesh.count=0;mesh.frustumCulled=false;mesh.castShadow=height>=2.5;mesh.receiveShadow=true;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.name='street-prop-'+name;this.scene.add(mesh);parts.push(mesh);});
     for(const b of this.bodies)if(b.type===name){const k=b.home.scale||1;b.half=height*k/2;b.r=t.r*k;b.ground=b.home.ground??.06;b.y=b.half+b.ground;
       if(t.slide&&this.physics){b.actor=this.physics.addProp({x:b.x,z:b.z,width:size.x*xz*k,length:size.z*xz*k,heading:-b.home.rot,mass:t.kg,height:height*k,userData:{kind:'movable-'+name}});b.actor.body.setAwake(false);b.actor.body.setActive(false);}
       else if(t.breakSpeed&&this.physics){b.actor=this.physics.addCircle({x:b.x,z:b.z,radius:t.r,userData:{kind:'breakable-'+name,managedActivation:true}});b.actor.minY=b.ground;b.actor.maxY=height;}
@@ -196,22 +201,20 @@ export class StreetProps{
   refresh(x,z){
     const R=PROP_CONFIG.viewRadius,queryR=Math.max(R,...Object.keys(this.meshes).map(name=>PROP_TYPES[name].viewRadius||R)),fill={};this.slots.fill(-1);
     const take=b=>{const m=this.meshes[b.type];if(!m)return;const n=fill[b.type]||0;if(n>=m.max)return;this.slots[b.index]=n;fill[b.type]=n+1;this.writeMatrix(b);};
-    for(const b of this.bodies)if(b.actor&&PROP_TYPES[b.type].slide&&Math.hypot(b.x-x,b.z-z)<R)take(b);
+    for(const b of this.activeSlides)if(Math.hypot(b.x-x,b.z-z)<R)take(b);
     for(const b of this.displaced)if(Math.hypot(b.x-x,b.z-z)<(PROP_TYPES[b.type].viewRadius||R))take(b);
     this.grid.forNear(x,z,queryR,i=>{const b=this.bodies[i],radius=PROP_TYPES[b.type].viewRadius||R;if(!PROP_TYPES[b.type].slide&&b.state==='rest'&&Math.hypot(b.x-x,b.z-z)<radius)take(b);});
     for(const [name,m] of Object.entries(this.meshes))for(const part of m.parts){part.count=fill[name]||0;part.instanceMatrix.needsUpdate=true;}
   }
   // Called before the physics step: remove a breakaway pole's solid base before a high-speed hit.
   beforeStep(car,dt){
-    if(!this.ready)return;this.before={x:car.x,z:car.z,heading:car.heading};
-    const predicted={x:car.x+car.vx*dt,z:car.z+car.vz*dt,heading:car.heading,width:car.width,length:car.length,vx:car.vx,vz:car.vz};
-    for(const b of this.bodies){const t=PROP_TYPES[b.type];if(!b.actor)continue;
-      if(t.slide){const active=Math.hypot(b.x-car.x,b.z-car.z)<85;if(b.actor.body.isActive()!==active)b.actor.body.setActive(active);}
-      if(t.breakSpeed&&Math.hypot(b.x-car.x,b.z-car.z)<car.length+car.speed*dt+2&&b.state==='rest'&&car.speed>=t.breakSpeed&&!car.isAirborne&&(car.groundElevation||0)<1&&sweptCarOverlapsProp(predicted,this.before,b.x,b.z,b.r)){
-        b.actor.body.setActive(false);this.launch(b,predicted);
-      }
-    }
+    if(!this.ready)return;
+    this.before=this.beforePose;this.before.x=car.x;this.before.z=car.z;this.before.heading=car.heading;
+    const predicted=this.predicted;predicted.x=car.x+car.vx*dt;predicted.z=car.z+car.vz*dt;predicted.heading=car.heading;predicted.width=car.width;predicted.length=car.length;predicted.vx=car.vx;predicted.vz=car.vz;
+    for(const b of this.activeSlides)if((b.x-car.x)**2+(b.z-car.z)**2>=85*85){b.actor.body.setActive(false);this.activeSlides.delete(b);}
+    this.queryCar=car;this.queryDt=dt;this.grid.forNear(car.x,car.z,Math.max(85,car.length+car.speed*dt+2),this.visitNear);
   }
+
   launch(b,car){const t=PROP_TYPES[b.type];if(t.slide||t.static)return 0;if(b.state==='rest'&&t.spray)this.spray?.start(b.x,.25,b.z,this.time+PROP_CONFIG.sprayTime);
     b.lastHit=this.time;const impact=knockBody(b,car);if(t.breakSpeed){b.vx*=.28;b.vz*=.28;b.vy=Math.min(b.vy,2);}
     this.loose.add(b);this.displaced.add(b);this.knocks++;if(this.slots[b.index]<0)this.refreshClock=1;return impact;
@@ -234,8 +237,8 @@ export class StreetProps{
     if(this.displaced.size){let visibleTest=null;if(camera){this.projView.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);this.frustum.setFromProjectionMatrix(this.projView);visibleTest=(x,z)=>this.frustum.containsPoint(_p.set(x,.5,z));}
       for(const b of this.displaced){if(b.state!=='settled')continue;const d=Math.hypot(b.x-car.x,b.z-car.z),seen=visibleTest?visibleTest(b.x,b.z)||visibleTest(b.home.x,b.home.z):d<PROP_CONFIG.respawnDistance;if(maybeRespawn(b,dt,Math.min(d,Math.hypot(b.home.x-car.x,b.home.z-car.z)),seen)){this.displaced.delete(b);b.y=b.half+(b.ground??.06);if(b.actor)b.actor.body.setActive(true);this.writeMatrix(b);}}}
     this.refreshClock+=dt;if(this.refreshClock>.25){this.refreshClock=0;this.refresh(car.x,car.z);}
-    for(const b of this.bodies)if(b.actor&&PROP_TYPES[b.type].slide&&b.actor.body.isActive()){const p=b.actor.body.getPosition();b.x=p.x;b.z=p.y;b.q.setFromAxisAngle(_up.set(0,1,0),b.actor.body.getAngle());this.writeMatrix(b);}
-    this.previous={x:car.x,z:car.z,heading:car.heading};this.before=null;this.spray?.update(dt,this.time);return knocks;
+    for(const b of this.activeSlides)if(b.actor.body.isActive()){const p=b.actor.body.getPosition();b.x=p.x;b.z=p.y;this.grid.move(b.index,b.x,b.z);b.q.setFromAxisAngle(_up.set(0,1,0),b.actor.body.getAngle());this.writeMatrix(b);}
+    this.previous=this.previousPose;this.previous.x=car.x;this.previous.z=car.z;this.previous.heading=car.heading;this.before=null;this.spray?.update(dt,this.time);return knocks;
   }
   get stats(){return {props:this.items.length,counts:this.counts,loose:this.loose.size,displaced:this.displaced.size,knocks:this.knocks,drawn:Object.fromEntries(Object.entries(this.meshes).map(([k,m])=>[k,m.parts[0]?.count||0])),spray:this.spray?.points.visible||false};}
 }

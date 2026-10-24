@@ -3,10 +3,10 @@ import * as THREE from './vendor/three.module.js';
 // Graphics presets. Budget target: 60 FPS on integrated laptop GPUs at 'medium'.
 // ratio = max render pixel ratio (RenderQuality adapts below it), smaa = postprocessing SMAAPreset (0 low .. 3 ultra), sharpen = CAS strength that restores detail lost to upscaling and SMAA, ao = N8AO mode (null, 'half', 'full'), crowd = pedestrian pool size (pedestrians.js).
 export const GRAPHICS_PRESETS={
-  low:{label:'Low',ratio:1,minRatio:.75,shadowMap:1024,ao:null,bloom:false,smaa:1,anisotropy:4,clearcoat:false,sharpen:.3,crowd:12},
-  medium:{label:'Medium',ratio:1.5,minRatio:1,shadowMap:2048,ao:'half',aoQuality:'Performance',bloom:true,smaa:2,anisotropy:8,clearcoat:true,sharpen:.35,crowd:28},
-  high:{label:'High',ratio:2,minRatio:1.25,shadowMap:2048,ao:'full',aoQuality:'Medium',bloom:true,smaa:2,anisotropy:16,clearcoat:true,sharpen:.25,crowd:44},
-  ultra:{label:'Ultra',ratio:2,minRatio:1.5,shadowMap:4096,ao:'full',aoQuality:'High',bloom:true,smaa:3,anisotropy:16,clearcoat:true,sharpen:.2,crowd:60}
+  low:{label:'Low',ratio:1,minRatio:.75,shadowMap:1024,softShadows:false,ao:null,bloom:false,smaa:1,anisotropy:4,clearcoat:false,sharpen:.3,crowd:12},
+  medium:{label:'Medium',ratio:1.25,minRatio:1,shadowMap:2048,softShadows:false,ao:'half',aoQuality:'Performance',bloom:true,smaa:2,anisotropy:8,clearcoat:true,sharpen:.35,crowd:28},
+  high:{label:'High',ratio:2,minRatio:1.25,shadowMap:2048,softShadows:true,ao:'full',aoQuality:'Medium',bloom:true,smaa:2,anisotropy:16,clearcoat:true,sharpen:.25,crowd:44},
+  ultra:{label:'Ultra',ratio:2,minRatio:1.5,shadowMap:4096,softShadows:true,ao:'full',aoQuality:'High',bloom:true,smaa:3,anisotropy:16,clearcoat:true,sharpen:.2,crowd:60}
 };
 export const GRAPHICS_KEY='speed-for-need-graphics';
 const WEAK_GPU=/swiftshader|llvmpipe|software|mali|adreno|powervr|videocore|intel\(r\) (hd|uhd) graphics [2-6]\d\d\b|intel.*hd graphics/i;

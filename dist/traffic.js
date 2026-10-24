@@ -30,13 +30,13 @@ const _trafficTarget={vx:0,vz:0,heading:0,maxAcceleration:7};
 export function followTraffic(traffic,player,dt){
   const px=player.x??player.state?.x??0,pz=player.z??player.state?.z??0;
   for(const car of traffic){
-    const a=car.actor,sx=a.x??a.state?.x??0,sz=a.z??a.state?.z??0,sSpeed=a.speed??a.state?.speed??0;
+    const a=car.actor;if(a.body&&!a.body.isActive())continue;const sx=a.x??a.state?.x??0,sz=a.z??a.state?.z??0,sSpeed=a.speed??a.state?.speed??0;
     car.progress=car.route.nearest(sx,sz,car.progress);const near=car.route.sample(car.progress,_near),look=car.route.sample(car.progress+Math.max(3.5,Math.min(6,sSpeed*.45)),_look);let targetSpeed=car.cruise;
     // Brake before a bend and keep the limit through the entire bend. The old
     // single preview point accelerated again while the car was still cornering.
     const preview=8+sSpeed*sSpeed/(2*4);
     for(let d=-4;d<=preview;d+=2){const c=car.route.sample(car.progress+d,_curv);const curvature=Math.abs(c.curvature);if(curvature>.001)targetSpeed=Math.min(targetSpeed,Math.sqrt(3.2/curvature));}
-    for(const other of traffic){if(other===car||other.route!==car.route)continue;const gap=((other.progress-car.progress)%car.route.length+car.route.length)%car.route.length;if(gap<22)targetSpeed=Math.min(targetSpeed,Math.max(0,(gap-6)*.75));}
+    for(const other of traffic){if(other===car||other.route!==car.route||(other.actor.body&&!other.actor.body.isActive()))continue;const gap=((other.progress-car.progress)%car.route.length+car.route.length)%car.route.length;if(gap<22)targetSpeed=Math.min(targetSpeed,Math.max(0,(gap-6)*.75));}
     const dx=px-sx,dz=pz-sz,ahead=dx*near.dx+dz*near.dz,lateral=Math.abs(dx*near.dz-dz*near.dx);
     if(ahead>0&&ahead<25&&lateral<2.7)targetSpeed=Math.min(targetSpeed,Math.max(0,(ahead-6)*.8));
     let tx=look.x-sx,tz=look.z-sz,n=Math.hypot(tx,tz);if(n<.01){tx=near.dx;tz=near.dz;n=1;}

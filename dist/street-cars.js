@@ -130,22 +130,23 @@ export function buildStreetCars({scene,physics,models,map,random=Math.random,wor
  const geometryIds=new Map();for(const [name,{geometry}] of baked)geometryIds.set(name,mesh.addGeometry(geometry));
  const matrix=new THREE.Matrix4(),quat=new THREE.Quaternion(),posV=new THREE.Vector3(),one=new THREE.Vector3(1,1,1),yAxis=new THREE.Vector3(0,1,0),color=new THREE.Color();
  const write=(id,x,z,heading,y=.02)=>{posV.set(x,y,z);quat.setFromAxisAngle(yAxis,heading);mesh.setMatrixAt(id,matrix.compose(posV,quat,one));};
- const obstacles=world?.obstacles;
+ const obstacles=world?.obstacles,awake=new Set(),byBody=new Map();
  for(const car of cars){
   const id=mesh.addInstance(geometryIds.get(car.model));car.instance=id;write(id,car.x,car.z,car.heading,car.ground??.02);
   if(car.paint==null)color.setRGB(1,1,1);else color.set(car.paint);mesh.setColorAt(id,color);
   triangles+=baked.get(car.model).geometry.index.count/3;
   const actor=physics.addBox({x:car.x,z:car.z,heading:car.heading,width:car.width*.96,length:car.length*.97,friction:.4,restitution:.05,userData:{kind:'parked-car'}});
   actor.minY=car.ground||0;actor.maxY=car.height+(car.ground||0);car.actor=actor;
-  if(dynamic)makeShoveable(actor,car);
+  if(dynamic){makeShoveable(actor,car);byBody.set(actor.body,car);}
   obstacles?.push({box:new THREE.Box3(new THREE.Vector3(car.x-car.length/2,0,car.z-car.length/2),new THREE.Vector3(car.x+car.length/2,car.height,car.z+car.length/2)),actor});
  }
+ const onContact=contact=>{const a=byBody.get(contact.getFixtureA().getBody()),b=byBody.get(contact.getFixtureB().getBody());if(a)awake.add(a);if(b)awake.add(b);};if(dynamic)physics.rawWorld?.on('post-solve',onContact);
  scene.add(mesh);
  const cull=layout.cullDistance,cull2=cull*cull;let frame=0;const shown=cars.map(()=>true);
  function update(cameraPosition){
-  if(dynamic)for(const car of cars){const body=car.actor.body;if(!body.isAwake())continue;const p=body.getPosition();const onCourt=car.lot&&world?.lotFill?.courts.some(c=>p.x>=c.minX&&p.x<=c.maxX&&p.y>=c.minZ&&p.y<=c.maxZ),ground=onCourt?.14:.02;write(car.instance,p.x,p.y,-body.getAngle(),ground);car.actor.minY=ground;car.actor.maxY=ground+car.height;car.moved=true;}
+  if(dynamic)for(const car of awake){const body=car.actor.body;const p=body.getPosition();const onCourt=car.lot&&world?.lotFill?.courts.some(c=>p.x>=c.minX&&p.x<=c.maxX&&p.y>=c.minZ&&p.y<=c.maxZ),ground=onCourt?.14:.02;write(car.instance,p.x,p.y,-body.getAngle(),ground);car.actor.minY=ground;car.actor.maxY=ground+car.height;car.moved=true;if(!body.isAwake())awake.delete(car);}
   // Distance cull (fog hides them anyway) every 12 frames; BatchedMesh already frustum-culls per instance.
   if(cameraPosition&&cull<Infinity&&++frame%12===0)for(let i=0;i<cars.length;i++){const car=cars[i],p=dynamic&&car.moved?car.actor.body.getPosition():null,x=p?p.x:car.x,z=p?p.y:car.z,vis=(x-cameraPosition.x)**2+(z-cameraPosition.z)**2<cull2;if(vis!==shown[i]){shown[i]=vis;mesh.setVisibleAt(car.instance,vis);}}
  }
- return {mesh,cars,update,stats:{parked:cars.length,models:baked.size,trianglesTotal:triangles,dynamic}};
+ return {mesh,cars,update,awake,dispose(){physics.rawWorld?.off('post-solve',onContact);mesh.removeFromParent();mesh.dispose();},stats:{parked:cars.length,models:baked.size,trianglesTotal:triangles,dynamic}};
 }

@@ -16,6 +16,6 @@ export class RenderQuality {
     // A cheap CPU frame does not imply headroom when GPU/compositing misses vsync.
     // Cheap (<8 ms) work on a 30 Hz power-saving display can still recover sharpness.
     if(cost>(measured?20:25)||(measured&&frameMs>22&&cost>12)){this.slow+=dt;this.fast=0;}else if(cost<(measured?13:17)&&(frameMs<18.5||(measured&&cost<8&&frameMs<40))){this.fast+=dt;this.slow=0;}else{this.slow=0;this.fast=0;}
-    const before=this.ratio;if(this.slow>2.5){if(this.ratio>this.min){this.ratio=Math.max(this.min,this.ratio-.25);}else this.starved=true;this.slow=0;}if(this.fast>10&&this.ratio<this.max){this.ratio=Math.min(this.max,this.ratio+.25);this.fast=0;}return before!==this.ratio;
+    const before=this.ratio;if(this.slow>1){if(this.ratio>this.min){this.ratio=Math.max(this.min,this.ratio-.25);}else this.starved=true;this.slow=0;}if(this.fast>10&&this.ratio<this.max){this.ratio=Math.min(this.max,this.ratio+.25);this.fast=0;}return before!==this.ratio;
   }
 }
