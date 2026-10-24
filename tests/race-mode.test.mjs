@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import * as T from '../dist/vendor/three.module.js';import {VEHICLES} from '../dist/vehicles.js';import {createDrivingWorld} from '../dist/physics.js';import {RaceMode} from '../dist/race-mode.js';import {CircuitPath,CIRCUIT_WAYPOINTS} from '../dist/race-track.js';import {RenderState} from '../dist/interpolation.js';import {SparksParticleEmitter} from '../dist/sparks.js';
+import * as T from '../dist/vendor/three.module.js';import {VEHICLES} from '../dist/vehicles.js';import {createDrivingWorld} from '../dist/physics.js';import {RaceMode,DRIVER_PROFILES,ensureRaceline} from '../dist/race-mode.js';import {CircuitPath,CIRCUIT_WAYPOINTS} from '../dist/race-track.js';import {RenderState} from '../dist/interpolation.js';import {SparksParticleEmitter} from '../dist/sparks.js';
 const scratch={x:0,z:0,dx:0,dz:0,heading:0,curvature:0},input={throttle:0,reverse:0,steer:0,boost:false,handbrake:false};
 function setup(id='concept',walls=false){const physics=createDrivingWorld(),def=VEHICLES.find(v=>v.id===id),player=physics.addVehicle({...def.tuning}),poses=new RenderState(16);poses.setActor(0,player);const race=new RaceMode({physics,scene:walls?new T.Scene():null,renderState:poses,slotOffset:1});race.start(id,player);return {physics,player,race,poses};}
 test('provided 25-point circuit is closed, distance-sampled and locally projects across its seam',()=>{const p=new CircuitPath();assert.equal(CIRCUIT_WAYPOINTS.length,25);assert.ok(p.length>1400&&p.length<1500);const a={...scratch},b={...scratch};p.sampleAtDistance(0,a);p.sampleAtDistance(p.length,b);assert.ok(Math.hypot(a.x-b.x,a.z-b.z)<1e-8);p.sampleAtDistance(p.length+3,a);assert.ok(Math.abs(p.nearest(a.x,a.z,p.length-2)-(p.length+3))<.05);});
@@ -45,4 +45,37 @@ test('pad boosting still permits necessary braking before a tight corner',()=>{
  // Use an actual tight course, not a stub curvature fed to the controller.
  const path=new CircuitPath({x:0,z:0,waypoints:[{x:0,z:-25},{x:25,z:0},{x:0,z:25},{x:-25,z:0}]});race.path=path;e.progress=20;path.sampleAtDistance(20,scratch);a.setPose({x:scratch.x,z:scratch.z,heading:scratch.heading,vx:scratch.dx*50,vz:scratch.dz*50});e.pad.timeLeft=1;
  race.driveAI(e,1/120);assert.ok(e.controls.brake>.5);assert.equal(e.boostRequest,false);race.stop();
+});
+test('minimum-curvature raceline uses wide Out-In-Out offsets and reduces RMS curvature',()=>{
+ const path=new CircuitPath(),rl=ensureRaceline(path);
+ let centerSq=0,raceSq=0,maxOffset=0;
+ for(let k=0;k<rl.M;k++){
+  path.sampleAtDistance(k*rl.step,scratch);
+  centerSq+=scratch.curvature*scratch.curvature;
+  raceSq+=rl.curv[k]*rl.curv[k];
+  maxOffset=Math.max(maxOffset,Math.abs(rl.alpha[k]));
+ }
+ assert.ok(maxOffset>3.0,'raceline must use multi-metre Out-In-Out width rather than hugging the centerline');
+ assert.ok(Math.sqrt(raceSq/rl.M)<Math.sqrt(centerSq/rl.M)*.85,'raceline must reduce RMS path curvature by >15%');
+});
+test('AI drivers have distinct personas and actively execute draft, pickup and defensive tactics',()=>{
+ const {race,e}=straightOpponent(),a=e.actor;
+ for(const v of VEHICLES)assert.ok(DRIVER_PROFILES[v.id],'missing profile for '+v.id);
+ a.setPose({x:a.x,z:a.z,heading:a.heading,vx:scratch.dx*28,vz:scratch.dz*28});
+ // 1. Pickup seeking: place an active nitro pickup 20 m ahead and 1.5 m to the right.
+ const rx=Math.cos(a.heading),rz=-Math.sin(a.heading);
+ race.pickups[0].active=true;race.pickups[0].x=a.x+scratch.dx*20+rx*1.5;race.pickups[0].z=a.z+scratch.dz*20+rz*1.5;
+ e.nitro=30;race.driveAI(e,1/120);
+ assert.equal(e.tacticalMode,'pickup');
+ race.pickups[0].active=false;
+ // 2. Slipstream seeking: place a fast car 22 m ahead and 1.4 m to the left on a straight.
+ const leader=race.entries[0].actor;
+ leader.setPose({x:a.x+scratch.dx*22-rx*1.4,z:a.z+scratch.dz*22-rz*1.4,heading:a.heading,vx:scratch.dx*30,vz:scratch.dz*30});
+ race.driveAI(e,1/120);
+ assert.equal(e.tacticalMode,'draft');
+ // 3. Defensive blocking: place a faster attacker 10 m behind closing in.
+ leader.setPose({x:a.x-scratch.dx*10+rx*1.2,z:a.z-scratch.dz*10+rz*1.2,heading:a.heading,vx:scratch.dx*36,vz:scratch.dz*36});
+ race.driveAI(e,1/120);
+ assert.equal(e.tacticalMode,'defend');
+ race.stop();
 });

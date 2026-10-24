@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-24",
+  "runtimeBytesBefore": 88777752,
+  "runtimeBytesAfter": 72636606,
+  "heroCarTrianglesBefore": 443045,
+  "heroCarTrianglesAfter": 133366,
+  "heroCarBytesBefore": 18859704,
+  "heroCarBytesAfter": 3726128,
+  "skyBytesBefore": 5451493,
+  "skyBytesAfter": 1452580,
+  "skyMeanRadianceRelativeError": 0.0007935820823681272,
+  "buildingProfiles": 69,
+  "buildingFixtures": 86082,
+  "browserCacheHits": 160,
+  "browserRuntimeProfileCompiles": 0,
+  "trafficAtInitialSpawn": {
+    "total": 58,
+    "active": 5,
+    "bullet": 1
+  },
+  "browserSamples": [
+    {
+      "phase": "baseline",
+      "map": "drift",
+      "car": "concept",
+      "ratio": 1,
+      "canvas": [
+        1512,
+        812
+      ],
+      "triangles": 1086135,
+      "drawCalls": 181,
+      "cpuP50": 3.2,
+      "cpuP95": 3.6,
+      "frameP50": 8.4,
+      "frameP95": 16.8,
+      "gpuSampleMs": 21.024875
+    },
+    {
+      "phase": "optimized",
+      "map": "drift",
+      "car": "concept",
+      "ratio": 1,
+      "canvas": [
+        1512,
+        812
+      ],
+      "triangles": 432546,
+      "drawCalls": 138,
+      "cpuP50": 2.5,
+      "cpuP95": 3,
+      "frameP50": 8.3,
+      "frameP95": 9.3,
+      "gpuSampleMs": 8.597083
+    },
+    {
+      "phase": "optimized-later-view",
+      "map": "drift",
+      "ratio": 1,
+      "triangles": 613453,
+      "cpuP50": 4.6,
+      "cpuP95": 5.8,
+      "frameP50": 8.4,
+      "frameP95": 16.7,
+      "gpuSampleMs": 17.364083
+    }
+  ],
+  "sampleLimit": "Representative foreground gameplay samples, not a controlled replay. Visible opponents and camera position vary; GPU times are asynchronous samples, not universal FPS guarantees.",
+  "cadence": {
+    "simulationSeconds": 61.37499999999704,
+    "shadowRefreshes": 1841,
+    "radarRedraws": 1842
+  },
+  "validation": {
+    "testsPassed": 461,
+    "testFailures": 0,
+    "browserMaps": [
+      "coast",
+      "drift"
+    ],
+    "electronMaps": [
+      "coast",
+      "drift"
+    ],
+    "productionTelemetryAbsent": true,
+    "garageThumbnailsLoaded": 5
+  },
+  "buildTools": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/extensions": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "meshoptimizer": "1.3.0",
+    "sharp": "0.35.5",
+    "@napi-rs/canvas": "1.0.13"
+  }
+}
