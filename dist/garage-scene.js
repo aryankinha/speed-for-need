@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import {addVehiclePlatform} from './vehicle-stage.js';
 
 // The room is the downloaded, baked-light garage asset. Only vehicle staging and
 // inexpensive fill lights are added here; its textures and authored scale stay intact.
@@ -38,12 +39,13 @@ export class GarageScene {
     this.turntable=new THREE.Group();
     this.turntable.name='Selected garage vehicle';
     this.root.add(this.turntable);
+    addVehiclePlatform(this.root,this.turntable);
     this.cars={};
     for(const [id,ride] of Object.entries(rides)){
       const car=ride.group.clone(true);
       // Normalized player models are centred in X/Z and grounded in Y already.
       // Keep their metre scale so even the SUV fits the authored 3.58 m ceiling.
-      car.position.set(0,.015,0);
+      car.position.set(0,.27,0);
       car.visible=false;
       this.cars[id]=car;
       this.turntable.add(car);
@@ -79,7 +81,8 @@ export class GarageScene {
   frame(){
     const portrait=this.camera.aspect<1;
     this.camera.position.set(this.position.x-7,2.5,this.position.z+7);
-    this.target.set(this.position.x,-.35,this.position.z);
+    this.target.set(this.position.x,.15,this.position.z);
+    this.camera.up.set(0,1,0);this.camera.near=.12;
     this.camera.fov=portrait?58:45;
     this.camera.lookAt(this.target);
     this.camera.updateProjectionMatrix();

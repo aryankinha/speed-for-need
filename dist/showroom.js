@@ -1,24 +1,15 @@
-// Reuses the downloaded vehicle and city. Platform meshes use Three.js built-in
-// Cylinder/RingGeometry; this is scenery staging, not a replacement car model.
-import * as THREE from 'three';
-export class CarShowroom {
-  constructor({scene,camera,rides}){
-    this.camera=camera;this.position=new THREE.Vector3(-478,0,75);this.root=new THREE.Group();this.root.position.copy(this.position);scene.add(this.root);this.turntable=new THREE.Group();this.root.add(this.turntable);this.cars={};
-    const base=new THREE.Mesh(new THREE.CylinderGeometry(4.5,4.7,.28,64),new THREE.MeshStandardMaterial({color:0x273636,metalness:.65,roughness:.36}));base.position.y=.04;base.receiveShadow=true;this.root.add(base);
-    const deck=new THREE.Mesh(new THREE.CylinderGeometry(3.95,3.95,.12,64),new THREE.MeshPhysicalMaterial({color:0x3d4a48,metalness:.4,roughness:.34,clearcoat:.35}));deck.position.y=.24;deck.receiveShadow=true;this.turntable.add(deck);
-    const trimMat=new THREE.MeshBasicMaterial({color:0xfcaf17,toneMapped:false});for(const r of [4.02,4.4]){const trim=new THREE.Mesh(new THREE.TorusGeometry(r,.025,5,80),trimMat);trim.rotation.x=Math.PI/2;trim.position.y=.19;this.root.add(trim);}
-    for(const [name,ride] of Object.entries(rides)){const clone=ride.group.clone(true);clone.position.y=.31;clone.scale.multiplyScalar(1.15);clone.visible=name==='concept';this.turntable.add(clone);this.cars[name]=clone;}
-    this.fill=new THREE.DirectionalLight(0xd7ecff,1.5);this.fill.position.set(-12,5,9);this.fill.target.position.set(0,1,0);this.root.add(this.fill,this.fill.target);
-    this.reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;this.angle=1.4;this.root.visible=false;
-  }
-  select(name){for(const [id,car] of Object.entries(this.cars))car.visible=id===name;}
-  show(name){this.root.visible=true;this.select(name);this.frame();}
-  hide(){this.root.visible=false;}
-  frame(){
-    // A low three-quarter camera from the beach: the real city fills the horizon.
-    const portrait=this.camera.aspect<1;
-    this.camera.position.set(this.position.x-(portrait?10.5:9.3),portrait?4.2:3.4,this.position.z+(portrait?8.8:7.6));
-    const target=(this.target??=new THREE.Vector3()).set(this.position.x+(portrait?0:-1.8),1.1,this.position.z+(portrait?0:1.2));this.camera.lookAt(target);this.camera.fov=portrait?52:48;this.camera.updateProjectionMatrix();
-  }
-  update(dt){if(!this.root.visible)return;if(!this.reduced)this.angle+=Math.min(dt,.05)*.18;this.turntable.rotation.y=this.angle;this.frame();}
+import * as THREE from './vendor/three.module.js';
+// Stationary collection lineup. Geometry/materials are shared with the garage;
+// only the equipped car advances toward the camera, with no auto rotation.
+export class CarShowroom{
+ constructor({scene,camera,rides}){
+  this.camera=camera;this.position=new THREE.Vector3(-478,0,75);this.root=new THREE.Group();this.root.name='Home vehicle lineup';this.root.position.copy(this.position);scene.add(this.root);this.cars={};this.selected=null;this.angle=0;this.reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
+  const ids=Object.keys(rides);this.span=(ids.length-1)*2.9+2.8;ids.forEach((id,i)=>{const car=rides[id].group.clone(true);car.position.set((i-(ids.length-1)/2)*2.9,.015,0);car.visible=true;this.root.add(car);this.cars[id]=car;});
+  this.fill=new THREE.DirectionalLight(0xd7ecff,1.5);this.fill.position.set(-12,7,-9);this.fill.target.position.set(0,1,0);this.root.add(this.fill,this.fill.target);this.target=new THREE.Vector3();this.root.visible=false;
+ }
+ select(id){if(!this.cars[id])return false;this.selected=id;for(const [name,car]of Object.entries(this.cars)){car.visible=true;if(this.reduced)car.position.z=name===id?-1.35:0;}return true;}
+ show(id){this.root.visible=true;this.select(id);for(const [name,car]of Object.entries(this.cars))car.position.z=name===id?-1.35:0;this.frame();}
+ hide(){this.root.visible=false;}
+ frame(){const portrait=this.camera.aspect<1,fov=portrait?54:48,distance=Math.max(12,this.span*.57/(Math.tan(THREE.MathUtils.degToRad(fov/2))*this.camera.aspect));this.camera.position.set(this.position.x-2.2,2.8+distance*.12,this.position.z-distance);this.target.set(this.position.x,.1,this.position.z);this.camera.up.set(0,1,0);this.camera.lookAt(this.target);this.camera.fov=fov;this.camera.near=.12;this.camera.updateProjectionMatrix();}
+ update(dt){if(!this.root.visible)return;for(const [id,car]of Object.entries(this.cars))car.position.z=this.reduced?(id===this.selected?-1.35:0):THREE.MathUtils.damp(car.position.z,id===this.selected?-1.35:0,7,Math.max(0,Math.min(dt,.1)));this.frame();}
 }

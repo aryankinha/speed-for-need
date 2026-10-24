@@ -102,7 +102,7 @@ test('garage camera frames the selected car on desktop and portrait and animatio
   const {garage,camera}=makeGarage();
   garage.show('concept');
   camera.updateMatrixWorld(true);
-  const target=new THREE.Vector3(garage.position.x,-.35,garage.position.z).project(camera);
+  const target=new THREE.Vector3(garage.position.x,.15,garage.position.z).project(camera);
   assert.ok(Math.abs(target.x)<1e-8&&Math.abs(target.y)<1e-8);
   assert.equal(camera.fov,45);
   assert.ok(camera.position.distanceTo(garage.position)<12);

@@ -2,7 +2,7 @@ import * as THREE from './vendor/three.module.js';
 export function findSourceNode(root,name){const key=name.replace(/[^a-zA-Z0-9_]/g,'');let found=null;root.traverse(node=>{if(node.name===name||node.name.replace(/[^a-zA-Z0-9_]/g,'')===key)found=node;});return found;}
 // Reparent authored geometry without moving a vertex. Each neutral wrapper has
 // source-world axes even when the model's original hierarchy is nested/rotated.
-function floatGeometry(source,indices=null){
+export function floatGeometry(source,indices=null){
   const geometry=new THREE.BufferGeometry(),used=indices?[...new Set(indices)]:null,remap=used?new Map(used.map((n,i)=>[n,i])):null;
   for(const [name,attribute]of Object.entries(source.attributes)){const count=used?.length??attribute.count,values=new Float32Array(count*attribute.itemSize);for(let i=0;i<count;i++)for(let k=0;k<attribute.itemSize;k++)values[i*attribute.itemSize+k]=attribute.getComponent(used?used[i]:i,k);geometry.setAttribute(name,new THREE.BufferAttribute(values,attribute.itemSize));}
   if(indices)geometry.setIndex(indices.map(i=>remap.get(i)));else if(source.index)geometry.setIndex(source.index.clone());
