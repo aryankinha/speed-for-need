@@ -1,14 +1,14 @@
 export const MAP_STORAGE_KEY='speed-for-need-map';
 export const MAPS=Object.freeze([
-  Object.freeze({id:'default',name:'Solana Bay',tagline:'THE ORIGINAL',description:'The original island. Open boulevards, ocean views and a dedicated stunt park.',style:'bay'}),
   Object.freeze({id:'coast',name:'Solana Coast',tagline:'COASTAL CITY',description:'Downtown, hillside neighbourhoods and the Sunset Mile. Your familiar coastal playground.',style:'coast'}),
-  Object.freeze({id:'la',name:'City Street Study',tagline:'FREE ASSET PROTOTYPE',description:'A short city driving loop with downloaded detailed frontages and a New York inspired skyline.',style:'la'}),
+  Object.freeze({id:'drift',name:'Drift Race Track',tagline:'REAL TRACK',description:'Nicholas-3D’s authored asphalt circuit. Technical bends, guardrails and a full five-car race.',style:'drift'}),
 ]);
 const valid=id=>MAPS.some(map=>map.id===id);
 /** A URL choice wins; an existing saved choice comes next. Existing links retain the Coast. */
 export function readSelectedMap(search='',storage){
   const requested=new URLSearchParams(search).get('map');
   if(valid(requested))return requested;
+  if(requested==='default'||requested==='la')return 'coast';
   try{const saved=storage?.getItem(MAP_STORAGE_KEY);if(valid(saved))return saved;}catch{}
   return 'coast';
 }

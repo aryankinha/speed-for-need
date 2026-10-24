@@ -108,7 +108,8 @@ function createWindow() {
   });
 
   if (smoke) runSmoke(win);
-  win.loadURL(APP_ORIGIN);
+  const smokeMap=smoke&&['coast','drift'].includes(process.env.ELECTRON_SMOKE_MAP)?process.env.ELECTRON_SMOKE_MAP:null;
+  if(smokeMap)win.loadURL(APP_ORIGIN+'?map='+smokeMap);else win.loadURL(APP_ORIGIN);
 }
 
 if (!smoke && !app.requestSingleInstanceLock()) {

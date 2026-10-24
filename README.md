@@ -8,7 +8,7 @@ Run `npm run dev` and open http://127.0.0.1:4173. No installation or build neede
 
 Choose **60 SECOND RUSH** on the home screen, or start it from Pause → Settings. A short countdown starts a one-minute score attack: link clean speed, drifts, near misses and clean landings to build up to ×5. Press **B** or tap **Bank** to keep a chain; an impact loses unbanked points. Slow down safely to bank automatically. Results show medals and a personal best saved separately for each car and map. Retry with Enter/R, or choose Free Drive to return to cruising. Pausing stops the timer; reset or fast travel abandons the run.
 
-The challenge panel appears only in Rush. Research, measured optimizations and verification limits: [dist/RUSH_RESEARCH.md](dist/RUSH_RESEARCH.md).
+The challenge panel appears only in Rush. Research, measured optimizations and verification limits: [dist/RUSH_RESEARCH.md](docs/research/RUSH_RESEARCH.md).
 
 ## Controls
 
@@ -37,20 +37,20 @@ Rendering runs through `dist/graphics.js`: pmndrs/postprocessing + N8AO (vendore
 - **Ambient** (`ambient.js`): seagull flocks over the shore, beach umbrellas and towels.
 
 ## Validation
-`npm test` runs 347 regression tests covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
+`npm test` runs the regression suite covering driving, rendering, audio, UI, nitro and the garage. `npm run check` checks source syntax plus tests. Uses Planck.js / Box2D CCD with a fixed120Hz simulation, dynamic traffic, measured rotated vehicle fixtures and street-prop collisions. Buildings are fitted within lots and checked at runtime. World surfaces are planar arcade physics.
 
-[Research and root causes](dist/RESEARCH.md) · [Asset credits](dist/CREDITS.md)
+[Research and root causes](docs/research/RESEARCH.md) · [Asset credits](docs/research/CREDITS.md)
 
-[Garage sources and debugging](dist/GARAGE_RESEARCH.md)
+[Garage sources and debugging](docs/research/GARAGE_RESEARCH.md)
 
-Three sourced stunt ramps sit in a dedicated paved park with clear runways and saved best jump distance. Yellow radar triangles mark their entries; Pause → Settings & Controls → Visit Stunt Park takes you to its entrance. [Verified stunt research](dist/STUNT_IMPLEMENTATION.md).
+Three sourced stunt ramps sit in a dedicated paved park with clear runways and saved best jump distance. Yellow radar triangles mark their entries; Pause → Settings & Controls → Visit Stunt Park takes you to its entrance. [Verified stunt research](docs/research/STUNT_IMPLEMENTATION.md).
 
-Garage paint and three authored wheel types are saved per car. All five cars have animated front steering and rolling wheels. [Customization and critic review](dist/CUSTOMIZATION_REVIEW.md).
+Garage paint and three authored wheel types are saved per car. All five cars have animated front steering and rolling wheels. [Customization and critic review](docs/research/CUSTOMIZATION_REVIEW.md).
 
-The three park lanes offer Long Jump, airborne 360 Spin and Barrel Roll. Choose a lane in Pause → Settings & Controls before visiting. Take the ramp above 14 m/s (about 50 km/h) to trigger its aerial move. Cones and cone colliders have been removed from the park. Moves are arcade visual rotations over the existing planar collision model. [Graphics and aerial stunt review](dist/AERIAL_GRAPHICS_REVIEW.md).
+The three park lanes offer Long Jump, airborne 360 Spin and Barrel Roll. Choose a lane in Pause → Settings & Controls before visiting. Take the ramp above 14 m/s (about 50 km/h) to trigger its aerial move. Cones and cone colliders have been removed from the park. Moves are arcade visual rotations over the existing planar collision model. [Graphics and aerial stunt review](docs/research/AERIAL_GRAPHICS_REVIEW.md).
 
 ## Solana Coast map
-The map now has Pacific Boardwalk, Sunset Mile, Palm Gardens, Downtown Solana and Arts & Warehouse districts. A diagonal boulevard crosses the northern blocks, while the existing traffic, stunt park and four beach sides remain connected. Pause → Settings & Controls → Explore the coast selects a district arrival. New downloaded Kenney models are bundled locally for browser and Electron; no map API is needed. [Verified map research and validation](dist/LA_MAP_RESEARCH.md).
+The map now has Pacific Boardwalk, Sunset Mile, Palm Gardens, Downtown Solana and Arts & Warehouse districts. A diagonal boulevard crosses the northern blocks, while the existing traffic, stunt park and four beach sides remain connected. Pause → Settings & Controls → Explore the coast selects a district arrival. New downloaded Kenney models are bundled locally for browser and Electron; no map API is needed. [Verified map research and validation](docs/research/LA_MAP_RESEARCH.md).
 
 ## Desktop (Electron)
 
@@ -81,4 +81,7 @@ Run: `npm start` (or `npm run electron`). Checks: `npm run electron:smoke` boots
 
 C cycles to the cockpit: the camera sits behind the selected car’s own steering wheel, which turns with steering input. The Concept GT, Roadster, BMW and Porsche use their authored wheel geometry. The NSX uses a downloaded Savino CC0 wheel accessory. Home displays the full five-car lineup with the equipped car slightly forward; Garage contains the rotating platform.
 
-Implementation research and model audit: [dist/COCKPIT_LINEUP_RESEARCH.md](dist/COCKPIT_LINEUP_RESEARCH.md).
+Implementation research and model audit: [dist/COCKPIT_LINEUP_RESEARCH.md](docs/research/COCKPIT_LINEUP_RESEARCH.md).
+
+## Supported maps and asset cleanup
+Only Solana Coast and Drift Race Track ship. Removed Bay/City Street URLs and saved choices fall back to Coast. Each map loads its own world/scenery; Drift skips city crowds, police, traffic and furniture. The untouched Drift master is in source-assets/ for offline processing; only its compressed GLB is in dist/. Research lives in docs/research/.

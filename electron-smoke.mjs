@@ -11,6 +11,7 @@ const CHECKS = `(async () => JSON.stringify({
   desktopButtons: ['export-run', 'quit-game'].every((id) => document.getElementById(id) && !document.getElementById(id).hidden),
   loaderHidden: (() => { const l = document.getElementById('loader'); return !l || l.hidden || getComputedStyle(l).display === 'none' || getComputedStyle(l).visibility === 'hidden' || getComputedStyle(l).opacity === '0'; })(),
   gameBooted: Boolean(document.getElementById('game').dataset.telemetry),
+  requestedMapLoaded: ${process.env.ELECTRON_SMOKE_MAP ? `JSON.parse(document.getElementById('game').dataset.telemetry || '{}').map === ${JSON.stringify(process.env.ELECTRON_SMOKE_MAP)}` : 'true'},
   menuCommandsOk: typeof window.electronAPI.onMenuCommand === 'function',
   ipcRejectsBadUrl: (await window.electronAPI.openExternal('file:///etc/passwd')) === false,
   ipcRejectsBadExport: (await window.electronAPI.saveRun([1, 2])).error === 'invalid-data',

@@ -1,0 +1,12 @@
+import {NodeIO} from '@gltf-transform/core';
+import {ALL_EXTENSIONS} from '@gltf-transform/extensions';
+import {dedup,flatten,join,prune,meshopt,textureCompress} from '@gltf-transform/functions';
+import {MeshoptEncoder} from 'meshoptimizer';
+import sharp from 'sharp';
+const io=new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({'meshopt.encoder':MeshoptEncoder});
+const src=process.argv[2],dest=process.argv[3],doc=await io.read(src);await MeshoptEncoder.ready;
+const before=doc.getRoot().listMeshes().reduce((n,m)=>n+m.listPrimitives().reduce((s,p)=>s+p.getIndices().getCount()/3,0),0);
+await doc.transform(dedup(),flatten(),join({keepNamed:false}),prune(),textureCompress({encoder:sharp,targetFormat:'webp',slots:/baseColorTexture/,quality:95}),textureCompress({encoder:sharp,targetFormat:'webp',slots:/^(?!baseColorTexture).*$/,lossless:true}),meshopt({encoder:MeshoptEncoder,level:'high',quantizePosition:16,quantizeNormal:12,quantizeTexcoord:16}));
+await io.write(dest,doc);
+const after=doc.getRoot().listMeshes().reduce((n,m)=>n+m.listPrimitives().reduce((s,p)=>s+p.getIndices().getCount()/3,0),0);
+console.log(JSON.stringify({beforeTriangles:before,afterTriangles:after,meshes:doc.getRoot().listMeshes().length,materials:doc.getRoot().listMaterials().length,textures:doc.getRoot().listTextures().length}));
