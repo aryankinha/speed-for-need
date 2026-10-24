@@ -1,0 +1,408 @@
+{
+  "date": "2026-10-24",
+  "method": "120 Hz Planck simulation; measured garage model dimensions; same imported path and colliders; three laps; all five player selections; player driven by the corresponding controller; 20 opponent finishes per implementation",
+  "baselineCodeSha256": "710cb34921c2cbcbd675df0f924d2a7a9e2eab3a72aa860ba498c131e09bf2c3",
+  "updatedCodeSha256": "3d4f9ccf2db39f2adb26daf7f75c3c495b6e9e6e3f0fb710a14e8e0792477b42",
+  "runs": [
+    {
+      "label": "baseline",
+      "player": "concept",
+      "phase": "finished",
+      "impacts": 15,
+      "recoverySteps": 253,
+      "nitroSteps": 10805,
+      "cars": [
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 58.91666666671305,
+          "finish": 181.87499999999892
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 58.90000000004576,
+          "finish": 180.90833333333313
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 59.37499999994948,
+          "finish": 185.32499999999578
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 57.84166666671029,
+          "finish": 176.92500000000342
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 59.21666666671237,
+          "finish": 180.94999999999976
+        }
+      ]
+    },
+    {
+      "label": "baseline",
+      "player": "roadster",
+      "phase": "finished",
+      "impacts": 169,
+      "recoverySteps": 253,
+      "nitroSteps": 10674,
+      "cars": [
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 58.62499999995808,
+          "finish": 179.93333333333402
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 58.391666666713135,
+          "finish": 184.9749999999961
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 60.33333333338135,
+          "finish": 185.11666666666264
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 57.80833333337723,
+          "finish": 177.1750000000032
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 58.19999999995456,
+          "finish": 181.799999999999
+        }
+      ]
+    },
+    {
+      "label": "baseline",
+      "player": "bmw",
+      "phase": "finished",
+      "impacts": 1,
+      "recoverySteps": 1180,
+      "nitroSteps": 10958,
+      "cars": [
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 59.12500000004705,
+          "finish": 185.17499999999592
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 58.81666666661317,
+          "finish": 188.6916666666594
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 58.87500000004685,
+          "finish": 185.18333333332924
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 57.81666666671268,
+          "finish": 181.45833333333263
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 58.166666666613764,
+          "finish": 190.7333333333242
+        }
+      ]
+    },
+    {
+      "label": "baseline",
+      "player": "nsx",
+      "phase": "finished",
+      "impacts": 2,
+      "recoverySteps": 506,
+      "nitroSteps": 12998,
+      "cars": [
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 58.40833333328784,
+          "finish": 181.92499999999887
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 58.88333333328485,
+          "finish": 183.89999999999708
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 59.208333333290355,
+          "finish": 180.82499999999987
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 59.36666666661267,
+          "finish": 187.3999999999939
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 58.4333333332895,
+          "finish": 180.9666666666664
+        }
+      ]
+    },
+    {
+      "label": "baseline",
+      "player": "porsche",
+      "phase": "finished",
+      "impacts": 140,
+      "recoverySteps": 253,
+      "nitroSteps": 11493,
+      "cars": [
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 59.216666666618536,
+          "finish": 183.84999999999712
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 58.69999999995548,
+          "finish": 181.49166666666594
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 59.250000000045326,
+          "finish": 181.52499999999924
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 59.18333333328496,
+          "finish": 183.974999999997
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 58.80833333337871,
+          "finish": 180.7
+        }
+      ]
+    },
+    {
+      "label": "improved",
+      "player": "concept",
+      "phase": "finished",
+      "impacts": 0,
+      "recoverySteps": 0,
+      "nitroSteps": 17886,
+      "cars": [
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 46.7250000000242,
+          "finish": 142.7833333333678
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 46.30000000001223,
+          "finish": 142.4250000000348
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 47.75000000002644,
+          "finish": 145.9833333333649
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 46.61666666667736,
+          "finish": 143.47500000003384
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 47.52500000002687,
+          "finish": 146.5666666666977
+        }
+      ]
+    },
+    {
+      "label": "improved",
+      "player": "roadster",
+      "phase": "finished",
+      "impacts": 30,
+      "recoverySteps": 0,
+      "nitroSteps": 18207,
+      "cars": [
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 46.525000000013094,
+          "finish": 142.02500000003516
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 46.558333333358185,
+          "finish": 143.29166666670068
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 47.275000000006,
+          "finish": 146.5333333333644
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 46.32500000002555,
+          "finish": 143.99166666670004
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 46.98333333334075,
+          "finish": 145.5666666666986
+        }
+      ]
+    },
+    {
+      "label": "improved",
+      "player": "bmw",
+      "phase": "finished",
+      "impacts": 122,
+      "recoverySteps": 168,
+      "nitroSteps": 19304,
+      "cars": [
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 46.81666666667567,
+          "finish": 144.5583333333662
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 46.741666666677034,
+          "finish": 143.72500000003362
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 46.83333333333948,
+          "finish": 146.241666666698
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 46.20833333333775,
+          "finish": 146.96666666669734
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 46.750000000007816,
+          "finish": 145.22500000003225
+        }
+      ]
+    },
+    {
+      "label": "improved",
+      "player": "nsx",
+      "phase": "finished",
+      "impacts": 0,
+      "recoverySteps": 0,
+      "nitroSteps": 17443,
+      "cars": [
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 46.01666666668194,
+          "finish": 140.50833333336988
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 46.85833333335821,
+          "finish": 143.25833333336737
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 46.816666666676596,
+          "finish": 144.01666666670002
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 47.65000000000626,
+          "finish": 146.55833333336437
+        },
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 46.8666666666753,
+          "finish": 144.80000000003264
+        }
+      ]
+    },
+    {
+      "label": "improved",
+      "player": "porsche",
+      "phase": "finished",
+      "impacts": 70,
+      "recoverySteps": 0,
+      "nitroSteps": 17322,
+      "cars": [
+        {
+          "id": "porsche",
+          "lap": 3,
+          "best": 46.375000000023896,
+          "finish": 141.50833333336897
+        },
+        {
+          "id": "concept",
+          "lap": 3,
+          "best": 46.45000000002461,
+          "finish": 142.86666666670106
+        },
+        {
+          "id": "roadster",
+          "lap": 3,
+          "best": 46.700000000025405,
+          "finish": 145.30000000003218
+        },
+        {
+          "id": "bmw",
+          "lap": 3,
+          "best": 47.76666666669516,
+          "finish": 148.3833333333627
+        },
+        {
+          "id": "nsx",
+          "lap": 3,
+          "best": 46.23333333335938,
+          "finish": 144.74166666669936
+        }
+      ]
+    }
+  ]
+}

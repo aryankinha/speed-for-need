@@ -56,6 +56,17 @@ for poly in polygons(roadpoly):
  for ring in [poly.exterior,*poly.interiors]:roads.append([[round(x,3),round(z,3)]for x,z in list(ring.simplify(.08).coords)[:-1]])
 result={'sourceSha256':hashlib.sha256(b).hexdigest(),'scale':1,'roadY':round(float(road['pos'][:,1].mean()),6),'roadContours':roads,'walls':contours}
 
+# A closed facility perimeter follows the outside asphalt shoulder, clipped to
+# the actual Terrain mesh rather than scene bounds (flags/props extend further).
+from shapely.geometry import box
+terrain=next(m for m in meshes if m['name'].startswith('Terrain'))['pos']
+bounds=[float(terrain[:,0].min()),float(terrain[:,2].min()),float(terrain[:,0].max()),float(terrain[:,2].max())]
+outer=max(polygons(roadpoly),key=lambda p:p.area)
+perimeter=Polygon(outer.exterior).buffer(2,join_style=2).intersection(box(*bounds).buffer(-.4)).simplify(.12,preserve_topology=True)
+if perimeter.geom_type!='Polygon' or not perimeter.is_valid:raise ValueError('Invalid facility perimeter')
+result['terrainBounds']=bounds
+result['perimeter']=[[round(x,3),round(z,3)]for x,z in list(perimeter.exterior.coords)[:-1]]
+
 import heapq,math
 from shapely.geometry import Point,LineString
 road=roadpoly;data=result;walls=unary_union([Polygon(w['points'])for w in data['walls']]);drive=road.difference(walls.buffer(1.8)).buffer(-2.2);cache={}

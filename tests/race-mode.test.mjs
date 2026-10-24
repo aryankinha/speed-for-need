@@ -19,3 +19,30 @@ test('exit destroys track/opponents, clears interpolation slots, and restores ex
 test('sparks reuse typed GPU buffers and collision records retain actual contact points',()=>{const scene=new T.Scene(),fx=new SparksParticleEmitter(scene),positions=fx.position;fx.emit(12,20,15);fx.update(.05);assert.equal(fx.position,positions);assert.ok(fx.life.some(v=>v>0));fx.update(1);assert.ok(fx.life.every(v=>v===0));fx.dispose();assert.equal(scene.children.length,0);const w=createDrivingWorld(),a=w.addVehicle({x:0,z:0}),b=w.addVehicle({x:0,z:-7});a.setPose({x:0,z:0,vz:-20});let contact=false;for(let i=0;i<100;i++){w.step(1/120);for(const hit of w.lastImpacts){assert.ok(Number.isFinite(hit.x)&&Number.isFinite(hit.z));contact=true;}}assert.ok(contact);});
 
 test('leaderboard uses unwrapped lap distance and keeps finishers in crossing-time order',()=>{const {race}=setup();race.phase='racing';const values=[99,110,race.path.length+20,80,70];for(let i=0;i<5;i++){const e=race.entries[i];e.progress=values[i];e.nextGate=Math.floor(e.progress/(race.path.length/12))+1;race.path.sampleAtDistance(e.progress,scratch);e.actor.setPose(scratch);}race.afterStep(1/120);assert.deepEqual(Array.from(race.order),[2,1,0,3,4]);race.entries[4].finishTime=10;race.entries[1].finishTime=12;race.afterStep(1/120);assert.deepEqual(Array.from(race.order).slice(0,2),[4,1]);race.stop();});
+
+function straightOpponent(){
+ const physics=createDrivingWorld(),path=new CircuitPath({x:0,z:0,waypoints:[{x:0,z:0},{x:0,z:-1200},{x:1200,z:-1200},{x:1200,z:0}]}),player=physics.addVehicle(),race=new RaceMode({physics,path});race.start('concept',player);race.phase='racing';
+ const e=race.opponents[0];e.progress=500;e.lane=0;path.sampleAtDistance(e.progress,scratch);e.actor.setPose(scratch);e.lastX=e.actor.x;e.lastZ=e.actor.z;
+ for(const other of race.entries)if(other!==e)other.actor.setPose({x:3000+other.index*10,z:3000});
+ return {physics,race,e};
+}
+test('AI keeps boost speed on a clear straight and coasts when a pad expires, without brake/boost fighting',()=>{
+ const {physics,race,e}=straightOpponent(),a=e.actor,c=a.config;
+ a.setPose({x:a.x,z:a.z,heading:a.heading,vx:-Math.sin(a.heading)*(c.maxSpeed+3),vz:-Math.cos(a.heading)*(c.maxSpeed+3)});
+ e.pad.timeLeft=1;e.nitro=0;race.driveAI(e,1/120);assert.equal(e.controls.brake,0);assert.equal(e.controls.throttle,1);
+ e.pad.timeLeft=0;race.driveAI(e,1/120);assert.equal(e.controls.brake,0,'normal top speed is not a brake command');assert.equal(e.controls.throttle,0);
+ e.pad.timeLeft=1;const speed=a.speed;for(let i=0;i<30;i++)physics.step(1/120,dt=>race.beforeStep(dt,input),dt=>race.afterStep(dt));assert.ok(a.speed>speed,'a pad should accelerate the AI');
+ race.stop();
+});
+test('AI uses nitro before reaching normal top speed and brakes for a blocked passing lane',()=>{
+ const {race,e}=straightOpponent(),a=e.actor;a.setPose({x:a.x,z:a.z,heading:a.heading,vx:-Math.sin(a.heading)*22,vz:-Math.cos(a.heading)*22});e.nitro=60;
+ race.driveAI(e,1/120);assert.equal(e.boostRequest,true);assert.equal(e.controls.throttle,1);
+ const leader=race.entries[0].actor;leader.setPose({x:a.x-Math.sin(a.heading)*8,z:a.z-Math.cos(a.heading)*8,heading:a.heading});race.path.laneLimit=()=>0;
+ race.driveAI(e,1/120);assert.equal(e.boostRequest,false);assert.ok(e.controls.brake>.5,'slow for a car that cannot safely be passed');race.stop();
+});
+test('pad boosting still permits necessary braking before a tight corner',()=>{
+ const {race,e}=straightOpponent(),a=e.actor;
+ // Use an actual tight course, not a stub curvature fed to the controller.
+ const path=new CircuitPath({x:0,z:0,waypoints:[{x:0,z:-25},{x:25,z:0},{x:0,z:25},{x:-25,z:0}]});race.path=path;e.progress=20;path.sampleAtDistance(20,scratch);a.setPose({x:scratch.x,z:scratch.z,heading:scratch.heading,vx:scratch.dx*50,vz:scratch.dz*50});e.pad.timeLeft=1;
+ race.driveAI(e,1/120);assert.ok(e.controls.brake>.5);assert.equal(e.boostRequest,false);race.stop();
+});
