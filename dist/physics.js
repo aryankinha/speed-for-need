@@ -18,7 +18,7 @@
  * impulse/position solving. No center-point tests, padded obstacle boxes, scalar
  * speed reversals, or traffic teleports are involved in normal simulation.
  */
-import {World, Vec2, Box, Circle, PolygonShape, testOverlap} from './vendor/planck.mjs';
+import {World, Vec2, Box, Circle, Chain, PolygonShape, testOverlap, WorldManifold} from './vendor/planck.mjs';
 
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const finite=(value,fallback)=>Number.isFinite(value)?value:fallback;
@@ -32,6 +32,7 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
   const vehicles=[],objects=[],byRaw=new Map();
   const api={rawWorld,vehicles,objects,lastImpacts:[],fixedStep,simulationTime:0,alpha:0};
   // Scratch vectors for the 120 Hz control step (planck copies forces), so stepping allocates nothing per vehicle.
+  const impactPool=Array.from({length:512},()=>({a:null,b:null,impulse:0,speed:0,x:0,z:0})),contactPoint=new WorldManifold();
   const forward=Vec2(0,0),right=Vec2(0,0),force=Vec2(0,0);
 
   function register(body,fixture,data,type){
@@ -62,6 +63,14 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     if(!(radius>0))throw new RangeError('Collider radius must be positive.');
     const b=rawWorld.createBody({position:Vec2(x,z)});
     return register(b,b.createFixture(Circle(radius),{friction,restitution:.04}),userData,'circle');
+  };
+  // Connected static edges carry adjacent ghost vertices, so curved imported
+  // guardrails do not behave like hundreds of separate snagging box corners.
+  api.addChain=({points,loop=true,friction=.15,restitution=.04,userData}={})=>{
+    if(!points||points.length<(loop?3:2))throw new RangeError('Chain needs connected vertices.');
+    const vertices=points.map(p=>Vec2(p[0],p[1]));
+    for(let i=1;i<vertices.length;i++)if(Math.hypot(vertices[i].x-vertices[i-1].x,vertices[i].y-vertices[i-1].y)<.005)throw new RangeError('Chain edges must exceed linear slop.');
+    const body=rawWorld.createBody();return register(body,body.createFixture(new Chain(vertices,loop),{friction,restitution}),userData,'chain');
   };
 
   // Ground-plane furniture uses the same contact solver as cars. Vertical tipping remains visual.
@@ -119,12 +128,13 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
   });
   rawWorld.on('post-solve',(contact,impulses)=>{
     const a=byRaw.get(contact.getFixtureA().getBody()),b=byRaw.get(contact.getFixtureB().getBody());
-    const impulse=impulses.normalImpulses.reduce((s,n)=>s+n,0);
-    if(impulse>30)api.lastImpacts.push({a,b,impulse,speed:impulse/Math.max(1,a.type==='vehicle'?a.body.getMass():b.body.getMass())});
+    let impulse=0;for(let i=0;i<impulses.normalImpulses.length;i++)impulse+=impulses.normalImpulses[i];
+    if(impulse>30&&api.lastImpacts.length<impactPool.length){const out=impactPool[api.lastImpacts.length];out.a=a;out.b=b;out.impulse=impulse;out.speed=impulse/Math.max(1,a.type==='vehicle'?a.body.getMass():b.body.getMass());contact.getWorldManifold(contactPoint);out.x=contactPoint.points[0].x;out.z=contactPoint.points[0].y;api.lastImpacts.push(out);}
   });
 
   function controlVehicle(actor,dt){
     const {body,config:c,controls:k,target}=actor;
+    if(!body.isActive())return;
     // A flank exit held on the ground (groundHold) keeps the driver's throttle, brake and steer.
     if(actor.isAirborne&&!actor.groundHold){body.applyTorque(body.getInertia()*clamp(-body.getAngularVelocity()*2,-1.5,1.5),true);return;}
     const h=-body.getAngle(),sin=Math.sin(h),cos=Math.cos(h);forward.setNum(-sin,-cos);right.setNum(cos,-sin);
@@ -149,7 +159,7 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
     if(brake&&Math.abs(vf)>.01)acceleration-=Math.sign(vf)*Math.min(c.brakeAcceleration*brake,Math.abs(vf)/dt);
     // Rolling/aerodynamic resistance decelerates gradually: releasing boost never
     // clamps speed to a different cap in one frame.
-    acceleration-=Math.sign(vf)*Math.min(.22+(actor.surfaceDrag||0)+vf*vf*.0012,Math.abs(vf)/dt);
+    acceleration-=Math.sign(vf)*Math.min(.22+(actor.surfaceDrag||0)+vf*vf*.0012*(actor.dragMultiplier??1),Math.abs(vf)/dt);
     if(k.handbrake&&Math.abs(vf)>.01)acceleration-=Math.sign(vf)*Math.min(6,Math.abs(vf)/dt);
     const lateralAccel=clamp(-vr*(k.handbrake?1.5:14),-(k.handbrake?3.0:c.grip)*(actor.landGrip??1)*(actor.surfaceGrip??1),(k.handbrake?3.0:c.grip)*(actor.landGrip??1)*(actor.surfaceGrip??1));
     body.applyForceToCenter(force.setNum(mass*(forward.x*acceleration+right.x*lateralAccel),mass*(forward.y*acceleration+right.y*lateralAccel)),true);
@@ -167,11 +177,11 @@ export function createDrivingWorld({fixedStep=1/120,maxFrameTime=.25}={}){
   api.step=(frameDt,beforeStep,afterStep)=>{
     // A bounded backlog prevents a tab-resume spiral; normal 30/60/120 Hz input
     // is accumulated into identical 120 Hz physics steps.
-    accumulator+=clamp(finite(frameDt,0),0,maxFrameTime);api.lastImpacts=[];
+    accumulator+=clamp(finite(frameDt,0),0,maxFrameTime);api.lastImpacts.length=0;
     let steps=0;
     while(accumulator+1e-10>=fixedStep){
       beforeStep?.(fixedStep,simulationTime);
-      for(const actor of vehicles)controlVehicle(actor,fixedStep);
+      for(let i=0;i<vehicles.length;i++)controlVehicle(vehicles[i],fixedStep);
       rawWorld.step(fixedStep,8,4);afterStep?.(fixedStep,simulationTime+fixedStep);accumulator-=fixedStep;simulationTime+=fixedStep;steps++;
     }
     api.alpha=clamp(accumulator/fixedStep,0,1);api.simulationTime=simulationTime;return steps;

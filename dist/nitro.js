@@ -43,13 +43,14 @@ export function nitroFraction(amount){return clamp(amount/NITRO_MAX,0,1);}
 
 /** Pure, deterministic collectible state; render objects never affect gameplay. */
 export class PickupField {
-  constructor({roadsX,roadsZ,random=Math.random,count=NITRO_PICKUP_COUNT,cooldown=15,recharge=NITRO_BOTTLE}={}){
-    if(!roadsX?.length||!roadsZ?.length)throw new Error('PickupField needs road center lines.');
-    this.roadsX=roadsX;this.roadsZ=roadsZ;this.random=random;this.cooldown=cooldown;this.recharge=recharge;this.collected=0;
+  constructor({roadsX,roadsZ,random=Math.random,count=NITRO_PICKUP_COUNT,cooldown=15,recharge=NITRO_BOTTLE,path=null}={}){
+    if(!path&&(!roadsX?.length||!roadsZ?.length))throw new Error('PickupField needs road center lines.');
+    this.path=path;this.pathSample={};this.roadsX=roadsX;this.roadsZ=roadsZ;this.random=random;this.cooldown=cooldown;this.recharge=recharge;this.collected=0;
     this.items=Array.from({length:count},(_,id)=>({id,x:0,z:0,active:false,cooldown:0}));
     for(const item of this.items)this.spawn(item);
   }
   spawn(item,avoid){
+    if(this.path){this.path.sampleAtDistance((item.id+.5)*this.path.length/this.items.length,this.pathSample);item.x=this.pathSample.x;item.z=this.pathSample.z;item.active=!avoid||Math.hypot(item.x-avoid.x,item.z-avoid.z)>8;item.cooldown=item.active?0:1;return;}
     let x=0,z=0;
     for(let trial=0;trial<80;trial++){
       const vertical=this.random()<.5,lane=this.random()<.5?-4.3:4.3;
@@ -91,9 +92,9 @@ function createBottleParts(){
     valveMaterial:new THREE.MeshStandardMaterial({color:0x6b777d,metalness:.9,roughness:.25})};
 }
 export class NitroEffects {
-  constructor({scene,camera,player,worldBounds,roadsX,roadsZ,random=Math.random,count=NITRO_PICKUP_COUNT}){
+  constructor({scene,camera,player,worldBounds,roadsX,roadsZ,random=Math.random,count=NITRO_PICKUP_COUNT,path=null}){
     this.scene=scene;this.camera=camera;this.player=player;this.random=random;
-    this.field=new PickupField({roadsX:roadsX||worldBounds.roadsX,roadsZ:roadsZ||worldBounds.roadsZ,random,count});this.pickups=this.field.items;
+    this.field=new PickupField({roadsX:roadsX||worldBounds.roadsX,roadsZ:roadsZ||worldBounds.roadsZ,random,count,path});this.pickups=this.field.items;
     this.intensity=0;this.cursor=0;this.emission=0;this.capacity=128;
     this.life=new Float32Array(this.capacity);this.lifetime=new Float32Array(this.capacity);this.vx=new Float32Array(this.capacity);this.vy=new Float32Array(this.capacity);this.vz=new Float32Array(this.capacity);
     this.positions=new Float32Array(this.capacity*3);this.alpha=new Float32Array(this.capacity);this.sizes=new Float32Array(this.capacity);

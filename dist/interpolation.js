@@ -41,6 +41,8 @@ export class PoseInterpolator {
   }
 
   /** Makes a slot's previous and current pose both equal its live pose (teleports, resets, new bodies). */
+  clearActor(slot){this.actors[slot]=null;while(this.count>0&&!this.actors[this.count-1])this.count--;}
+
   snapSlot(slot) {
     const actor = this.actors[slot];
     if (!actor) return;
@@ -72,6 +74,7 @@ export class PoseInterpolator {
   }
 
   _write(buffer, slot, actor) {
+    if(!actor)return;
     const p = slot * 3;
     buffer[p] = actor.x;
     buffer[p + 1] = actor.z;
@@ -92,6 +95,7 @@ export class RenderState {
   }
 
   setActor(slot, actor) { this.poses.setActor(slot, actor); }
+  clearActor(slot){this.poses.clearActor(slot);}
 
   /** Teleports or new bodies: previous and current pose both become the live pose. */
   snapSlot(slot) { this.poses.snapSlot(slot); }
