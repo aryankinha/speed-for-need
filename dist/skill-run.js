@@ -3,8 +3,7 @@
 export const RUN_SECONDS=60,COUNTDOWN_SECONDS=3,CHAIN_GRACE=2.5;
 export const RUN_RULES=Object.freeze({
  coast:Object.freeze({pace:20,medals:[1500,4500,9000]}),
- default:Object.freeze({pace:20,medals:[1500,4500,9000]}),
- la:Object.freeze({pace:12,medals:[800,2200,4500]}),
+ drift:Object.freeze({pace:20,medals:[1500,4500,9000]}),
 });
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function medalFor(score,thresholds){return score>=thresholds[2]?'GOLD':score>=thresholds[1]?'SILVER':score>=thresholds[0]?'BRONZE':'ROOKIE';}

@@ -1144,6 +1144,8 @@ export class GameAudio {
     }
   }
 
+  onRaceCount(go=false){if(!this.canPlay())return;const t=this.ctx.currentTime;this.tone(go?990:440,t,.16,.18,this.nodes.busSfx);}
+
   onImpact(speed) {
     if (!this.canPlay()) return;
     const t = this.ctx.currentTime;
