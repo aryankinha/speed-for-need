@@ -1,0 +1,22 @@
+[
+  {
+    "asset": "concept-gt",
+    "source": "source-assets/hero-cars/concept-gt.glb",
+    "sourceSha256": "c272098089d78c5cd9fd9f24ff50ee8acf8d932c55f2d55fc10adb6c8998966b",
+    "sourceBytes": 11778688,
+    "bytes": 1972360,
+    "beforeTriangles": 213347,
+    "triangles": 78957,
+    "protectedMeshes": 46
+  },
+  {
+    "asset": "tesla-roadster",
+    "source": "source-assets/hero-cars/tesla-roadster.glb",
+    "sourceSha256": "08517168cec7142eafddff26ff9c90913b8d129e21140ea576e9dc40e5c18987",
+    "sourceBytes": 7081016,
+    "bytes": 1753768,
+    "beforeTriangles": 229698,
+    "triangles": 54409,
+    "protectedMeshes": 5
+  }
+]
