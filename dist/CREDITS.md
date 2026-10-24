@@ -262,3 +262,7 @@ Tower geometry is procedural (`dist/facade-towers.js`).
 
 ## Coast lot greenery and parking courts
 Coast lot dressing reuses the existing **Kenney Nature Kit** CC0 `tree-palmtall.glb` and `tree-palmshort.glb`, **Kenney Car Kit 3.1** CC0 cars, and the already credited garden/road/industrial props. No new model download or licence was introduced. Palms are scaled and instanced with breakaway trunks; extra parked cars retain the Car Kit paint variants and shoveable physics.
+
+## NSX cockpit steering accessory
+
+**Steering wheel**, Savino — [OpenGameArt source](https://opengameart.org/content/steering-wheel), **CC0 1.0**. Original OBJ bundled with the converted GLB in `assets/cockpit/`. This is a sourced cockpit accessory, not a manufacturer-authentic NSX steering wheel. Other cars retain their own authored steering geometry from the credited vehicle models.

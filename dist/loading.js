@@ -21,7 +21,7 @@
     'Pacific Coast Highway: High-speed sweepers with elevation drops',
     'Launch off stunt ramps at 180+ KM/H for maximum aerial hangtime',
     'Visit the Garage to tune colors, wheels, and customize your fleet',
-    'Press C to cycle between Chase, Bumper, and Hood cameras',
+    'Press C to cycle between Chase, Wide, and Cockpit cameras',
     'Press ESC at any time to open Pause Menu for graphics & controls',
   ];
   if (tipEl) {

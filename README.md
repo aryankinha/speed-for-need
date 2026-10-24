@@ -4,12 +4,20 @@ A browser free-roam driving game in an expanded 1.31km² coastal city. Five sele
 
 Run `npm run dev` and open http://127.0.0.1:4173. No installation or build needed. WebGL/hardware acceleration required. All models, rendering libraries and physics are bundled locally; Google Fonts has system fallbacks.
 
+## 60 Second Rush
+
+Choose **60 SECOND RUSH** on the home screen, or start it from Pause → Settings. A short countdown starts a one-minute score attack: link clean speed, drifts, near misses and clean landings to build up to ×5. Press **B** or tap **Bank** to keep a chain; an impact loses unbanked points. Slow down safely to bank automatically. Results show medals and a personal best saved separately for each car and map. Retry with Enter/R, or choose Free Drive to return to cruising. Pausing stops the timer; reset or fast travel abandons the run.
+
+The challenge panel appears only in Rush. Research, measured optimizations and verification limits: [dist/RUSH_RESEARCH.md](dist/RUSH_RESEARCH.md).
+
 ## Controls
+
 - WASD or arrows: accelerate, steer, brake then reverse
 - Space: drift / handbrake
 - Shift: rechargeable boost
-- C: chase, wide chase, hood camera
-- R: return to Ocean Drive
+- C: chase, wide chase, cockpit camera
+- B: bank the current Rush chain
+- R: return to Ocean Drive (abandons Rush; retries on the result screen)
 - Enter: start/cancel coastal sprint
 - Esc or pause button: menu, garage, stats, map, sound, controls
 - Touch controls are optional and off by default; enable in pause menu
@@ -68,3 +76,9 @@ Run: `npm start` (or `npm run electron`). Checks: `npm run electron:smoke` boots
 
 - Builds are ad-hoc signed on macOS and unsigned on Windows. A public release needs a Developer ID / notarisation certificate and a Windows code-signing certificate (set in the `build` block of `package.json`).
 - No auto-update (needs a publish target such as GitHub Releases + `electron-updater`).
+
+## Cockpits and collection presentation
+
+C cycles to the cockpit: the camera sits behind the selected car’s own steering wheel, which turns with steering input. The Concept GT, Roadster, BMW and Porsche use their authored wheel geometry. The NSX uses a downloaded Savino CC0 wheel accessory. Home displays the full five-car lineup with the equipped car slightly forward; Garage contains the rotating platform.
+
+Implementation research and model audit: [dist/COCKPIT_LINEUP_RESEARCH.md](dist/COCKPIT_LINEUP_RESEARCH.md).
