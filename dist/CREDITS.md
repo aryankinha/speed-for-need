@@ -18,7 +18,7 @@ Models arranged and scaled to build the Solana Coast environment.
 Three.js r170, MIT License — https://github.com/mrdoob/three.js/blob/r170/LICENSE
 DM Sans and Barlow Condensed, Google Fonts, SIL Open Font License.
 
-AFTERLIGHT / SPEED FOR NEED is an original browser game prototype. No GTA or Need for Speed assets are included.
+SOLANA DRIVE is an original browser game. Third-party models, sounds and textures used under their open licences are credited below.
 
 Draco geometry decoder, Apache License 2.0 — https://github.com/google/draco
 

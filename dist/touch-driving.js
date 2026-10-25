@@ -9,9 +9,9 @@ export function joystickAxes(dx,dy,radius,deadZone=.12){
  return {x,y,steer,throttle:Math.max(0,drive),reverse:Math.max(0,-drive)};
 }
 export function drivingControls(keys,touch,out={}){
- const keyboardTurn=Number(keys.has('a')||keys.has('arrowleft'))-Number(keys.has('d')||keys.has('arrowright'));
+ const keyboardTurn=Number(keys.has('a')||keys.has('q')||keys.has('arrowleft'))-Number(keys.has('d')||keys.has('arrowright'));
  out.steer=clamp(keyboardTurn+touch.steer,-1,1);
- out.throttle=Math.max(Number(keys.has('w')||keys.has('arrowup')),touch.throttle);
+ out.throttle=Math.max(Number(keys.has('w')||keys.has('z')||keys.has('arrowup')),touch.throttle);
  out.reverse=Math.max(Number(keys.has('s')||keys.has('arrowdown')),touch.reverse);
  // Opposed input brakes rather than commanding forward and reverse together.
  if(out.reverse>0)out.throttle=0;

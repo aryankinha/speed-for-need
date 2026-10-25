@@ -1,6 +1,6 @@
-# Speed for Need — Open Road
+# Solana Drive — Open Road
 
-A browser free-roam driving game in an expanded 1.31km² coastal city. Five selectable downloaded cars: Concept GT, Tesla Roadster, BMW E36 M3, Honda NSX 1990 and Porsche 911 Turbo. The main-menu garage has a live 3D interior, collection previews, tuning comparisons and saved ride selection.
+A browser free-roam driving game in an expanded 1.31km² coastal city. Five selectable downloaded cars: Concept GT, Voltic Roadster, Bavaria M-Coupe, Kanto Katana 1990 and Stuttgart Turbo. The main-menu garage has a live 3D interior, collection previews, tuning comparisons and saved ride selection.
 
 Run `npm run dev` and open http://127.0.0.1:4173. No installation or build needed. WebGL/hardware acceleration required. All models, rendering libraries and physics are bundled locally; Google Fonts has system fallbacks.
 
@@ -19,7 +19,7 @@ The challenge panel appears only in Rush. Research, measured optimizations and v
 - B: bank the current Rush chain
 - R: return to Ocean Drive (abandons Rush; retries on the result screen)
 - Enter: start/cancel coastal sprint
-- Esc or pause button: menu, garage, stats, map, sound, controls
+- P, Esc or pause button: menu, garage, stats, map, sound, controls
 - Touch controls are optional and off by default; enable in pause menu
 
 The pause button, radar and nitro meter appear while driving. Sprint time/results appear in the pause menu; green physical gates show the route.

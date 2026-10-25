@@ -22,7 +22,7 @@
     'Launch off stunt ramps at 180+ KM/H for maximum aerial hangtime',
     'Visit the Garage to tune colors, wheels, and customize your fleet',
     'Press C to cycle between Chase, Wide, and Cockpit cameras',
-    'Press ESC at any time to open Pause Menu for graphics & controls',
+    'Press P or ESC at any time to open the Pause Menu for graphics & controls',
   ];
   if (tipEl) {
     let index = Math.floor(Math.random() * TIPS.length);
