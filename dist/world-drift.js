@@ -1,3 +1,4 @@
+import {buildRaceGate} from './race-gates.js';
 import * as T from './vendor/three.module.js';
 import {DRIFT_PATH,DRIFT_WORLD,DRIFT_TRACK_DATA,driftSurfaceAt,addDriftColliders} from './drift-layout.js';
 export async function buildDriftWorld({scene,physics,loader,anisotropy=4}){
@@ -10,9 +11,9 @@ export async function buildDriftWorld({scene,physics,loader,anisotropy=4}){
 // Only checkpoint light frames are added during racing. The source track,
 // guardrails, foliage, decals and road material are never substituted.
 export function buildDriftRaceMarkers(scene,physics,path){
- const root=new T.Group();root.name='Drift timing gates';scene.add(root);const gates=[],geo=new T.BoxGeometry(1,1,1),dummy=new T.Object3D(),p={};
- for(let i=0;i<12;i++){path.sampleAtDistance(i*path.length/12,p);const gate=new T.Group(),material=new T.MeshBasicMaterial({color:0xfcaf17,transparent:true,opacity:.2}),parts=new T.InstancedMesh(geo,material,3);gate.position.set(p.x,.03,p.z);gate.rotation.y=p.heading;for(let j=0;j<3;j++){dummy.position.set(j===2?0:j===0?-5.5:5.5,j===2?4:2,0);dummy.scale.set(j===2?11:.08,j===2?.08:4,.08);dummy.updateMatrix();parts.setMatrixAt(j,dummy.matrix);}gate.add(parts);root.add(gate);gates.push(gate);}
- return {root,gates,dispose(){root.removeFromParent();geo.dispose();for(const gate of gates)gate.children[0].material.dispose();}};
+ const root=new T.Group();root.name='Drift timing gates';scene.add(root);const gates=[];
+ for(let i=0;i<12;i++){const gate=buildRaceGate(path,i,.03);root.add(gate);gates.push(gate);}
+ return {root,gates,dispose(){root.removeFromParent();root.traverse(n=>{if(n.isMesh){n.geometry.dispose();n.material.map?.dispose();n.material.dispose();}});}};
 }
 
 export {DRIFT_WORLD,DRIFT_PATH,DRIFT_GATES,DRIFT_DESTINATIONS,drawDriftMap} from './drift-layout.js';

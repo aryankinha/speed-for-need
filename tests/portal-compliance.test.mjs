@@ -81,3 +81,9 @@ test('game wires SDK: gameplay start/stop on pause, focus loss does not stop, mu
   assert.match(game,/setPause\(true,true\)/);
   assert.match(game,/if\(sdk\.muted\)return;soundOn=!soundOn/);
 });
+
+test('driving hint does not invoke browser timer functions with the hint as receiver',()=>{
+ const element={hidden:true};let callback,cleared=false;
+ const hint=new DriveHint(element,{setTimer:function(fn){assert.equal(this,undefined);callback=fn;return 7;},clearTimer:function(id){assert.equal(this,undefined);assert.equal(id,7);cleared=true;}});
+ assert.equal(hint.show(),true);assert.equal(element.hidden,false);callback();assert.equal(element.hidden,true);assert.ok(cleared);
+});

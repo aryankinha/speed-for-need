@@ -6,8 +6,8 @@ export class DriveHint {
   constructor(element, { duration = DRIVE_HINT_MS, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
     this.element = element;
     this.duration = duration;
-    this.setTimer = setTimer;
-    this.clearTimer = clearTimer;
+    this.setTimer = (callback, ms) => setTimer(callback, ms);
+    this.clearTimer = id => clearTimer(id);
     this.timer = null;
     this.shown = false;
   }

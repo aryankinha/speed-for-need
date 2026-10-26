@@ -1,3 +1,4 @@
+import {updateRaceGates} from './race-gates.js';
 import * as T from './vendor/three.module.js';
 import {VEHICLES} from './vehicles.js';
 import {CircuitPath,buildCircuit} from './race-track.js';
@@ -110,10 +111,10 @@ export class RaceMode{
    actor.setPose({x,z,heading:p.heading});actor.elevation=actor.groundPitch=actor.groundRoll=0;actor.groundElevation=actor.prevGroundElevation=this.groundY;actor.isAirborne=false;actor.rampId=null;actor.surfaceGrip=1;actor.surfaceDrag=0;actor.dragMultiplier=1;
    const splitTimes=new Float64Array(this.laps*12+1);splitTimes.fill(NaN);if(i===0)splitTimes[0]=0;
    const profile=DRIVER_PROFILES[def.id]||DEFAULT_PROFILE;
-   const entry={splitTimes,def,profile,actor,mesh,wheels,index:i,progress:grid,rankProgress:grid,lap:0,nextGate:i?0:1,lapStart:0,lapTime:0,bestLap:Infinity,finishTime:Infinity,nitro:40,boostGate:{boosting:false,locked:false},pad:new BoostPadTimer(this.pads),lastX:x,lastZ:z,controls:{throttle:0,reverse:0,brake:1,steer:0,boost:false,handbrake:false},exhaust:0,stuckTimer:0,recovery:0,recoveryTime:0,lane:lane,steering:0,wheelDistance:0,drafting:false,targetSpeed:0,boostRequest:false,passIndex:-1,passLane:0,passSide:1,tacticalMode:'raceline'};
+   const entry={splitTimes,def,profile,actor,mesh,wheels,index:i,progress:grid,rankProgress:grid,lap:0,nextGate:i?0:1,lapStart:0,lapTime:0,bestLap:Infinity,finishTime:Infinity,nitro:40,boostGate:{boosting:false,locked:false},pad:new BoostPadTimer(this.pads),lastX:x,lastZ:z,controls:{throttle:0,reverse:0,brake:1,steer:0,boost:false,handbrake:false},exhaust:0,stuckTimer:0,recovery:0,recoveryTime:0,lane:lane,steering:0,wheelDistance:0,drafting:false,targetSpeed:0,boostRequest:false,passIndex:-1,passLane:0,passSide:1,pressureMode:0,pressureTime:0,pressureCooldown:0,pressureLane:0,tacticalMode:'raceline'};
    this.entries.push(entry);if(i){this.opponents.push(entry);if(this.renderState)this.renderState.setActor(this.slotOffset+i-1,actor);}this.renderState?.snapSlot(0);
   }
-  this.buildMarkers();return this;
+  if(this.track)updateRaceGates(this.track.gates,1,this.laps);this.buildMarkers();return this;
  }
  buildMarkers(){if(!this.scene)return;this.markers=new T.Group();this.scene.add(this.markers);const material=new T.MeshBasicMaterial({color:0xfcaf17}),geometry=new T.BoxGeometry(5,.035,.3),strips=new T.InstancedMesh(geometry,material,9),dummy=new T.Object3D();let i=0;for(const p of this.pads)for(const z of [-2,0,2]){dummy.position.set(p.x+Math.sin(p.heading)*z,.05,p.z+Math.cos(p.heading)*z);dummy.rotation.y=p.heading;dummy.updateMatrix();strips.setMatrixAt(i++,dummy.matrix);}this.markers.add(strips);}
 
@@ -277,9 +278,34 @@ export class RaceMode{
    }
   }
 
+  // Brief arcade pressure maneuvers use the same steering and collision solver.
+  // Never chase a stopped/wrong-way car or squeeze a rival at a wall or hairpin.
+  const rival=this.entries[0].actor,rdx=rival.x-a.x,rdz=rival.z-a.z;
+  const rivalAhead=rdx*fx+rdz*fz,rivalLane=(rival.x-px)*rx+(rival.z-pz)*rz;
+  const halfLength=(a.length+rival.length)*.5,halfWidth=(a.width+rival.width)*.5;
+  e.pressureCooldown=Math.max(0,e.pressureCooldown-dt);
+  const canPressure=e.index>0&&this.phase==='racing'&&e.recovery===0&&abs>12&&rival.forwardSpeed>10&&Math.abs(speed-rival.forwardSpeed)<7&&Math.cos(rival.heading-a.heading)>.94&&Math.abs(localCurv)<.012&&Math.abs(this.look.curvature)<.016&&bounds.max-bounds.min>3&&Math.abs(playerGap)<35;
+  let pressure=0,pressureLane=currentLat;
+  if(canPressure){
+   if(rivalAhead< -halfLength-1&&rivalAhead>-23&&rival.forwardSpeed>speed+.4){
+    const prediction=rivalLane+(rival.vx*rx+rival.vz*rz)*.25;
+    pressureLane=clamp(prediction,Math.max(bounds.min+.25,currentLat-1.6),Math.min(bounds.max-.25,currentLat+1.6));pressure=1;
+   }else if(Math.abs(rivalAhead)<halfLength*.7&&Math.abs(speed-rival.forwardSpeed)<4.5&&Math.abs(currentLat-rivalLane)>halfWidth-.3&&Math.abs(currentLat-rivalLane)<halfWidth+1.3){
+    const side=currentLat>=rivalLane?1:-1;
+    pressureLane=rivalLane+side*(halfWidth-.10);
+    // Leave the player's outside lane open as well as respecting our own bounds.
+    if(pressureLane>=bounds.min+.35&&pressureLane<=bounds.max-.35&&rivalLane>=bounds.min+.35&&rivalLane<=bounds.max-.35)pressure=2;
+   }
+  }
+  if(pressure&&e.pressureCooldown===0&&this.isLaneClear(a,rival,pressureLane,bounds.min,bounds.max,px,pz,rx,rz,fx,fz)){
+   e.pressureTime+=dt;
+   if(e.pressureTime<=.9){e.pressureMode=pressure;e.pressureLane=pressureLane;desiredLane=pressureLane;e.passIndex=-1;e.tacticalMode=pressure===1?'block':'contest';}
+   else{e.pressureMode=0;e.pressureTime=0;e.pressureCooldown=2.4;}
+  }else{if(e.pressureMode)e.pressureCooldown=2.4;e.pressureMode=0;e.pressureTime=0;}
+
   // Side-by-side wheel-to-wheel awareness: prevent squeezing an overlapping car into the wall.
   for(let j=0;j<5;j++){
-   const b=this.entries[j].actor;if(b===a)continue;
+   const b=this.entries[j].actor;if(b===a||(b===rival&&e.pressureMode===2))continue;
    const dx=b.x-a.x,dz=b.z-a.z,ahead=dx*fx+dz*fz;
    if(Math.abs(ahead)<(a.length+b.length)*.5+1.2&&Math.cos(b.heading-a.heading)>.6){
     const bLane=(b.x-px)*rx+(b.z-pz)*rz,minSep=(a.width+b.width)*.5+.48;
@@ -288,7 +314,7 @@ export class RaceMode{
    }
   }
 
-  const laneRate=e.tacticalMode==='overtake'?3.4:(isTechnical?2.2:2.7);
+  const laneRate=e.pressureMode?3.2:e.tacticalMode==='overtake'?3.4:(isTechnical?2.2:2.7);
   e.lane=T.MathUtils.damp(e.lane,desiredLane,laneRate,dt);
 
   path.sampleAtDistance(e.progress+L,this.look);
@@ -316,7 +342,7 @@ export class RaceMode{
   // Match closing speed when a slower car blocks the lane ahead and no passing gap exists.
   for(let j=0;j<5;j++){
    const b=this.entries[j].actor;if(b===a)continue;const dx=b.x-a.x,dz=b.z-a.z,ahead=-dx*Math.sin(a.heading)-dz*Math.cos(a.heading);
-   if(ahead>0&&ahead<35&&Math.cos(b.heading-a.heading)>.5&&Math.abs((b.x-px)*rx+(b.z-pz)*rz-desiredLane)<(a.width+b.width)*.5+.35){
+   if(!(b===rival&&e.pressureMode===2&&ahead<halfLength*.7)&&ahead>0&&ahead<35&&Math.cos(b.heading-a.heading)>.5&&Math.abs((b.x-px)*rx+(b.z-pz)*rz-desiredLane)<(a.width+b.width)*.5+.35){
     const room=Math.max(0,ahead-(a.length+b.length)*.5-2-abs*.15),otherSpeed=Math.max(0,b.forwardSpeed);
     safeSpeed=Math.min(safeSpeed,Math.sqrt(otherSpeed*otherSpeed+2*brakeAccel*room));
    }
@@ -353,6 +379,6 @@ export class RaceMode{
   for(let i=1;i<5;i++){const id=this.order[i],e=this.entries[id];let j=i-1;while(j>=0){const b=this.entries[this.order[j]],ahead=Number.isFinite(e.finishTime)?(!Number.isFinite(b.finishTime)||e.finishTime<b.finishTime):(!Number.isFinite(b.finishTime)&&e.rankProgress>b.rankProgress);if(!ahead)break;this.order[j+1]=this.order[j];j--;}this.order[j+1]=id;}
   if(this.phase==='finishing'){this.finishWait+=dt;let finished=0;for(let i=0;i<5;i++)if(Number.isFinite(this.entries[i].finishTime))finished++;if(finished===5||this.finishWait>45){this.phase='finished';this.revision++;}}
  }
- render(alpha,dt){if(!this.active||!this.scene)return;const next=this.entries[0].nextGate%12;for(let i=0;i<this.track.gates.length;i++){const m=this.track.gates[i].children[0].material;m.opacity=i===next?.85:.18;} for(let i=0;i<this.opponents.length;i++){const e=this.opponents[i];if(!e.mesh)continue;if(this.renderState)this.renderState.sample(this.slotOffset+i,alpha,this.pose);else{this.pose.x=e.actor.x;this.pose.z=e.actor.z;this.pose.heading=e.actor.heading;}e.mesh.position.set(this.pose.x,this.groundY,this.pose.z);e.mesh.rotation.y=this.pose.heading;e.wheelDistance+=e.actor.forwardSpeed*dt;for(let j=0;j<e.wheels.length;j++){const w=e.wheels[j];this.spinQ.setFromAxisAngle(w.spinAxis||T.Object3D.DEFAULT_UP,e.wheelDistance/w.radius*w.rollSign);w.node.quaternion.copy(w.base).multiply(this.spinQ);if(w.front){this.steerQ.setFromAxisAngle(w.steerAxis||T.Object3D.DEFAULT_UP,e.controls.steer*e.actor.config.steerAngle/(1+Math.abs(e.actor.forwardSpeed)/44));w.node.quaternion.premultiply(this.steerQ);}}}if(this.pickupMeshes)for(let i=0;i<10;i++){this.pickupMeshes[i].visible=this.pickups[i].active;this.pickupMeshes[i].rotation.y+=dt;}}
+ render(alpha,dt){if(!this.active||!this.scene)return;updateRaceGates(this.track.gates,this.entries[0].nextGate,this.laps); for(let i=0;i<this.opponents.length;i++){const e=this.opponents[i];if(!e.mesh)continue;if(this.renderState)this.renderState.sample(this.slotOffset+i,alpha,this.pose);else{this.pose.x=e.actor.x;this.pose.z=e.actor.z;this.pose.heading=e.actor.heading;}e.mesh.position.set(this.pose.x,this.groundY,this.pose.z);e.mesh.rotation.y=this.pose.heading;e.wheelDistance+=e.actor.forwardSpeed*dt;for(let j=0;j<e.wheels.length;j++){const w=e.wheels[j];this.spinQ.setFromAxisAngle(w.spinAxis||T.Object3D.DEFAULT_UP,e.wheelDistance/w.radius*w.rollSign);w.node.quaternion.copy(w.base).multiply(this.spinQ);if(w.front){this.steerQ.setFromAxisAngle(w.steerAxis||T.Object3D.DEFAULT_UP,e.controls.steer*e.actor.config.steerAngle/(1+Math.abs(e.actor.forwardSpeed)/44));w.node.quaternion.premultiply(this.steerQ);}}}if(this.pickupMeshes)for(let i=0;i<10;i++){this.pickupMeshes[i].visible=this.pickups[i].active;this.pickupMeshes[i].rotation.y+=dt;}}
  stop(){if(!this.active)return;for(const e of this.entries)e.actor.dragMultiplier=1;for(let i=0;i<this.opponents.length;i++){const e=this.opponents[i];e.mesh?.removeFromParent();if(this.renderState)this.renderState.clearActor(this.slotOffset+i);this.physics.remove(e.actor);}this.track?.dispose();this.ownedAsphalt?.dispose();if(this.markers){this.markers.removeFromParent();const gs=new Set(),ms=new Set();this.markers.traverse(n=>{if(n.isMesh){gs.add(n.geometry);ms.add(n.material);}});for(const g of gs)g.dispose();for(const m of ms)m.dispose();}for(let i=0;i<this.savedActors.length;i++)if(this.savedActors[i].body.isActive()!==this.savedActive[i])this.savedActors[i].body.setActive(this.savedActive[i]);for(let i=0;i<this.savedVisuals.length;i++)this.savedVisuals[i].visible=this.savedVisibility[i];this.player.setPose(this.savedPose);this.player.groundElevation=0;this.renderState?.snapSlot(0);this.entries=[];this.opponents=[];this.active=false;this.phase='idle';}
 }
