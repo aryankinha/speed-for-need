@@ -19,7 +19,7 @@
     "electron": "^45.0.0",
     "electron-builder": "^26.15.3"
   },
-  "description": "SPEED FOR NEED \u2014 open-world arcade racer (three.js + Planck.js) for browser and desktop (Electron).",
+  "description": "SPEED FOR NEED — open-world arcade racer (three.js + Planck.js) for browser and desktop (Electron).",
   "author": "Aryan Kinha",
   "license": "UNLICENSED",
   "build": {
@@ -84,5 +84,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
   }
 }
