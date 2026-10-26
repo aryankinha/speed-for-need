@@ -111,7 +111,7 @@ export class RaceMode{
    actor.setPose({x,z,heading:p.heading});actor.elevation=actor.groundPitch=actor.groundRoll=0;actor.groundElevation=actor.prevGroundElevation=this.groundY;actor.isAirborne=false;actor.rampId=null;actor.surfaceGrip=1;actor.surfaceDrag=0;actor.dragMultiplier=1;
    const splitTimes=new Float64Array(this.laps*12+1);splitTimes.fill(NaN);if(i===0)splitTimes[0]=0;
    const profile=DRIVER_PROFILES[def.id]||DEFAULT_PROFILE;
-   const entry={splitTimes,def,profile,actor,mesh,wheels,index:i,progress:grid,rankProgress:grid,lap:0,nextGate:i?0:1,lapStart:0,lapTime:0,bestLap:Infinity,finishTime:Infinity,nitro:40,boostGate:{boosting:false,locked:false},pad:new BoostPadTimer(this.pads),lastX:x,lastZ:z,controls:{throttle:0,reverse:0,brake:1,steer:0,boost:false,handbrake:false},exhaust:0,stuckTimer:0,recovery:0,recoveryTime:0,lane:lane,steering:0,wheelDistance:0,drafting:false,targetSpeed:0,boostRequest:false,passIndex:-1,passLane:0,passSide:1,pressureMode:0,pressureTime:0,pressureCooldown:0,pressureLane:0,tacticalMode:'raceline'};
+   const entry={splitTimes,def,profile,actor,mesh,wheels,index:i,progress:grid,rankProgress:grid,lap:0,nextGate:i?0:1,lapStart:0,lapTime:0,bestLap:Infinity,finishTime:Infinity,nitro:40,pickupCooldowns:new Float32Array(this.pickups.length),boostGate:{boosting:false,locked:false},pad:new BoostPadTimer(this.pads),lastX:x,lastZ:z,controls:{throttle:0,reverse:0,brake:1,steer:0,boost:false,handbrake:false},exhaust:0,stuckTimer:0,recovery:0,recoveryTime:0,lane:lane,steering:0,wheelDistance:0,drafting:false,targetSpeed:0,boostRequest:false,passIndex:-1,passLane:0,passSide:1,pressureMode:0,pressureTime:0,pressureCooldown:0,pressureLane:0,tacticalMode:'raceline'};
    this.entries.push(entry);if(i){this.opponents.push(entry);if(this.renderState)this.renderState.setActor(this.slotOffset+i-1,actor);}this.renderState?.snapSlot(0);
   }
   if(this.track)updateRaceGates(this.track.gates,1,this.laps);this.buildMarkers();return this;
@@ -198,7 +198,7 @@ export class RaceMode{
    }
    if(e.nitro<=80){
     for(let p=0;p<this.pickups.length;p++){
-     const pk=this.pickups[p];if(!pk.active)continue;
+     const pk=this.pickups[p];if(e.pickupCooldowns[p]>0)continue;
      const dx=pk.x-a.x,dz=pk.z-a.z,ahead=dx*fx+dz*fz;
      if(ahead<4||ahead>34)continue;
      const pLane=clamp((pk.x-px)*rx+(pk.z-pz)*rz,tacticalMin,tacticalMax);
@@ -369,11 +369,16 @@ export class RaceMode{
  project(e){const a=e.actor,moved=Math.hypot(a.x-e.lastX,a.z-e.lastZ);e.lastX=a.x;e.lastZ=a.z;if(moved<1e-9)return e.progress;const limit=moved*2+.02;return clamp(this.path.nearest(a.x,a.z,e.progress,Math.min(35,Math.max(.75,moved*3+.25))),e.progress-limit,e.progress+limit);}
  afterStep(dt){
   if(!this.active||!(this.phase==='racing'||this.phase==='finishing'))return;this.time+=dt;const spacing=this.path.length/12;
-  for(let i=0;i<10;i++){const p=this.pickups[i];if(!p.active){p.cooldown-=dt;if(p.cooldown<=0)p.active=true;}}
   for(let i=0;i<5;i++){const e=this.entries[i],a=e.actor;if(Number.isFinite(e.finishTime)){e.progress=this.project(e);continue;}const old=e.progress;e.progress=this.project(e);e.lapTime=this.time-e.lapStart;
    const gate=e.nextGate*spacing;if(old<=gate&&e.progress>=gate&&e.progress-old<5){this.path.sampleAtDistance(gate,this.scratch);if(Math.hypot(a.x-this.scratch.x,a.z-this.scratch.z)<10&&a.forwardSpeed>0){e.splitTimes[e.nextGate]=this.time;if(e.nextGate>0&&e.nextGate%12===0){e.lap++;e.bestLap=Math.min(e.bestLap,e.lapTime);e.lapStart=this.time;e.lapTime=0;if(e.lap>=this.laps){e.finishTime=this.time;this.revision++;if(i===0){this.phase='finishing';this.finishWait=0;}}}e.nextGate++;}}
    e.rankProgress=Math.min(e.progress,e.nextGate*spacing);
-   for(let j=0;j<10;j++){const p=this.pickups[j];if(p.active&&e.nitro<=80&&(a.x-p.x)**2+(a.z-p.z)**2<10){e.nitro=fillNitro(e.nitro,20);p.active=false;p.cooldown=12;}}
+   // Each racer owns its pickup cooldowns. World bottle visibility reflects
+   // only the player, so an opponent can never consume the player's refill.
+   for(let j=0;j<this.pickups.length;j++){
+    const p=this.pickups[j];e.pickupCooldowns[j]=Math.max(0,e.pickupCooldowns[j]-dt);
+    if(e.pickupCooldowns[j]===0&&e.nitro<=80&&(a.x-p.x)**2+(a.z-p.z)**2<10){e.nitro=fillNitro(e.nitro,20);e.pickupCooldowns[j]=12;}
+    if(i===0){p.cooldown=e.pickupCooldowns[j];p.active=p.cooldown===0;}
+   }
   }
   // Stable insertion sort of five indices, no callback/temporary array.
   for(let i=1;i<5;i++){const id=this.order[i],e=this.entries[id];let j=i-1;while(j>=0){const b=this.entries[this.order[j]],ahead=Number.isFinite(e.finishTime)?(!Number.isFinite(b.finishTime)||e.finishTime<b.finishTime):(!Number.isFinite(b.finishTime)&&e.rankProgress>b.rankProgress);if(!ahead)break;this.order[j+1]=this.order[j];j--;}this.order[j+1]=id;}

@@ -244,7 +244,26 @@ function updateCircuit(dt){
  for(let i=0;i<physics.lastImpacts.length;i++){const impact=physics.lastImpacts[i];if(impact.speed>2&&elapsed-lastImpact>.08&&(impact.a===playerActor||impact.b===playerActor||Math.hypot(impact.x-playerActor.x,impact.z-playerActor.z)<30)){lastImpact=elapsed;raceSparks.emit(impact.x,impact.z,impact.speed);audio.onImpact(impact.speed);impactShake=Math.min(.2,impact.speed*.012);}}
  nitroFrame.active=boosting||circuit.entries[0].pad.active;nitroFrame.speed=playerActor.speed;nitroFrame.time=renderState.time;nitroFrame.position=pos;nitroFrame.heading=playerActor.heading;nitroFrame.paused=false;nitro.update(dt,nitroFrame);if(nitroFrame.active!==nitroBodyClass){nitroBodyClass=nitroFrame.active;document.body.classList.toggle('nitro-active',nitroBodyClass);}for(let i=0;i<circuit.opponents.length;i++){const e=circuit.opponents[i];if(e.mesh&&(e.boostGate.boosting||e.pad.active)){e.exhaust+=dt*60;while(e.exhaust>=1){nitro.emit(e.mesh.position,e.actor.heading,e.actor.speed);e.exhaust--;}}}nitroHud.update(boost,dt,boosting,circuit.entries[0].boostGate.locked);updateCamera(dt);audio.update(playerActor,circuit.phase==='countdown'?.6:driveInput.throttle,driveInput.handbrake,nitroFrame.active,dt);audio.updateTraffic(circuit.opponents,playerActor,dt);circuitHud.render(dt,circuit,paused);drawCircuitRadar(dt);debugClock+=dt;if(debugClock>.1){debugClock=0;writeTelemetry();}
 }
-function drawCircuitRadar(dt=0){if(!radarDue(dt))return;if(!radarCtx||!circuit?.active)return;const ctx=radarCtx,path=circuit.path;ctx.clearRect(0,0,320,320);ctx.save();ctx.beginPath();ctx.arc(160,160,155,0,Math.PI*2);ctx.clip();ctx.fillStyle='#111b25';ctx.fillRect(0,0,320,320);ctx.translate(160,160);ctx.rotate(playerActor.heading);ctx.scale(.22,.22);ctx.translate(-playerActor.x,-playerActor.z);const layer=raceRadarLayer(path);ctx.drawImage(layer.canvas,layer.x,layer.z,layer.width,layer.height);for(let i=4;i>=0;i--){const e=circuit.entries[i];ctx.fillStyle=i?'#fcaf17':'#ffffff';ctx.beginPath();ctx.arc(e.actor.x,e.actor.z,i?8:10,0,Math.PI*2);ctx.fill();}ctx.restore();radarDistrict.textContent=circuit.name.toUpperCase();radarSpeed.textContent=Math.round(playerActor.speed*3.6)+' KM/H';}
+function drawCircuitRadar(dt=0){
+ if(!radarDue(dt)||!radarCtx||!circuit?.active)return;
+ const ctx=radarCtx,path=circuit.path,heading=playerActor.heading,cos=Math.cos(heading),sin=Math.sin(heading);
+ // Local view: about 125–155 m to the rim, rather than the former 700 m.
+ const zoom=lerp(1.25,1,Math.min(1,playerActor.speed/55));
+ ctx.clearRect(0,0,320,320);ctx.save();ctx.beginPath();ctx.arc(160,160,155,0,Math.PI*2);ctx.clip();ctx.fillStyle='#111b25';ctx.fillRect(0,0,320,320);
+ ctx.save();ctx.translate(160,160);ctx.rotate(heading);ctx.scale(zoom,zoom);ctx.translate(-playerActor.x,-playerActor.z);
+ const layer=raceRadarLayer(path);ctx.drawImage(layer.canvas,layer.x,layer.z,layer.width,layer.height);ctx.restore();
+ // Draw markers in pixels, so they stay readable independently of world zoom.
+ // Distant opponents stay on the rim instead of disappearing from the radar.
+ for(let i=4;i>0;i--){
+  const a=circuit.entries[i].actor,dx=a.x-playerActor.x,dz=a.z-playerActor.z;
+  let x=(dx*cos-dz*sin)*zoom,y=(dx*sin+dz*cos)*zoom;const distance=Math.hypot(x,y),far=distance>142;
+  if(far){x=x/distance*142;y=y/distance*142;}
+  ctx.fillStyle='#fcaf17';ctx.strokeStyle='#081017';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(160+x,160+y,far?5:7,0,Math.PI*2);ctx.fill();ctx.stroke();
+ }
+ ctx.fillStyle='#ffffff';ctx.strokeStyle='#081017';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(160,146);ctx.lineTo(170,171);ctx.lineTo(160,165);ctx.lineTo(150,171);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+ if(radarNorth){radarNorth.style.left=(50+sin*41).toFixed(2)+'%';radarNorth.style.top=(50-cos*41).toFixed(2)+'%';}
+ radarDistrict.textContent=circuit.name.toUpperCase();radarSpeed.textContent=Math.round(playerActor.speed*3.6)+' KM/H';
+}
 function startRace(){startCircuit();}
 function moveGate(){const point=gates[checkpoint],prev=checkpoint?gates[checkpoint-1]:[WORLD.spawn.x,WORLD.spawn.z];gate.position.set(point[0],0,point[1]);gate.rotation.y=Math.abs(point[0]-prev[0])>Math.abs(point[1]-prev[1])?Math.PI/2:0;}
 // Every visible HUD element lives in the pause menu. No notifications obscure driving.
@@ -343,7 +362,7 @@ function drawRadar(dt){
   if(!radarDue(dt))return;
   if(!radarCanvas||!radarCtx||!playerActor)return;
   const spd=playerActor.speed,px=renderPose.x,pz=renderPose.z,ph=renderPose.heading;
-  const zoom=lerp(0.32,0.18,Math.min(1,spd/45));
+  const zoom=isDrift?lerp(1.25,1,Math.min(1,spd/55)):lerp(0.32,0.18,Math.min(1,spd/45));
   radarCtx.save();
   radarCtx.clearRect(0,0,320,320);
   radarCtx.beginPath();

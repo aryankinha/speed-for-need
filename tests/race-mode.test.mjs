@@ -67,7 +67,7 @@ test('AI drivers have distinct personas and actively execute draft, pickup and d
  race.pickups[0].active=true;race.pickups[0].x=a.x+scratch.dx*20+rx*1.5;race.pickups[0].z=a.z+scratch.dz*20+rz*1.5;
  e.nitro=30;race.driveAI(e,1/120);
  assert.equal(e.tacticalMode,'pickup');
- race.pickups[0].active=false;
+ e.pickupCooldowns[0]=12;
  // 2. Slipstream seeking: place a fast car 22 m ahead and 1.4 m to the left on a straight.
  const leader=race.entries[0].actor;
  leader.setPose({x:a.x+scratch.dx*22-rx*1.4,z:a.z+scratch.dz*22-rz*1.4,heading:a.heading,vx:scratch.dx*30,vz:scratch.dz*30});
